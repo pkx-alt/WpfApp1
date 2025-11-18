@@ -5,15 +5,211 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:WpfApp1.Views"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="ReportesPage">
+      d:DesignHeight="700" d:DesignWidth="900"
+      Title="ReportesPage"
+      FontFamily="Segoe UI">
 
-    <Grid Background="White">
-        <TextBlock Text="PÁGINA DE REPORTES" 
-           FontSize="48" 
-           FontWeight="Bold" 
-           HorizontalAlignment="Center" 
-           VerticalAlignment="Center" 
-           Foreground="Gray"/>
+    <Page.Resources>
+        <Style x:Key="ReportOptionStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Height" Value="110"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#B0BEC5" Opacity="0.1" BlurRadius="8" ShadowDepth="2"/>
+                            </Border.Effect>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#F1F8FF"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#007ACC"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E1F0FF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ReportIcon" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Foreground" Value="#555"/>
+        </Style>
+
+        <Style x:Key="ReportTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#333"/>
+        </Style>
+
+        <Style x:Key="ReportDesc" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="#F4F7F9">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="30,30,30,10">
+            <TextBlock Text="Centro de Reportes" 
+                       FontSize="28" 
+                       FontWeight="Bold" 
+                       Foreground="#343a40"/>
+            <TextBlock Text="Selecciona un reporte para configurar y generar" 
+                       FontSize="14" 
+                       Foreground="#6c757d"
+                       Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="20,10,20,0">
+            <StackPanel>
+
+                <TextBlock Text="VENTAS Y OPERACIÓN" FontSize="12" FontWeight="Bold" Foreground="#999" Margin="15,10,0,5"/>
+                <UniformGrid Columns="3">
+                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                        <StackPanel>
+                            <TextBlock Text="🛒" Style="{StaticResource ReportIcon}"/>
+                            <TextBlock Text="Historial de Ventas" Style="{StaticResource ReportTitle}"/>
+                            <TextBlock Text="Detalle completo de transacciones por fecha." Style="{StaticResource ReportDesc}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                        <StackPanel>
+                            <TextBlock Text="📅" Style="{StaticResource ReportIcon}"/>
+                            <TextBlock Text="Cortes de Caja" Style="{StaticResource ReportTitle}"/>
+                            <TextBlock Text="Resumen de aperturas y cierres de turno." Style="{StaticResource ReportDesc}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                        <StackPanel>
+                            <TextBlock Text="🏆" Style="{StaticResource ReportIcon}"/>
+                            <TextBlock Text="Productos Más Vendidos" Style="{StaticResource ReportTitle}"/>
+                            <TextBlock Text="Top 10 productos por cantidad o monto." Style="{StaticResource ReportDesc}"/>
+                        </StackPanel>
+                    </Button>
+                </UniformGrid>
+
+                <TextBlock Text="INVENTARIO" FontSize="12" FontWeight="Bold" Foreground="#999" Margin="15,20,0,5"/>
+                <UniformGrid Columns="3">
+                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                        <StackPanel>
+                            <TextBlock Text="📦" Style="{StaticResource ReportIcon}"/>
+                            <TextBlock Text="Existencias Actuales" Style="{StaticResource ReportTitle}"/>
+                            <TextBlock Text="Reporte valorizado del inventario actual." Style="{StaticResource ReportDesc}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                        <StackPanel>
+                            <TextBlock Text="⚠️" Style="{StaticResource ReportIcon}" Foreground="#D9534F"/>
+                            <TextBlock Text="Bajo Stock" Style="{StaticResource ReportTitle}"/>
+                            <TextBlock Text="Productos que necesitan reposición urgente." Style="{StaticResource ReportDesc}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                        <StackPanel>
+                            <TextBlock Text="📉" Style="{StaticResource ReportIcon}"/>
+                            <TextBlock Text="Movimientos de Inventario" Style="{StaticResource ReportTitle}"/>
+                            <TextBlock Text="Entradas, salidas y ajustes manuales." Style="{StaticResource ReportDesc}"/>
+                        </StackPanel>
+                    </Button>
+                </UniformGrid>
+
+                <TextBlock Text="FINANZAS Y CLIENTES" FontSize="12" FontWeight="Bold" Foreground="#999" Margin="15,20,0,5"/>
+                <UniformGrid Columns="3">
+                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                        <StackPanel>
+                            <TextBlock Text="💰" Style="{StaticResource ReportIcon}" Foreground="#28A745"/>
+                            <TextBlock Text="Ganancias" Style="{StaticResource ReportTitle}"/>
+                            <TextBlock Text="Utilidad bruta (Ventas - Costos)." Style="{StaticResource ReportDesc}"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                        <StackPanel>
+                            <TextBlock Text="👥" Style="{StaticResource ReportIcon}"/>
+                            <TextBlock Text="Listado de Clientes" Style="{StaticResource ReportTitle}"/>
+                            <TextBlock Text="Directorio de clientes registrados." Style="{StaticResource ReportDesc}"/>
+                        </StackPanel>
+                    </Button>
+                </UniformGrid>
+
+                <Rectangle Height="20"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Periodo:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                    <DatePicker Width="120" VerticalContentAlignment="Center"/>
+                    <TextBlock Text="al" VerticalAlignment="Center" Margin="10,0"/>
+                    <DatePicker Width="120" VerticalContentAlignment="Center"/>
+
+                    <TextBlock Text="Formato:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="25,0,10,0"/>
+                    <ComboBox Width="100" SelectedIndex="0" VerticalContentAlignment="Center">
+                        <ComboBoxItem Content="PDF"/>
+                        <ComboBoxItem Content="Excel"/>
+                        <ComboBoxItem Content="Pantalla"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="Vista Previa" 
+                            Background="#6c757d" Foreground="White" FontWeight="Bold"
+                            Padding="20,10" BorderThickness="0" Margin="0,0,10,0"
+                            Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <Button Content="Generar Reporte" 
+                            Background="#007ACC" Foreground="White" FontWeight="Bold"
+                            Padding="20,10" BorderThickness="0"
+                            Cursor="Hand"
+                            Click="BtnGenerar_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="5"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Page>

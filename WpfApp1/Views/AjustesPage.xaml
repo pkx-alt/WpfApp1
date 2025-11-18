@@ -5,15 +5,183 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:WpfApp1.Views"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="AjustesPage">
+      d:DesignHeight="800" d:DesignWidth="800"
+      Title="AjustesPage"
+      FontFamily="Segoe UI">
 
-    <Grid Background="White">
-        <TextBlock Text="PÁGINA DE AJUSTES" 
-           FontSize="48" 
-           FontWeight="Bold" 
-           HorizontalAlignment="Center" 
-           VerticalAlignment="Center" 
-           Foreground="Gray"/>
+    <Page.Resources>
+        <Style x:Key="SettingsCard" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#B0BEC5" Opacity="0.1" BlurRadius="10" ShadowDepth="2"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#343a40"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#6c757d"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="#F4F7F9">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="30">
+
+                <TextBlock Text="Configuración del Sistema" 
+                           FontSize="28" 
+                           FontWeight="Bold" 
+                           Foreground="#343a40"
+                           Margin="0,0,0,5"/>
+                <TextBlock Text="Personaliza los datos de tu negocio y preferencias" 
+                           FontSize="14" 
+                           Foreground="#6c757d"
+                           Margin="0,0,0,25"/>
+
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="🏢" FontSize="20" Margin="0,0,10,0"/>
+                            <TextBlock Text="Datos del Negocio" Style="{StaticResource SectionTitle}" Margin="0"/>
+                        </StackPanel>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Nombre de la Tienda:" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="Papelería Orysí"/>
+
+                                <TextBlock Text="Dirección:" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="Av. Principal #123, Centro"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="RFC (Opcional):" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="XAXX010101000"/>
+
+                                <TextBlock Text="Teléfono:" Style="{StaticResource FieldLabel}"/>
+                                <TextBox Text="55 1234 5678"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Mensaje al final del ticket:" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="¡Gracias por su compra!" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="🖨️" FontSize="20" Margin="0,0,10,0"/>
+                            <TextBlock Text="Impresión y Ticket" Style="{StaticResource SectionTitle}" Margin="0"/>
+                        </StackPanel>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Seleccionar Impresora:" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox Height="30" Margin="0,0,0,15" SelectedIndex="0">
+                                    <ComboBoxItem Content="Microsoft Print to PDF"/>
+                                    <ComboBoxItem Content="EPSON TM-T20II"/>
+                                    <ComboBoxItem Content="POS-58"/>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Ancho de papel:" Style="{StaticResource FieldLabel}"/>
+                                <ComboBox Height="30" Margin="0,0,0,15" SelectedIndex="1">
+                                    <ComboBoxItem Content="58mm"/>
+                                    <ComboBoxItem Content="80mm"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Grid>
+
+                        <CheckBox Content="Preguntar antes de imprimir al finalizar venta" 
+                                  IsChecked="True" Margin="0,5"/>
+                        <CheckBox Content="Imprimir copia para el negocio" 
+                                  Margin="0,5"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource SettingsCard}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="💾" FontSize="20" Margin="0,0,10,0"/>
+                            <TextBlock Text="Base de Datos y Respaldo" Style="{StaticResource SectionTitle}" Margin="0"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Es recomendable realizar respaldos periódicos de tu inventario y ventas." 
+                                   Foreground="Gray" Margin="0,0,0,15" TextWrapping="Wrap"/>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Crear Respaldo" 
+                                    Background="#007ACC" Foreground="White" FontWeight="Bold"
+                                    Padding="15,8" BorderThickness="0" Cursor="Hand"
+                                    Margin="0,0,10,0">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+
+                            <Button Content="Restaurar Datos" 
+                                    Background="#6c757d" Foreground="White" FontWeight="Bold"
+                                    Padding="15,8" BorderThickness="0" Cursor="Hand">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Button HorizontalAlignment="Right" 
+                        Background="#28A745" Foreground="White" FontWeight="Bold" FontSize="16"
+                        Padding="30,10" BorderThickness="0" Cursor="Hand"
+                        Content="Guardar Cambios"
+                        Click="BtnGuardar_Click">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="5"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </Page>

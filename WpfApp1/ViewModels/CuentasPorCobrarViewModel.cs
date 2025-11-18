@@ -155,10 +155,69 @@ namespace WpfApp1.ViewModels
             return DeudorSeleccionado != null;
         }
 
+        // En ViewModels/CuentasPorCobrarViewModel.cs
+
         private void EjecutarAbono(object param)
         {
-            MessageBox.Show($"Aquí abriremos la ventana para abonar a: {DeudorSeleccionado.NombreCompleto}\nDeuda Total: {TotalSeleccionado:C}");
-            // En la próxima lección implementamos esto ;)
+            // 1. Validación de seguridad
+            if (MovimientoSeleccionado == null || DeudorSeleccionado == null) return;
+
+            // 2. Preparamos el Modal
+            var vm = new RegistroAbonoViewModel(MovimientoSeleccionado.SaldoPendiente);
+            var ventana = new WpfApp1.Views.Dialogs.RegistroAbonoWindow
+            {
+                DataContext = vm,
+                Owner = Application.Current.MainWindow
+            };
+
+            // Conectamos el cierre
+            vm.CloseAction = (resultado) =>
+            {
+                ventana.DialogResult = resultado;
+                ventana.Close();
+            };
+
+            // 3. Mostramos la ventana
+            if (ventana.ShowDialog() == true)
+            {
+                // ¡EL USUARIO DIJO SÍ! -> A PAGAR
+                using (var db = new InventarioDbContext())
+                {
+                    // A) Actualizamos la Venta
+                    var ventaEnBD = db.Ventas.Find(MovimientoSeleccionado.VentaId);
+                    if (ventaEnBD != null)
+                    {
+                        ventaEnBD.PagoRecibido += vm.MontoAbono;
+                        // (No tocamos 'Cambio' ni 'Total', solo aumentamos lo pagado)
+                    }
+
+                    // B) Registramos el Ingreso en Caja (IMPORTANTE)
+                    var nuevoIngreso = new Ingreso
+                    {
+                        Fecha = DateTime.Now,
+                        Categoria = "Abono de Cliente",
+                        // Guardamos detalle en el concepto para saber de quién fue
+                        Concepto = $"Abono a Ticket #{ventaEnBD.VentaId} - {DeudorSeleccionado.NombreCompleto} ({vm.MetodoPago})",
+                        Usuario = "Admin", // O el usuario actual si tuvieras login
+                        Monto = vm.MontoAbono
+                    };
+                    db.Ingresos.Add(nuevoIngreso);
+
+                    // C) Guardamos todo
+                    db.SaveChanges();
+
+                    MessageBox.Show("Abono registrado correctamente.", "Éxito");
+                }
+
+                // 4. Refrescar la pantalla para ver los nuevos saldos
+                // Guardamos el ID del cliente actual para volver a seleccionarlo
+                int idClienteActual = DeudorSeleccionado.ClienteId;
+
+                CargarDeudores(); // Recarga la lista izquierda
+
+                // Volvemos a seleccionar al cliente para ver su tabla derecha actualizada
+                DeudorSeleccionado = ListaDeudores.FirstOrDefault(c => c.ClienteId == idClienteActual);
+            }
         }
     }
 }

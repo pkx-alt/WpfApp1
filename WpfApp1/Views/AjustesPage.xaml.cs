@@ -1,28 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace WpfApp1.Views
 {
-    /// <summary>
-    /// Lógica de interacción para AjustesPage.xaml
-    /// </summary>
     public partial class AjustesPage : Page
     {
         public AjustesPage()
         {
             InitializeComponent();
+        }
+
+        private void BtnGuardar_Click(object sender, RoutedEventArgs e)
+        {
+            // Aquí es donde en el futuro conectaremos con Properties.Settings.Default
+            // o con la base de datos para guardar el nombre de la tienda, impresora, etc.
+
+            MessageBox.Show("¡Configuración guardada correctamente!", "Sistema", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

@@ -1,28 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows.Controls;
 
 namespace WpfApp1.Views
 {
-    /// <summary>
-    /// Lógica de interacción para FacturacionPage.xaml
-    /// </summary>
     public partial class FacturacionPage : Page
     {
         public FacturacionPage()
         {
             InitializeComponent();
         }
+    }
+
+    // --- CLASES SIMPLES SOLO PARA QUE SE VEA EL DISEÑO (BORRAR LUEGO O MOVER A MODELS) ---
+    public class FacturaEjemplo
+    {
+        public string Folio { get; set; }
+        public string Fecha { get; set; }
+        public string Cliente { get; set; }
+        public string RFC { get; set; }
+        public double Total { get; set; }
+    }
+
+    public class FacturaHistorialEjemplo
+    {
+        public string UUID { get; set; }
+        public string SerieFolio { get; set; }
+        public string Cliente { get; set; }
+        public string Total { get; set; }
     }
 }

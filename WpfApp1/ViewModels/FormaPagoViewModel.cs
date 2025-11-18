@@ -137,29 +137,56 @@ namespace WpfApp1.ViewModels
 
         // --- 4. Lógica de Métodos (Acciones) ---
 
+        // En ViewModels/FormaPagoViewModel.cs
+
         private void EjecutarFinalizarVenta(object parameter)
         {
-            // ¡La misma validación que ya tenías!
-            if (PagoRecibido < TotalAPagar)
+            // Si es Público General y falta dinero -> ERROR (Esto ya lo validaba el botón, pero por seguridad)
+            if ((ClienteSeleccionado == null || ClienteSeleccionado.ID == 0) && PagoRecibido < TotalAPagar)
             {
-                MessageBox.Show("El pago recibido es menor que el total de la venta.", "Pago Insuficiente", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return; // No cerramos
+                MessageBox.Show("Público en General debe liquidar el total de la venta.", "Pago Insuficiente", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
 
-            // ¡Todo bien! Le decimos a la Vista que cierre y devuelva "true"
+            // Si es Cliente y falta dinero -> AVISO DE CRÉDITO
+            if (ClienteSeleccionado != null && ClienteSeleccionado.ID != 0 && PagoRecibido < TotalAPagar)
+            {
+                decimal deuda = TotalAPagar - PagoRecibido;
+                var resultado = MessageBox.Show(
+                    $"El pago es menor al total.\n\n" +
+                    $"Se registrará una deuda de {deuda:C} al cliente '{ClienteSeleccionado.RazonSocial}'.\n\n" +
+                    "¿Desea continuar?",
+                    "Venta a Crédito",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (resultado == MessageBoxResult.No)
+                {
+                    return; // Cancelar si el usuario se arrepintió
+                }
+            }
+
+            // ¡Todo bien! Cerramos
             CloseAction?.Invoke(true);
         }
 
+        // En ViewModels/FormaPagoViewModel.cs
+
         private bool PuedeFinalizarVenta(object parameter)
         {
-            // Solo se puede finalizar si el pago es >= 0
-            // y (opcional) si el pago es al menos el total
-            // Vamos a dejarlo más simple: solo si el pago es válido
-            return PagoRecibido >= 0;
+            // Regla 1: El pago no puede ser negativo (obvio)
+            if (PagoRecibido < 0) return false;
 
-            // O, si prefieres que el botón solo se active cuando el pago
-            // es suficiente, puedes usar:
-            // return PagoRecibido >= TotalAPagar;
+            // Regla 2: Si es "Público en General" (ID = 0), DEBE pagar completo.
+            // (No le fiamos a desconocidos)
+            if (ClienteSeleccionado == null || ClienteSeleccionado.ID == 0)
+            {
+                return PagoRecibido >= TotalAPagar;
+            }
+
+            // Regla 3: Si es un Cliente registrado, ¡puede pagar lo que sea! (Incluso 0)
+            // El sistema registrará la deuda automáticamente.
+            return true;
         }
 
         private void EjecutarCerrarVentana(object parameter)

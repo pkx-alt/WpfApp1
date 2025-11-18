@@ -415,7 +415,23 @@ namespace WpfApp1.ViewModels
                         decimal cambio = pago - this.Total;
 
                         GuardarVentaEnBD(this.Subtotal, this.Iva, this.Total, cliente, pago, cambio);
-                        MessageBox.Show("Venta realizada con éxito.", "Venta");
+                        // 2. Decidimos qué mensaje mostrar según si pagó o no
+                        if (cambio < 0)
+                        {
+                            // Caso A: Quedó a deber (Cambio negativo)
+                            decimal deuda = Math.Abs(cambio);
+                            MessageBox.Show(
+                                $"Se ha registrado la venta con un ADEUDO de {deuda:C}.\n\n" +
+                                "Podrás verla y abonar en la pantalla de 'Cuentas por Cobrar'.",
+                                "Crédito Registrado",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+                        }
+                        else
+                        {
+                            // Caso B: Pagó completo
+                            MessageBox.Show("Venta realizada y pagada con éxito.", "Venta Finalizada", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
                     }
 
                     // Limpieza final para ambos casos

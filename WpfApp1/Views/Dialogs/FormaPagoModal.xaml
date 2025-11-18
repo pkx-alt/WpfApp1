@@ -160,18 +160,26 @@
                         <Run Text="{Binding PagoRecibido, StringFormat=C}" FontWeight="Bold"/>
                     </TextBlock>
                     <TextBlock FontSize="22" FontWeight="Bold" Margin="0,10,0,0">
-                        <Run Text="Cambio: "/>
+                        <Run>
+                            <Run.Style>
+                                <Style TargetType="Run">
+                                    <Setter Property="Text" Value="Cambio: "/>
+                                    <Setter Property="Foreground" Value="Black"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Cambio, Converter={StaticResource IsLessThanZeroConverter}}" Value="True">
+                                            <Setter Property="Text" Value="Saldo pendiente: "/>
+                                            <Setter Property="Foreground" Value="#D32F2F"/> </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Run.Style>
+                        </Run>
                         <Run Text="{Binding Cambio, StringFormat=C, Mode=OneWay}">
                             <Run.Style>
                                 <Style TargetType="Run">
                                     <Setter Property="Foreground" Value="Black"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Cambio}" Value="0">
-                                            <Setter Property="Foreground" Value="Black"/>
-                                        </DataTrigger>
                                         <DataTrigger Binding="{Binding Cambio, Converter={StaticResource IsLessThanZeroConverter}}" Value="True">
-                                            <Setter Property="Foreground" Value="Red"/>
-                                        </DataTrigger>
+                                            <Setter Property="Foreground" Value="#D32F2F"/> </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Run.Style>

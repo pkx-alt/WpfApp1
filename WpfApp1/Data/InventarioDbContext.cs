@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Reflection;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq; // Necesario para .Any()
-using System.Collections.Generic;
+using System.Reflection;
+using System.Windows;
 using WpfApp1.Models;
 
 namespace WpfApp1.Data
@@ -27,7 +28,7 @@ namespace WpfApp1.Data
         {
             string dbPath = Path.Combine(
                 Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                "inventario.db"
+                "inventario_v3.db"
             );
             optionsBuilder.UseSqlite($"Data Source={dbPath}");
         }
@@ -133,6 +134,8 @@ namespace WpfApp1.Data
                 new Producto { Descripcion = "Tenis Escolares Blancos Talla 24", Precio = 450.00m, Costo = 280.00m, Stock = 12, Activo = true, Subcategoria = subTenis },
                 new Producto { Descripcion = "Zapato Negro Vestir Caballero Talla 28", Precio = 680.00m, Costo = 400.00m, Stock = 8, Activo = true, Subcategoria = subZapatos },
                 new Producto { Descripcion = "Mochila Chenson Mario Bros", Precio = 550.00m, Costo = 350.00m, Stock = 5, Activo = true, Subcategoria = subMochilas }
+
+
             };
 
             // E) AGREGAMOS CATEGORÍAS AL CONTEXTO
@@ -142,7 +145,79 @@ namespace WpfApp1.Data
 
             // Por seguridad, agregamos explícitamente los productos también
             this.Productos.AddRange(productos);
+            this.SaveChanges();
 
+            // 4. SEMBRAR VENTAS (CON DIAGNÓSTICO)
+            if (!this.Ventas.Any())
+            {
+                // 1. Intentamos buscar los datos
+                var clienteTienda = this.Clientes.FirstOrDefault(c => c.RazonSocial.Contains("Doña Lupe"));
+                var clienteEscuela = this.Clientes.FirstOrDefault(c => c.RazonSocial.Contains("Benito Juárez"));
+                var productoCuaderno = this.Productos.FirstOrDefault(p => p.Descripcion.Contains("Cuaderno"));
+                var productoLapiz = this.Productos.FirstOrDefault(p => p.Descripcion.Contains("Bolígrafo"));
+
+                // 2. DIAGNÓSTICO: ¿Encontró todo?
+                string reporte = "Diagnóstico de carga:\n";
+                reporte += $"Cliente Lupe: {(clienteTienda != null ? "OK" : "NO ENCONTRADO")}\n";
+                reporte += $"Cliente Escuela: {(clienteEscuela != null ? "OK" : "NO ENCONTRADO")}\n";
+                reporte += $"Prod. Cuaderno: {(productoCuaderno != null ? "OK" : "NO ENCONTRADO")}\n";
+                reporte += $"Prod. Lápiz: {(productoLapiz != null ? "OK" : "NO ENCONTRADO")}\n";
+
+                // Si falta algo, mostramos el error y NO seguimos
+                if (clienteTienda == null || clienteEscuela == null || productoCuaderno == null)
+                {
+                    MessageBox.Show(reporte, "⚠️ Faltan datos para crear deudas");
+                }
+                else
+                {
+                    // 3. ¡Todo bien! Creamos las ventas
+                    var ventaCreditoTotal = new Venta
+                    {
+                        Fecha = DateTime.Now.AddDays(-5),
+                        ClienteId = clienteTienda.ID,
+                        Subtotal = productoCuaderno.Precio * 10,
+                        IVA = (productoCuaderno.Precio * 10) * 0.16m,
+                        Total = (productoCuaderno.Precio * 10) * 1.16m,
+                        PagoRecibido = 0, // Debe todo
+                        Cambio = 0
+                    };
+                    ventaCreditoTotal.Detalles.Add(new VentaDetalle
+                    {
+                        ProductoId = productoCuaderno.ID,
+                        Cantidad = 10,
+                        PrecioUnitario = productoCuaderno.Precio
+                    });
+
+                    var ventaAbonada = new Venta
+                    {
+                        Fecha = DateTime.Now.AddDays(-2),
+                        ClienteId = clienteEscuela.ID,
+                        Subtotal = 500,
+                        IVA = 80,
+                        Total = 580,
+                        PagoRecibido = 200.00m, // Pagó parcial
+                        Cambio = 0
+                    };
+                    // (Para simplificar, si no encuentra el lápiz, usamos el cuaderno también)
+                    var prodParaVenta2 = productoLapiz ?? productoCuaderno;
+                    ventaAbonada.Detalles.Add(new VentaDetalle
+                    {
+                        ProductoId = prodParaVenta2.ID,
+                        Cantidad = 50,
+                        PrecioUnitario = 10
+                    });
+
+                    this.Ventas.AddRange(ventaCreditoTotal, ventaAbonada);
+                    this.SaveChanges();
+
+                    MessageBox.Show("✅ ¡SE HAN CREADO LAS DEUDAS DE PRUEBA!", "Éxito");
+                }
+            }
+            else
+            {
+                // Esto te avisará si la tabla NO estaba vacía
+                // MessageBox.Show("La tabla de Ventas NO está vacía, por eso no se crearon datos nuevos.", "Aviso");
+            }
             // F) GUARDAR CAMBIOS
             this.SaveChanges();
         }
