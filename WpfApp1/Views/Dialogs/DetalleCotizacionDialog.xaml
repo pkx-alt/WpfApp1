@@ -1,0 +1,155 @@
+﻿<Window x:Class="WpfApp1.Views.Dialogs.DetalleCotizacionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Detalle de cotización" 
+        Height="600" Width="700"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="ToolWindow"
+        FontFamily="Segoe UI"
+        Background="White"
+        SizeToContent="Height">
+
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock FontSize="22" FontWeight="Bold" Margin="0,0,0,10">
+                    <Run Text="Detalle de cotización - Folio "/>
+                    <Run Text="{Binding Folio}"/>
+                </TextBlock>
+
+                <TextBlock FontSize="15" Margin="0,2">
+                    <Run Text="Cliente: " FontWeight="Bold"/>
+                    <Run Text="{Binding NombreCliente}"/>
+                </TextBlock>
+
+                <TextBlock FontSize="15" Margin="0,2">
+                    <Run Text="Fecha y hora de emisión: " FontWeight="Bold"/>
+                    <Run Text="{Binding FechaEmision, StringFormat='dd/MM/yyyy HH:mm'}"/>
+                </TextBlock>
+
+                <TextBlock FontSize="15" Margin="0,2">
+                    <Run Text="Fecha y hora de vencimiento: " FontWeight="Bold"/>
+                    <Run Text="{Binding FechaVencimiento, StringFormat='dd/MM/yyyy HH:mm'}"/>
+                </TextBlock>
+            </StackPanel>
+
+            <Border Grid.Column="1" VerticalAlignment="Top" 
+                    Background="#E89F71" CornerRadius="3" Padding="10,5">
+                <TextBlock Text="PENDIENTE" Foreground="White" FontWeight="Bold" FontSize="12"/>
+            </Border>
+        </Grid>
+
+        <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding Detalles}"
+                  AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEE"
+                  HeadersVisibility="Column" Background="White" BorderThickness="0"
+                  FontSize="14" Margin="0,10">
+
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#FFE8D6"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="Padding" Value="10"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Padding" Value="8"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridCell">
+                                <Border Padding="{TemplateBinding Padding}" BorderBrush="#EEE" BorderThickness="0,0,0,1" Background="Transparent">
+                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </DataGrid.CellStyle>
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Cant." Binding="{Binding Cantidad}" Width="60" FontWeight="SemiBold" Foreground="#28A745"/>
+                <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="100"/>
+                <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="TextAlignment" Value="Left"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=C}" Width="80"/>
+                <DataGridTextColumn Header="Subtotal" Binding="{Binding Subtotal, StringFormat=C}" Width="90"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="2" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <TextBlock TextAlignment="Right" FontSize="16" Margin="0,2">
+                <Run Text="Subtotal: " FontWeight="Bold"/>
+                <Run Text="{Binding Subtotal, StringFormat=C}"/>
+            </TextBlock>
+            <TextBlock TextAlignment="Right" FontSize="16" Margin="0,2">
+                <Run Text="IVA: " FontWeight="Bold"/>
+                <Run Text="{Binding IVA, StringFormat=C}"/>
+            </TextBlock>
+            <TextBlock TextAlignment="Right" FontSize="16" Margin="0,2">
+                <Run Text="Descuento: " FontWeight="Bold"/>
+                <Run Text="{Binding Descuento, StringFormat=C}"/>
+            </TextBlock>
+            <TextBlock TextAlignment="Right" FontSize="20" Foreground="#C2185B" Margin="0,5,0,0">
+                <Run Text="Total: " FontWeight="Bold"/>
+                <Run Text="{Binding Total, StringFormat=C}" FontWeight="Bold"/>
+            </TextBlock>
+        </StackPanel>
+
+        <TextBlock Grid.Row="3" Text="{Binding TotalEnLetra}"
+                   FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" 
+                   Margin="0,20,0,0" TextWrapping="Wrap"/>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,25,0,0">
+
+            <Button Content="Convertir a venta" 
+                    Command="{Binding ConvertirCommand}"
+                    Background="#4F6A7F" Foreground="White" FontWeight="Bold"
+                    Padding="20,10" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="4"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+
+            <Button Content="Cerrar" 
+                    Command="{Binding CerrarCommand}"
+                    Background="#555" Foreground="White" FontWeight="Bold"
+                    Padding="20,10" BorderThickness="0" Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="4"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </StackPanel>
+
+    </Grid>
+</Window>

@@ -1,0 +1,197 @@
+﻿<Page x:Class="WpfApp1.Views.DepartamentosPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:WpfApp1.Views"
+      xmlns:system="clr-namespace:System;assembly=mscorlib"
+      mc:Ignorable="d" 
+      d:DesignHeight="500" d:DesignWidth="800"
+      d:DataContext="{d:DesignInstance Type=vm:DepartamentosViewModel, IsDesignTimeCreatable=False}"
+      Title="DepartamentosPage"
+      xmlns:vm="clr-namespace:WpfApp1.ViewModels"
+      >
+
+    <Page.Resources>
+
+        <SolidColorBrush x:Key="RojoPeligroBrush" Color="#dc3545"/>
+
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+        <Style x:Key="DeleteIconButtonStyle" TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+            <Setter Property="Foreground" Value="{StaticResource RojoPeligroBrush}"/>
+        </Style>
+
+    </Page.Resources>
+
+    <Grid Background="White">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Margin="20">
+
+            <TextBlock Text="Categorías" 
+                       FontSize="20" 
+                       FontWeight="SemiBold" 
+                       Margin="0,0,0,10"/>
+
+            <Button Content="+ Nueva categoría" 
+                    Command="{Binding CrearCategoriaCommand}"
+                    HorizontalAlignment="Left" 
+                    Background="#007bff" 
+                    Foreground="White"
+                    BorderThickness="0"
+                    Padding="10,5"
+                    FontWeight="Bold"
+                    Margin="0,0,0,10"
+                    Cursor="Hand"/>
+
+            <ListBox x:Name="CategoriasListBox"
+                     BorderBrush="#DDDDDD"
+                     BorderThickness="1"
+                     MinHeight="300"
+                     AlternationCount="2"
+                     ItemsSource="{Binding Categorias}"
+         SelectedItem="{Binding CategoriaSeleccionada, Mode=TwoWay}">
+
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="{Binding Nombre}" Grid.Column="0" VerticalAlignment="Center" FontSize="14"/>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+
+                                <Button Content="&#xE88F;" Style="{StaticResource IconButtonStyle}" ToolTip="Info"
+            Command="{Binding DataContext.VerDetallesCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+            CommandParameter="{Binding}"/>
+
+                                <Button Content="&#xE70F;" Style="{StaticResource IconButtonStyle}" ToolTip="Editar"
+            Command="{Binding DataContext.EditarCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+            CommandParameter="{Binding}"/>
+                                <Button Content="&#xE711;" Style="{StaticResource DeleteIconButtonStyle}" ToolTip="Eliminar"
+            Command="{Binding DataContext.EliminarCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+            CommandParameter="{Binding}"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+
+                
+
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="5"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#E0E0E0"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                <Setter Property="Background" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                <Setter Property="Background" Value="#F9F9F9"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+            </ListBox>
+
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Margin="20">
+
+            <TextBlock Text="Subcategorías" 
+                       FontSize="20" 
+                       FontWeight="SemiBold" 
+                       Margin="0,0,0,10"/>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <Button Content="+ Nueva subcategoría"
+                        Command="{Binding CrearSubcategoriaCommand}"
+                        Background="#007bff" 
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="10,5"
+                        FontWeight="Bold"
+                        Margin="0,0,10,0"
+                        Cursor="Hand"/>
+                <Button Content="Mover" 
+                        Background="#6c757d" 
+                        Command="{Binding MoverSubcategoriasCommand}"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="10,5"
+                        FontWeight="Bold"
+                        Cursor="Hand"/>
+            </StackPanel>
+
+            <ListBox x:Name="SubcategoriasListBox"
+                     BorderBrush="#DDDDDD"
+                     BorderThickness="1"
+                     MinHeight="300"
+                     SelectionMode="Multiple"
+                     ItemsSource="{Binding Subcategorias}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <CheckBox Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+          IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+
+                            <TextBlock Text="{Binding Nombre}" Grid.Column="1" VerticalAlignment="Center" FontSize="14"/>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+
+                                <Button Content="&#xE88F;" 
+            Style="{StaticResource IconButtonStyle}" 
+            ToolTip="Info"
+            Command="{Binding DataContext.VerDetallesSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+            CommandParameter="{Binding}"/>
+
+                                <Button Content="&#xE70F;" Style="{StaticResource IconButtonStyle}" ToolTip="Editar"
+            Command="{Binding DataContext.EditarSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+            CommandParameter="{Binding}"/>
+                                <Button Content="&#xE711;" Style="{StaticResource DeleteIconButtonStyle}" ToolTip="Eliminar"
+            Command="{Binding DataContext.EliminarSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+            CommandParameter="{Binding}"/>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Focusable" Value="False"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+
+            </ListBox>
+
+        </StackPanel>
+
+    </Grid>
+</Page>

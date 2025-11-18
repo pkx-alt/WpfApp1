@@ -1,0 +1,196 @@
+﻿<Page x:Class="WpfApp1.Views.InventarioPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:WpfApp1.Views"
+      xmlns:vm="clr-namespace:WpfApp1.ViewModels"
+      mc:Ignorable="d" 
+      d:DesignHeight="600" d:DesignWidth="800"
+      Title="InventarioPage"
+      Background="White"
+      d:DataContext="{d:DesignInstance Type=vm:InventarioViewModel, IsDesignTimeCreatable=False}">
+
+    <Grid>
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Vertical">
+
+                <Grid Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Inventario" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Content="Importar" Margin="5,0"/>
+                        <Button Content="Exportar" Margin="20,0"/>
+                        <Button Content="Nuevo producto" Margin="0,0" FontWeight="Bold"
+                                Command="{Binding NuevoProductoCommand}"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,0,0,10">
+                    <TextBox x:Name="SearchTextBox"
+                             Padding="5"
+                             VerticalContentAlignment="Center"
+                             GotFocus="SearchTextBox_GotFocus"
+                             LostFocus="SearchTextBox_LostFocus"
+                             Text="{Binding TextoBusqueda, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <WrapPanel Grid.Column="0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Margin="0,5,20,5">
+                            <TextBlock Text="Categoría:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <ComboBox Width="150"
+                                      ItemsSource="{Binding CategoriasDisponibles}"
+                                      SelectedItem="{Binding CategoriaSeleccionada}"
+                                      DisplayMemberPath="Nombre"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,5,20,5">
+                            <TextBlock Text="Subcategoría:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <ComboBox Width="150"
+                                      ItemsSource="{Binding SubcategoriasDisponibles}"
+                                      SelectedItem="{Binding SubcategoriaSeleccionada}"
+                                      DisplayMemberPath="Nombre"/>
+                        </StackPanel>
+
+                        <CheckBox x:Name="ChkActivos"
+                                  Content="Productos activos" 
+                                  IsChecked="{Binding VerActivos}" 
+                                  Margin="0,5,15,5" 
+                                  VerticalAlignment="Center"/>
+                        <CheckBox x:Name="ChkInactivos"
+                                  Content="Productos inactivos" 
+                                  IsChecked="{Binding VerInactivos}"
+                                  Margin="0,5,15,5" 
+                                  VerticalAlignment="Center"/>
+                        <CheckBox x:Name="ChkBajoStock"
+                                  Content="Productos con bajo stock" 
+                                  IsChecked="{Binding VerBajoStock}"
+                                  Margin="0,5,15,5" 
+                                  VerticalAlignment="Center"/>
+                    </WrapPanel>
+
+                    <Button x:Name="LimpiarFiltrosButton"
+                            Grid.Column="1" 
+                            Content="Limpiar filtros" 
+                            Padding="10,5"
+                            VerticalAlignment="Center"
+                            Command="{Binding LimpiarFiltrosCommand}"/>
+                </Grid>
+            </StackPanel>
+
+            <DataGrid Grid.Row="1"
+                      AutoGenerateColumns="False"
+                      ItemsSource="{Binding Productos}" IsReadOnly="True"
+                      CanUserAddRows="False"
+                      VerticalGridLinesBrush="Transparent"
+                      HorizontalGridLinesBrush="#EEE"
+                      Margin="0,10,0,0">
+
+                <DataGrid.Columns>
+
+                    <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="Auto"/>
+
+                    <DataGridTemplateColumn Header="Imagen" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding ImagenUrl}" Height="40" Margin="5"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="2*"/>
+                    <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=C}" Width="*"/>
+                    <DataGridTextColumn Header="Costo" Binding="{Binding Costo, StringFormat=C}" Width="*"/>
+                    <DataGridTextColumn Header="Ganancia" Binding="{Binding Ganancia, StringFormat=C}" Width="*"/>
+
+                    <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="Auto">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Stock}" Value="2">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTemplateColumn Header="Estado" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Margin="5,0" FontWeight="Bold" HorizontalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Activo" />
+                                            <Setter Property="Foreground" Value="Green" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Activo}" Value="False">
+                                                    <Setter Property="Text" Value="Inactivo" />
+                                                    <Setter Property="Foreground" Value="Red" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn Header="Acciones" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="+" Margin="3" ToolTip="Añadir stock" Click="AddStock_Click"/>
+                                    <Button Content="-" Margin="3" ToolTip="Quitar stock" Click="RemoveStock_Click"/>
+                                    <Button Content="..." Margin="3" ToolTip="Más opciones" 
+                                            Click="OpcionesButton_Click">
+                                        <Button.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Editar Producto" Click="EditarProducto_Click"/>
+                                                <MenuItem Header="Ver detalles" Click="VerDetalles_Click"/>
+                                                <MenuItem Header="Duplicar" Click="Duplicar_Click"/>
+                                                <MenuItem Header="Historial de movimientos" Click="Historial_Click"/>
+                                                <Separator/>
+                                                <MenuItem Click="Deshabilitar_Click">
+                                                    <MenuItem.Style>
+                                                        <Style TargetType="MenuItem">
+                                                            <Setter Property="Header" Value="Deshabilitar"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Activo}" Value="False">
+                                                                    <Setter Property="Header" Value="Habilitar"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </MenuItem.Style>
+                                                </MenuItem>
+                                            </ContextMenu>
+                                        </Button.ContextMenu>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                </DataGrid.Columns>
+            </DataGrid>
+
+        </Grid>
+    </Grid>
+</Page>

@@ -1,0 +1,47 @@
+﻿<Window x:Class="WpfApp1.Views.Dialogs.DetallesCategoriaDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Detalles de categoría"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
+    <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="8" Margin="10">
+        <StackPanel Margin="20" MinWidth="300">
+            <TextBlock Text="Detalles de categoría" FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Categoría:" FontWeight="Bold" Margin="0,0,10,10"/>
+                <TextBlock x:Name="NombreTextBlock" Grid.Row="0" Grid.Column="1" Text="[Nombre]" Margin="0,0,0,10"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Descripción:" FontWeight="Bold" Margin="0,0,10,10"/>
+                <TextBlock x:Name="DescripcionTextBlock" Grid.Row="1" Grid.Column="1" Text="[Descripción]" TextWrapping="Wrap" MaxWidth="250"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Subcategorías asociadas:" FontWeight="Bold" Margin="0,10,10,10"/>
+                <TextBlock x:Name="SubCountTextBlock" Grid.Row="2" Grid.Column="1" Text="0" Foreground="Blue" Margin="0,10,0,10"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Productos asociados:" FontWeight="Bold" Margin="0,0,10,10"/>
+                <TextBlock x:Name="ProdCountTextBlock" Grid.Row="3" Grid.Column="1" Text="0" Foreground="Blue" Margin="0,0,0,10"/>
+
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button x:Name="EditarButton" Content="Editar" MinWidth="80" Margin="0,0,10,0" 
+                        Background="#5cb85c" Foreground="White" FontWeight="Bold"
+                        Click="EditarButton_Click"/>
+                <Button x:Name="CerrarButton" Content="Cerrar" IsCancel="True" MinWidth="80" Background="#888888" Foreground="White"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Border>
+</Window>

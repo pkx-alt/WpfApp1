@@ -1,0 +1,40 @@
+﻿<Window x:Class="WpfApp1.Views.Dialogs.ConfirmarEstadoClienteWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp1.Views.Dialogs"
+        mc:Ignorable="d"
+        Title="Confirmar Cambio de Estado" 
+        Height="180" Width="350"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="lblMensaje"
+                   Grid.Row="0"
+                   TextWrapping="Wrap"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   FontSize="14"
+                   Text="¿Estás seguro de que deseas...?"/>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button x:Name="btnConfirmar" 
+                    Content="Sí, cambiar estado" 
+                    FontWeight="Bold" 
+                    Padding="10,5"
+                    Click="btnConfirmar_Click"/>
+
+            <Button x:Name="btnCancelar" 
+                    Content="Cancelar" 
+                    Padding="10,5" 
+                    Margin="10,0,0,0"
+                    IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

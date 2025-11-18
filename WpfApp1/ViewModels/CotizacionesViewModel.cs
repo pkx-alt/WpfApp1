@@ -1,0 +1,197 @@
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
+using Microsoft.EntityFrameworkCore; // ¡Vital para .Include()!
+using WpfApp1.Data;
+using WpfApp1.Models;
+
+namespace WpfApp1.ViewModels
+{
+    public class CotizacionesViewModel : ViewModelBase
+    {
+        // --- COLECCIONES (Datos para la Vista) ---
+        public ObservableCollection<CotizacionItemViewModel> ListaCotizaciones { get; set; }
+        public ObservableCollection<Cliente> ListaClientes { get; set; }
+
+        // Para el combo de "Origen" (lo dejamos fijo por ahora como en tu diseño)
+        public ObservableCollection<string> ListaOrigenes { get; set; }
+
+        // --- FILTROS ---
+        private DateTime _fechaDesde;
+        public DateTime FechaDesde
+        {
+            get { return _fechaDesde; }
+            set
+            {
+                _fechaDesde = value;
+                OnPropertyChanged();
+                CargarCotizaciones(); // Recargar al cambiar fecha
+            }
+        }
+
+        private DateTime _fechaHasta;
+        public DateTime FechaHasta
+        {
+            get { return _fechaHasta; }
+            set
+            {
+                _fechaHasta = value;
+                OnPropertyChanged();
+                CargarCotizaciones();
+            }
+        }
+
+        private Cliente _clienteSeleccionado;
+        public Cliente ClienteSeleccionado
+        {
+            get { return _clienteSeleccionado; }
+            set
+            {
+                _clienteSeleccionado = value;
+                OnPropertyChanged();
+                CargarCotizaciones();
+            }
+        }
+
+        private string _textoBusqueda;
+        public string TextoBusqueda
+        {
+            get { return _textoBusqueda; }
+            set
+            {
+                _textoBusqueda = value;
+                OnPropertyChanged();
+                // Podrías poner un temporizador aquí para no buscar en cada tecla,
+                // pero por ahora buscaremos directo.
+                CargarCotizaciones();
+            }
+        }
+
+        // --- COMANDOS ---
+        public ICommand VerDetalleCommand { get; }
+        public ICommand ImprimirCommand { get; } // Para futura implementación
+
+        // --- CONSTRUCTOR ---
+        public CotizacionesViewModel()
+        {
+            ListaCotizaciones = new ObservableCollection<CotizacionItemViewModel>();
+            ListaClientes = new ObservableCollection<Cliente>();
+            ListaOrigenes = new ObservableCollection<string> { "Todos", "Local", "Web" };
+
+            // Fechas por defecto: Mes actual
+            FechaDesde = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            FechaHasta = DateTime.Now;
+
+            VerDetalleCommand = new RelayCommand(VerDetalle);
+
+            // Cargar datos iniciales
+            CargarClientes();
+            CargarCotizaciones();
+        }
+
+        // --- MÉTODOS DE CARGA ---
+
+        private void CargarClientes()
+        {
+            using (var db = new InventarioDbContext())
+            {
+                var clientes = db.Clientes.Where(c => c.Activo).OrderBy(c => c.RazonSocial).ToList();
+                ListaClientes.Clear();
+
+                // Agregamos un cliente "filtro vacío"
+                ListaClientes.Add(new Cliente { ID = -1, RazonSocial = "Todos los clientes" });
+
+                foreach (var c in clientes) ListaClientes.Add(c);
+
+                // Seleccionamos "Todos" por defecto
+                _clienteSeleccionado = ListaClientes.First();
+                OnPropertyChanged(nameof(ClienteSeleccionado));
+            }
+        }
+
+        private void CargarCotizaciones()
+        {
+            using (var db = new InventarioDbContext())
+            {
+                // 1. Incluimos al cliente para poder ver su Razón Social
+                var query = db.Cotizaciones
+                              .Include(c => c.Cliente)
+                              .AsQueryable();
+
+                // --- CORRECCIÓN DE FECHAS AQUÍ ---
+
+                // Fecha Inicio: Nos aseguramos que sea a las 00:00:00
+                DateTime inicio = FechaDesde.Date;
+
+                // Fecha Fin: Le sumamos 1 día y restamos un "tick" para obtener las 23:59:59.999
+                // Así incluimos todo lo que pasó ese último día.
+                DateTime fin = FechaHasta.Date.AddDays(1).AddTicks(-1);
+
+                query = query.Where(c => c.FechaEmision >= inicio && c.FechaEmision <= fin);
+
+                // ----------------------------------
+
+                // 2. Filtro de Cliente
+                if (ClienteSeleccionado != null && ClienteSeleccionado.ID != -1)
+                {
+                    query = query.Where(c => c.ClienteId == ClienteSeleccionado.ID);
+                }
+
+                // 3. Filtro de Texto (Buscador)
+                if (!string.IsNullOrWhiteSpace(TextoBusqueda) && TextoBusqueda != "Buscar por folio, cliente....")
+                {
+                    string texto = TextoBusqueda.ToLower();
+                    query = query.Where(c => c.ID.ToString().Contains(texto) ||
+                                             (c.Cliente != null && c.Cliente.RazonSocial.ToLower().Contains(texto)));
+                }
+
+                // 4. Ejecutamos la consulta (ordenando por más reciente)
+                var resultados = query.OrderByDescending(c => c.FechaEmision).ToList();
+
+                // 5. Mapear a la lista visual
+                ListaCotizaciones.Clear();
+                foreach (var cot in resultados)
+                {
+                    ListaCotizaciones.Add(new CotizacionItemViewModel(cot));
+                }
+            }
+        }
+
+
+
+        private void VerDetalle(object parameter)
+        {
+            if (parameter is CotizacionItemViewModel item)
+            {
+                MessageBox.Show($"Aquí abriríamos el detalle de la cotización #{item.Folio}.\n\n" +
+                                $"Esto lo implementaremos luego para poder 'cargar' la cotización en la pantalla de ventas.",
+                                "Próximamente");
+            }
+        }
+    }
+
+    // --- CLASE AUXILIAR (Wrapper) PARA MOSTRAR EN LA TABLA ---
+    // Usamos esto para dar formato fácil a los datos crudos de la BD
+    public class CotizacionItemViewModel
+    {
+        public Cotizacion _cotizacion;
+
+        public int Folio => _cotizacion.ID;
+        public DateTime FechaEmision => _cotizacion.FechaEmision;
+        public DateTime FechaVencimiento => _cotizacion.FechaVencimiento;
+
+        public string ClienteNombre => _cotizacion.Cliente != null ? _cotizacion.Cliente.RazonSocial : "Público General";
+
+        public decimal Total => _cotizacion.Total;
+
+        // Lógica simple de estado: Si ya pasó la fecha de vence, está "Vencida"
+        public string Estado => DateTime.Now > _cotizacion.FechaVencimiento ? "Vencida" : "Vigente";
+
+        public CotizacionItemViewModel(Cotizacion cot)
+        {
+            _cotizacion = cot;
+        }
+    }
+}

@@ -1,0 +1,89 @@
+﻿<Page x:Class="WpfApp1.Views.DashboardPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.expression/blend/2008" 
+      xmlns:local="clr-namespace:WpfApp1.Views"
+      mc:Ignorable="d" 
+      d:DesignHeight="720" d:DesignWidth="980"
+      Title="DashboardPage" Background="White">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40">
+            <TextBlock Text="¡BIENVENIDO al sistema!" FontSize="36" FontWeight="SemiBold" Foreground="#343a40"/>
+            <TextBlock Text="Escoge una opción para comenzar" FontSize="16" Foreground="#6c757d" Margin="0,5,0,20"/>
+
+            <UniformGrid Columns="3">
+                <Border Style="{StaticResource SummaryCard}" Background="#FFF3CD">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="VENTAS DE HOY" FontSize="12" FontWeight="Bold" Foreground="#856404"/>
+                        <TextBlock Text="$12,000.00" FontSize="24" FontWeight="Bold" Foreground="#856404" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SummaryCard}" Background="#D1ECF1">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="COTIZACIONES" FontSize="12" FontWeight="Bold" Foreground="#0C5460"/>
+                        <TextBlock Text="8 Pendientes" FontSize="24" FontWeight="Bold" Foreground="#0C5460" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource SummaryCard}" Background="#F8D7DA">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="PROD. BAJO STOCK" FontSize="12" FontWeight="Bold" Foreground="#721C24"/>
+                        <TextBlock Text="10 Productos" FontSize="24" FontWeight="Bold" Foreground="#721C24" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <UniformGrid Columns="3" Margin="0,20,0,0">
+
+                <Border Style="{StaticResource ActionCard}" Background="#E9F7EF"
+                        Cursor="Hand" MouseLeftButtonDown="CardNuevaVenta_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Nueva venta" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Venta en el mostrador" FontSize="12" Foreground="Gray" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ActionCard}" Background="#E7F3FE"
+                        Cursor="Hand" MouseLeftButtonDown="CardCotizacion_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Crear cotización" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Crea listas/pedidos" FontSize="12" Foreground="Gray" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ActionCard}" Background="#FFF8E1"
+                        Cursor="Hand" MouseLeftButtonDown="CardInventario_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Inventario y precios" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Busca y verifica productos" FontSize="12" Foreground="Gray" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ActionCard}" Background="#F3E5F5"
+                        Cursor="Hand" MouseLeftButtonDown="CardVentasRealizadas_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Ventas del día" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Revisa todas las ventas realizadas" FontSize="12" Foreground="Gray" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ActionCard}" Background="#FCE4EC"
+                        Cursor="Hand" MouseLeftButtonDown="CardCaja_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Corte de caja" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Cierra el turno actual" FontSize="12" Foreground="Gray" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource ActionCard}" Background="#ECEFF1"
+                        Cursor="Hand" MouseLeftButtonDown="CardAjustes_Click">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Ajustes" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Configura el sistema" FontSize="12" Foreground="Gray" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

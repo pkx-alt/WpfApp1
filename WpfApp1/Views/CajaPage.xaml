@@ -1,0 +1,170 @@
+﻿<Page x:Class="WpfApp1.Views.CajaPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:WpfApp1.Views"
+      mc:Ignorable="d" 
+      d:DesignHeight="800" d:DesignWidth="900" Title="CajaPage"
+      Unloaded="Page_Unloaded">
+
+    <Grid Background="White">
+
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,40,0,0">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Margin="0,0,40,0">
+
+                <TextBlock Text="Gestión de caja" 
+                           FontSize="32" 
+                           FontWeight="Bold" 
+                           Foreground="#1A1A1A"/>
+
+                <TextBlock x:Name="FechaActualTextBlock" 
+                           Text="Miércoles, 01 de octubre de 2025, 12:15 PM" 
+                           FontSize="18" 
+                           Foreground="#555" 
+                           Margin="0,5,0,0"/>
+
+                <Border Background="#F9F9F9" 
+                        BorderBrush="#EEE" 
+                        BorderThickness="1" 
+                        CornerRadius="8" 
+                        Padding="25" 
+                        Margin="0,30,0,0"
+                        MinWidth="400">
+                    <StackPanel>
+                        <TextBlock Text="ESTADO ACTUAL" 
+                                   FontSize="14" 
+                                   FontWeight="Bold" 
+                                   Foreground="#333"
+                                   HorizontalAlignment="Center"/>
+
+                        <Separator Margin="0,10,0,20"/>
+
+                        <StackPanel Orientation="Horizontal" 
+                                    HorizontalAlignment="Center" 
+                                    Margin="0,10,0,0">
+                            <Ellipse x:Name="EstadoEllipse"
+                                     Width="24" Height="24" 
+                                     Fill="#D90429" VerticalAlignment="Center" 
+                                     Margin="0,0,12,0"/>
+                            <TextBlock x:Name="EstadoTextBlock"
+                                       Text="CAJA CERRADA" 
+                                       FontSize="24" 
+                                       FontWeight="Bold" 
+                                       Foreground="#333"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <TextBlock x:Name="UltimoMovimientoTextBlock"
+                                   Text="Último cierre: Martes 30 de septiembre de 2025 a las 08:40 PM" 
+                                   FontSize="16" 
+                                   Foreground="#555"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,20,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Grid x:Name="ResumenesPanel" Margin="0,30,0,0" Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.Resources>
+                        <Style TargetType="TextBlock" x:Key="ResumenTitle">
+                            <Setter Property="FontSize" Value="18"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Foreground" Value="#333"/>
+                            <Setter Property="Margin" Value="0,0,0,5"/>
+                        </Style>
+                        <Style TargetType="TextBlock" x:Key="ResumenItem">
+                            <Setter Property="FontSize" Value="14"/>
+                            <Setter Property="Foreground" Value="#444"/>
+                            <Setter Property="Margin" Value="0,4"/>
+                        </Style>
+                        <Style TargetType="TextBlock" x:Key="ResumenTotal">
+                            <Setter Property="FontSize" Value="16"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Foreground" Value="#C70039"/>
+                            <Setter Property="Margin" Value="0,5,0,0"/>
+                        </Style>
+                        <Style TargetType="Separator">
+                            <Setter Property="Margin" Value="0,5,0,10"/>
+                            <Setter Property="Background" Value="#EEE"/>
+                        </Style>
+                    </Grid.Resources>
+
+                    <StackPanel Grid.Column="0" Margin="0,0,40,0" MinWidth="250">
+                        <TextBlock Text="Resumen de efectivo" Style="{StaticResource ResumenTitle}"/>
+                        <Separator/>
+                        <TextBlock x:Name="ResumenEstadoInicial" Text="Estado inicial: $0.00" Style="{StaticResource ResumenItem}"/>
+                        <TextBlock x:Name="ResumenVentasEfectivo" Text="Ventas en efectivo: $0.00" Style="{StaticResource ResumenItem}"/>
+                        <TextBlock x:Name="ResumenOtrosIngresos" Text="Otros ingresos: $0.00" Style="{StaticResource ResumenItem}"/>
+                        <TextBlock x:Name="ResumenEgresos" Text="Egresos: $0.00" Style="{StaticResource ResumenItem}"/>
+                        <Separator Margin="0,10,0,5"/>
+                        <TextBlock x:Name="ResumenTotalEsperado" Text="Total esperado: $0.00" Style="{StaticResource ResumenTotal}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" MinWidth="250">
+                        <TextBlock Text="Ventas totales" Style="{StaticResource ResumenTitle}"/>
+                        <Separator/>
+                        <TextBlock x:Name="VentasEfectivo" Text="Ventas en efectivo: $0.00" Style="{StaticResource ResumenItem}"/>
+                        <TextBlock x:Name="VentasTarjeta" Text="Ventas con tarjeta: $0.00" Style="{StaticResource ResumenItem}"/>
+                        <TextBlock x:Name="VentasTransferencia" Text="Ventas por transferencia: $0.00" Style="{StaticResource ResumenItem}"/>
+                        <Separator Margin="0,10,0,5"/>
+                        <TextBlock x:Name="VentasTotalGeneral" Text="Total esperado: $0.00" Style="{StaticResource ResumenTotal}"/>
+                    </StackPanel>
+                </Grid>
+
+            </StackPanel>
+            <StackPanel Grid.Column="1" 
+                        VerticalAlignment="Top" 
+                        Margin="50,0,0,0">
+                <StackPanel.Resources>
+                    <Style TargetType="Button">
+                        <Setter Property="Padding" Value="15,12"/>
+                        <Setter Property="FontSize" Value="14"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="Margin" Value="0,0,0,12"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="MinWidth" Value="220"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="HorizontalAlignment" Value="Left"/>
+                    </Style>
+                </StackPanel.Resources>
+
+                <Button x:Name="BtnAbrirCaja" 
+                        Click="BtnAbrirCaja_Click"
+                        Content="Abrir caja" 
+                        Background="#5C946E" 
+                        Foreground="White"/>
+
+                <Button x:Name="BtnRegistrarIngreso" 
+                        Click="BtnRegistrarIngreso_Click"
+                        Content="Registrar ingreso" 
+                        Background="#E0E0E0" 
+                        Foreground="#A0A0A0"
+                        IsEnabled="False"/>
+
+                <Button x:Name="BtnRegistrarEgreso" 
+                        Click="BtnRegistrarEgreso_Click" 
+                        Content="Registrar egreso" 
+                        Background="#E0E0E0" 
+                        Foreground="#A0A0A0"
+                        IsEnabled="False"/>
+
+                <Button x:Name="BtnHistorialCaja" 
+                        Content="Historial de caja" 
+                        Background="#2A4B6A" 
+                        Foreground="White"/>
+            </StackPanel>
+
+        </Grid>
+    </Grid>
+</Page>
