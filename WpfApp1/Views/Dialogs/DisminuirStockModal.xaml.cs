@@ -39,54 +39,69 @@ namespace WpfApp1.Views.Dialogs
 
         private void FinalizarButton_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Validar la cantidad (esto ya lo tenías)
             if (!int.TryParse(CantidadTextBox.Text, out int cantidad) || cantidad <= 0)
             {
-                MessageBox.Show("Por favor, introduce una cantidad válida.", "Error");
+                MessageBox.Show("Introduce una cantidad válida.", "Error");
                 return;
             }
 
-            // 2. Determinar si es agregar o disminuir (esto ya lo tenías)
-            bool esAgregar = RadioAgregar.IsChecked == true;
-
-            // 3. Aplicar el cambio al objeto (esto ya lo tenías)
-            if (esAgregar)
-            {
-                _productoActual.Stock += cantidad;
-            }
-            else // Es Disminuir
-            {
-                if (_productoActual.Stock < cantidad)
-                {
-                    MessageBox.Show("No puedes disminuir más stock del que tienes actualmente.", "Error");
-                    return;
-                }
-                _productoActual.Stock -= cantidad;
-            }
-
-            // --- ¡ESTA ES LA PARTE NUEVA/MODIFICADA! ---
-
-            // 4. Guardar en la Base de Datos
             try
             {
-                // Creamos una NUEVA conexión a la BD
                 using (var db = new InventarioDbContext())
                 {
-                    // Le decimos a EF Core que actualice el objeto
-                    db.Productos.Update(_productoActual);
+                    var productoEnDb = db.Productos.Find(_productoActual.ID);
 
-                    // Guardamos cambios
-                    db.SaveChanges();
+                    if (productoEnDb != null)
+                    {
+                        int stockAntes = productoEnDb.Stock;
+                        string tipoMovimiento = "";
+
+                        // Tu lógica de radios
+                        if (RadioAgregar.IsChecked == true)
+                        {
+                            productoEnDb.Stock += cantidad;
+                            tipoMovimiento = "Entrada (Corrección)";
+                        }
+                        else // Disminuir
+                        {
+                            if (productoEnDb.Stock < cantidad)
+                            {
+                                MessageBox.Show("No hay suficiente stock para disminuir esa cantidad.");
+                                return;
+                            }
+                            productoEnDb.Stock -= cantidad;
+                            tipoMovimiento = "Salida (Ajuste Manual)";
+
+                            // Leemos el motivo del ComboBox si lo tienes
+                            // tipoMovimiento += $" - {MotivoComboBox.Text}";
+                        }
+
+                        // Creamos la bitácora
+                        var historial = new MovimientoInventario
+                        {
+                            Fecha = DateTime.Now,
+                            ProductoId = productoEnDb.ID,
+                            TipoMovimiento = tipoMovimiento,
+                            Cantidad = cantidad,
+                            StockAnterior = stockAntes,
+                            StockNuevo = productoEnDb.Stock,
+                            Motivo = NotasTextBox.Text,
+                            Usuario = "Admin"
+                        };
+
+                        db.Movimientos.Add(historial);
+                        db.SaveChanges();
+
+                        // Refrescamos el objeto visual
+                        _productoActual.Stock = productoEnDb.Stock;
+                    }
                 }
+                this.DialogResult = true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al guardar en la base de datos: {ex.Message}", "Error de BD");
-                return;
+                MessageBox.Show($"Error: {ex.Message}");
             }
-
-            // 5. Si todo salió bien, cerramos
-            this.DialogResult = true;
         }
 
         private void CerrarButton_Click(object sender, RoutedEventArgs e)
@@ -100,8 +115,11 @@ namespace WpfApp1.Views.Dialogs
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Ponemos el foco en el TextBox al cargar
             CantidadTextBox.Focus();
+            CantidadTextBox.SelectAll();
+
+            // ¡AQUÍ ESTÁ EL ARREGLO!
+            ActualizarNuevaExistencia();
         }
 
         private void CantidadTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

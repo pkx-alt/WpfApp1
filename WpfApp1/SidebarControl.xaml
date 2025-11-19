@@ -108,6 +108,9 @@
                 <RadioButton Content="Inventario" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Inventario'}"/>
+                <RadioButton Content="Movimientos" Style="{StaticResource NavRadioButton}"
+             Click="RadioButton_Click"
+             IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Movimientos'}"/>
                 <RadioButton Content="Clientes" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Clientes'}"/>

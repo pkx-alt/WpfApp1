@@ -64,7 +64,7 @@
                      MinHeight="300"
                      AlternationCount="2"
                      ItemsSource="{Binding Categorias}"
-         SelectedItem="{Binding CategoriaSeleccionada, Mode=TwoWay}">
+                     SelectedItem="{Binding CategoriaSeleccionada, Mode=TwoWay}">
 
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -77,26 +77,29 @@
                             <TextBlock Text="{Binding Nombre}" Grid.Column="0" VerticalAlignment="Center" FontSize="14"/>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-
-                                <Button Content="&#xE88F;" Style="{StaticResource IconButtonStyle}" ToolTip="Info"
-            Command="{Binding DataContext.VerDetallesCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-            CommandParameter="{Binding}"/>
+                                <Button Style="{StaticResource IconButtonStyle}" ToolTip="Ver detalles"
+                                        Command="{Binding DataContext.VerDetallesCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                        CommandParameter="{Binding}">
+                                    <Path Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                                          Fill="#007ACC" 
+                                          Stretch="Uniform" 
+                                          Width="18" Height="18"/>
+                                </Button>
 
                                 <Button Content="&#xE70F;" Style="{StaticResource IconButtonStyle}" ToolTip="Editar"
-            Command="{Binding DataContext.EditarCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-            CommandParameter="{Binding}"/>
+                                        Command="{Binding DataContext.EditarCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                        CommandParameter="{Binding}"/>
                                 <Button Content="&#xE711;" Style="{StaticResource DeleteIconButtonStyle}" ToolTip="Eliminar"
-            Command="{Binding DataContext.EliminarCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-            CommandParameter="{Binding}"/>
+                                        Command="{Binding DataContext.EliminarCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                        CommandParameter="{Binding}"/>
                             </StackPanel>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
 
-                
-
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                         <Setter Property="Padding" Value="5"/>
                         <Style.Triggers>
                             <Trigger Property="IsSelected" Value="True">
@@ -149,6 +152,7 @@
                      MinHeight="300"
                      SelectionMode="Multiple"
                      ItemsSource="{Binding Subcategorias}">
+
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid Margin="5">
@@ -159,24 +163,27 @@
                             </Grid.ColumnDefinitions>
 
                             <CheckBox Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
-          IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
 
                             <TextBlock Text="{Binding Nombre}" Grid.Column="1" VerticalAlignment="Center" FontSize="14"/>
 
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
 
-                                <Button Content="&#xE88F;" 
-            Style="{StaticResource IconButtonStyle}" 
-            ToolTip="Info"
-            Command="{Binding DataContext.VerDetallesSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-            CommandParameter="{Binding}"/>
+                                <Button Style="{StaticResource IconButtonStyle}" ToolTip="Info"
+                                        Command="{Binding DataContext.VerDetallesSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                        CommandParameter="{Binding}">
+                                    <Path Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                                          Fill="#007ACC" 
+                                          Stretch="Uniform" 
+                                          Width="18" Height="18"/>
+                                </Button>
 
                                 <Button Content="&#xE70F;" Style="{StaticResource IconButtonStyle}" ToolTip="Editar"
-            Command="{Binding DataContext.EditarSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-            CommandParameter="{Binding}"/>
+                                        Command="{Binding DataContext.EditarSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                        CommandParameter="{Binding}"/>
                                 <Button Content="&#xE711;" Style="{StaticResource DeleteIconButtonStyle}" ToolTip="Eliminar"
-            Command="{Binding DataContext.EliminarSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-            CommandParameter="{Binding}"/>
+                                        Command="{Binding DataContext.EliminarSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                        CommandParameter="{Binding}"/>
                             </StackPanel>
                         </Grid>
                     </DataTemplate>
@@ -184,6 +191,7 @@
 
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                         <Setter Property="Padding" Value="0"/>
                         <Setter Property="Focusable" Value="False"/>
                     </Style>

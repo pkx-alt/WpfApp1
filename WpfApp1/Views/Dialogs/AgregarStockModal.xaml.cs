@@ -41,49 +41,70 @@ namespace WpfApp1.Views.Dialogs
                 return;
             }
 
-            // 2. Determinar si es agregar o disminuir (esto ya lo tenías)
-            bool esAgregar = RadioAgregar.IsChecked == true;
-
-            // 3. Aplicar el cambio al objeto (esto ya lo tenías)
-            if (esAgregar)
-            {
-                _productoActual.Stock += cantidad;
-            }
-            else
-            {
-                if (_productoActual.Stock < cantidad)
-                {
-                    MessageBox.Show("No puedes disminuir más stock del que tienes.", "Error");
-                    return;
-                }
-                _productoActual.Stock -= cantidad;
-            }
-
-            // --- ¡ESTA ES LA PARTE NUEVA/MODIFICADA! ---
-
-            // 4. Guardar en la Base de Datos
             try
             {
-                // Creamos una NUEVA conexión a la BD
                 using (var db = new InventarioDbContext())
                 {
-                    // Le decimos a EF Core: "Oye, este objeto (_productoActual)
-                    // ha sido modificado. Por favor, actualízalo en la BD."
-                    db.Productos.Update(_productoActual);
+                    // IMPORTANTE: Volvemos a buscar el producto en ESTE contexto
+                    // para asegurarnos de tener la versión más reciente y evitar errores de tracking.
+                    var productoEnDb = db.Productos.Find(_productoActual.ID);
 
-                    // ¡Ahora sí, guarda los cambios en el archivo .db!
-                    db.SaveChanges();
+                    if (productoEnDb != null)
+                    {
+                        // A. Guardamos el estado actual antes de tocar nada
+                        int stockAntes = productoEnDb.Stock;
+
+                        // B. Aplicamos el cambio (Tu lógica original de RadioButton)
+                        string tipoMovimiento = "";
+
+                        // Asumo que tienes RadioAgregar y RadioDisminuir en tu XAML
+                        if (RadioAgregar.IsChecked == true)
+                        {
+                            productoEnDb.Stock += cantidad;
+                            tipoMovimiento = "Entrada (Ajuste Manual)";
+                        }
+                        else
+                        {
+                            // Validación extra
+                            if (productoEnDb.Stock < cantidad)
+                            {
+                                MessageBox.Show("No puedes quitar más stock del que tienes.");
+                                return;
+                            }
+                            productoEnDb.Stock -= cantidad;
+                            tipoMovimiento = "Salida (Corrección)";
+                        }
+
+                        // C. ¡LA NOVEDAD! Creamos el registro en la bitácora
+                        var movimiento = new MovimientoInventario
+                        {
+                            Fecha = DateTime.Now,
+                            ProductoId = productoEnDb.ID,
+                            TipoMovimiento = tipoMovimiento,
+                            Cantidad = cantidad,
+                            StockAnterior = stockAntes,
+                            StockNuevo = productoEnDb.Stock, // El stock ya modificado
+                            Motivo = NotasTextBox.Text, // Asumiendo que tienes un TextBox para notas
+                            Usuario = "Admin" // Aquí pondrías el usuario logueado
+                        };
+
+                        // D. Agregamos el movimiento a la tabla nueva
+                        db.Movimientos.Add(movimiento);
+
+                        // E. Guardamos TODO junto (Producto actualizado + Movimiento nuevo)
+                        db.SaveChanges();
+
+                        // Actualizamos el objeto visual de la ventana anterior (opcional pero visualmente útil)
+                        _productoActual.Stock = productoEnDb.Stock;
+                    }
                 }
+
+                this.DialogResult = true;
             }
             catch (Exception ex)
             {
-                // (Es buena práctica atrapar errores)
-                MessageBox.Show($"Error al guardar en la base de datos: {ex.Message}", "Error de BD");
-                return; // Si falló, no cerramos el modal
+                MessageBox.Show($"Error al guardar: {ex.Message}", "Error de BD");
             }
-
-            // 5. Si todo salió bien, cerramos
-            this.DialogResult = true;
         }
 
         private void CerrarButton_Click(object sender, RoutedEventArgs e)
@@ -97,9 +118,14 @@ namespace WpfApp1.Views.Dialogs
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Este se llama cuando la ventana se carga.
-            // Podemos usarlo para poner el foco en el TextBox.
+            // 1. Ponemos el foco para escribir rápido
             CantidadTextBox.Focus();
+            // 2. Seleccionamos todo el texto ("1") para que sea fácil borrarlo
+            CantidadTextBox.SelectAll();
+
+            // 3. ¡AQUÍ ESTÁ EL ARREGLO!
+            // Forzamos el cálculo ahora que la ventana ya cargó (IsLoaded = true)
+            ActualizarNuevaExistencia();
         }
 
         private void CantidadTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)

@@ -88,20 +88,27 @@ namespace WpfApp1.Views
 
         private void RemoveStock_Click(object sender, RoutedEventArgs e)
         {
-            // ... (Tu lógica) ...
-            // Al final, si hay cambios, llama a VM.CargarProductos();
             var boton = sender as FrameworkElement;
             if (boton == null) return;
+
+            // 1. Identificamos qué producto se seleccionó
             var productoSeleccionado = boton.DataContext as Producto;
             if (productoSeleccionado == null) return;
 
-            // var modalQuitar = new DisminuirStockModal(productoSeleccionado);
-            // bool? resultado = modalQuitar.ShowDialog();
-            // if (resultado == true)
-            // {
-            //    VM.CargarProductos();
-            // }
-            MessageBox.Show($"Vas a quitar stock de: {productoSeleccionado.Descripcion}", "Quitar Stock");
+            // 2. Creamos la ventana de DISMINUIR (ya la tienes lista)
+            var modal = new DisminuirStockModal(productoSeleccionado);
+
+            // Opcional: Que aparezca centrada sobre la ventana principal
+            modal.Owner = Window.GetWindow(this);
+
+            // 3. La mostramos y esperamos
+            bool? resultado = modal.ShowDialog();
+
+            // 4. Si guardó cambios (resultado == true), refrescamos la tabla
+            if (resultado == true)
+            {
+                VM.CargarProductos();
+            }
         }
 
         private void OpcionesButton_Click(object sender, RoutedEventArgs e)

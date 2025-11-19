@@ -1,0 +1,129 @@
+﻿<Page x:Class="WpfApp1.Views.MovimientosPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:WpfApp1.Views"
+      
+      xmlns:converters="clr-namespace:WpfApp1.Converters"  
+      
+      mc:Ignorable="d" 
+      d:DesignHeight="600" d:DesignWidth="900"
+      Title="MovimientosPage" Background="White" FontFamily="Segoe UI">
+
+    <Page.Resources>
+        <converters:StringContainsConverter x:Key="StringContainsConverter"/>
+    </Page.Resources>
+
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Kardex de Movimientos 📋" 
+                       FontSize="28" FontWeight="Bold" Foreground="#333"/>
+            <TextBlock Text="Historial detallado de entradas, salidas y ajustes de inventario." 
+                       FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding ListaMovimientos}"
+                  AutoGenerateColumns="False" 
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="#EEE"
+                  BorderThickness="1" BorderBrush="#EEE"
+                  RowHeight="35">
+
+            <DataGrid.Resources>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#F8F9FA"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="Padding" Value="10"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    <Setter Property="BorderBrush" Value="#DDD"/>
+                </Style>
+
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Background" Value="White"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#FAFAFA"/>
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="#E3F2FD"/>
+                            <Setter Property="Foreground" Value="#333"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Padding" Value="10,0"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="DataGridCell">
+                                <Border Background="Transparent" BorderThickness="0">
+                                    <ContentPresenter VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Foreground" Value="#333"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.Resources>
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat='dd/MM/yyyy HH:mm'}" Width="140"/>
+
+                <DataGridTextColumn Header="Producto" Binding="{Binding Producto.Descripcion}" Width="2*"/>
+
+                <DataGridTemplateColumn Header="Movimiento" Width="180">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding TipoMovimiento}" FontWeight="SemiBold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#333"/>
+
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding TipoMovimiento, Converter={StaticResource StringContainsConverter}, ConverterParameter='Entrada'}" Value="True">
+                                                <Setter Property="Foreground" Value="#28A745"/>
+                                            </DataTrigger>
+
+                                            <DataTrigger Binding="{Binding TipoMovimiento, Converter={StaticResource StringContainsConverter}, ConverterParameter='Salida'}" Value="True">
+                                                <Setter Property="Foreground" Value="#DC3545"/>
+                                            </DataTrigger>
+
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=IsSelected}" Value="True">
+                                                <Setter Property="Foreground" Value="Black"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="Cant." Binding="{Binding Cantidad}" Width="80" FontWeight="Bold"/>
+
+                <DataGridTextColumn Header="Antes" Binding="{Binding StockAnterior}" Width="80" Foreground="Gray"/>
+                <DataGridTextColumn Header="Después" Binding="{Binding StockNuevo}" Width="80" FontWeight="Bold"/>
+
+                <DataGridTextColumn Header="Motivo / Nota" Binding="{Binding Motivo}" Width="2*"/>
+                <DataGridTextColumn Header="Usuario" Binding="{Binding Usuario}" Width="100" Foreground="Gray"/>
+
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Page>

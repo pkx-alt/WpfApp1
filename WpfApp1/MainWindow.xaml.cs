@@ -48,6 +48,10 @@ namespace WpfApp1
                 case "Inventario":
                     pageUri = new Uri("Views/InventarioPage.xaml", UriKind.Relative);
                     break;
+                case "Movimientos":
+                    // Asegúrate de haber creado el archivo MovimientosPage.xaml en la carpeta Views
+                    pageUri = new Uri("Views/MovimientosPage.xaml", UriKind.Relative);
+                    break;
                 case "Clientes":
                     pageUri = new Uri("Views/ClientesPage.xaml", UriKind.Relative);
                     break;

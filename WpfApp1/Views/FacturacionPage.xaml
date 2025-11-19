@@ -201,7 +201,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
                         </DataGrid.Columns>
-
+                        
                         <x:Array Type="{x:Type local:FacturaHistorialEjemplo}">
                             <local:FacturaHistorialEjemplo UUID="A1B2C3D4-..." SerieFolio="A-501" Cliente="Constructora del Norte" Total="$8,900.50"/>
                             <local:FacturaHistorialEjemplo UUID="E5F6G7H8-..." SerieFolio="A-500" Cliente="Público en General" Total="$1,200.00"/>
