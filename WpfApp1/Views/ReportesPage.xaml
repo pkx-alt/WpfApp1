@@ -3,42 +3,49 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:WpfApp1.Views"
       mc:Ignorable="d" 
-      d:DesignHeight="700" d:DesignWidth="900"
-      Title="ReportesPage"
-      FontFamily="Segoe UI">
+      d:DesignHeight="700" d:DesignWidth="1000"
+      Title="Centro de Reportes"
+      FontFamily="Segoe UI"
+      Background="#F4F7F9">
 
     <Page.Resources>
-        <Style x:Key="ReportOptionStyle" TargetType="Button">
+
+        <Style x:Key="CategoryCardStyle" TargetType="Button">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#E0E0E0"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Margin" Value="10"/>
-            <Setter Property="Padding" Value="15"/>
-            <Setter Property="Height" Value="110"/>
+
+            <Setter Property="Width" Value="280"/>
+            <Setter Property="Height" Value="150"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" 
-                                Background="{TemplateBinding Background}" 
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                CornerRadius="12">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10"/>
                             <Border.Effect>
-                                <DropShadowEffect Color="#B0BEC5" Opacity="0.1" BlurRadius="8" ShadowDepth="2"/>
+                                <DropShadowEffect Color="#B0BEC5" Opacity="0.1" BlurRadius="10" ShadowDepth="3"/>
                             </Border.Effect>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#F1F8FF"/>
+                                <Setter TargetName="border" Property="Background" Value="#F0F8FF"/>
                                 <Setter TargetName="border" Property="BorderBrush" Value="#007ACC"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#E1F0FF"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#007ACC" Opacity="0.25" BlurRadius="15" ShadowDepth="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform Y="-2"/>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -46,169 +53,375 @@
             </Setter>
         </Style>
 
-        <Style x:Key="ReportIcon" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="Margin" Value="0,0,0,10"/>
-            <Setter Property="Foreground" Value="#555"/>
+        <Style x:Key="ReportButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="12"/>
+            <Setter Property="Width" Value="260"/>
+            <Setter Property="Height" Value="130"/>
+
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" 
+                        BorderBrush="{TemplateBinding BorderBrush}" 
+                        BorderThickness="{TemplateBinding BorderThickness}" 
+                        CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                            <Border.Effect>
+                                <DropShadowEffect Color="#B0BEC5" Opacity="0.1" BlurRadius="8" ShadowDepth="2"/>
+                            </Border.Effect>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Tag" Value="Selected">
+                                <Setter TargetName="border" Property="Background" Value="#E3F2FD"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#2196F3"/>
+                                <Setter TargetName="border" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#F9F9F9"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#007ACC"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#007ACC" Opacity="0.2" BlurRadius="10" ShadowDepth="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform Y="-2"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
-        <Style x:Key="ReportTitle" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="15"/>
-            <Setter Property="FontWeight" Value="Bold"/>
+        <Style x:Key="ModernDataGridStyle" TargetType="DataGrid">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#EEEEEE"/>
+            <Setter Property="VerticalGridLinesBrush" Value="Transparent"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="RowHeight" Value="45"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="AutoGenerateColumns" Value="True"/>
+            <Setter Property="AlternatingRowBackground" Value="#FAFAFA"/>
+            <Setter Property="AlternationCount" Value="2"/>
         </Style>
 
-        <Style x:Key="ReportDesc" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Foreground" Value="Gray"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="0,2,0,0"/>
+        <Style x:Key="ModernColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="Foreground" Value="#6c757d"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+            <Setter Property="BorderBrush" Value="#E9ECEF"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        </Style>
+
+        <Style x:Key="ModernCellStyle" TargetType="DataGridCell">
+            <Setter Property="Padding" Value="20,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="Transparent" BorderThickness="0">
+                            <ContentPresenter VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#E3F2FD"/>
+                    <Setter Property="Foreground" Value="#0056b3"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="CloseButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#DC3545"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="10,5">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="✕" Margin="0,0,5,0" FontWeight="Bold"/>
+                                <ContentPresenter/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FEE2E2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Page.Resources>
 
-    <Grid Background="#F4F7F9">
+    <Grid Margin="30">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="30,30,30,10">
-            <TextBlock Text="Centro de Reportes" 
-                       FontSize="28" 
-                       FontWeight="Bold" 
-                       Foreground="#343a40"/>
-            <TextBlock Text="Selecciona un reporte para configurar y generar" 
-                       FontSize="14" 
-                       Foreground="#6c757d"
-                       Margin="0,5,0,0"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Centro de Reportes 📊" FontSize="28" FontWeight="Bold" Foreground="#343a40"/>
+            <TextBlock x:Name="TxtSubtitulo" Text="Selecciona una categoría para comenzar el análisis" FontSize="16" Foreground="#6c757d" Margin="0,5,0,0"/>
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="20,10,20,0">
-            <StackPanel>
+        <Grid Grid.Row="1">
 
-                <TextBlock Text="VENTAS Y OPERACIÓN" FontSize="12" FontWeight="Bold" Foreground="#999" Margin="15,10,0,5"/>
-                <UniformGrid Columns="3">
-                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+            <WrapPanel x:Name="MenuCategorias" 
+           Orientation="Horizontal" 
+           HorizontalAlignment="Center" 
+           Visibility="Visible"
+           Margin="0,20,0,0">
+
+                <Button Style="{StaticResource CategoryCardStyle}" Click="Categoria_Click" Tag="Ventas">
+                    <StackPanel>
+                        <TextBlock Text="🛒" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <TextBlock Text="VENTAS" FontWeight="Bold" FontSize="16" Foreground="#333"/>
+                        <TextBlock Text="Más vendidos, Historial" FontSize="12" Foreground="Gray" Margin="0,5,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource CategoryCardStyle}" Click="Categoria_Click" Tag="Inventario">
+                    <StackPanel>
+                        <TextBlock Text="📦" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <TextBlock Text="INVENTARIO" FontWeight="Bold" FontSize="16" Foreground="#333"/>
+                        <TextBlock Text="Valorizado, Kardex" FontSize="12" Foreground="Gray" Margin="0,5,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource CategoryCardStyle}" Click="Categoria_Click" Tag="Financieros">
+                    <StackPanel>
+                        <TextBlock Text="💰" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <TextBlock Text="FINANCIEROS" FontWeight="Bold" FontSize="16" Foreground="#333"/>
+                        <TextBlock Text="Utilidad, Balances" FontSize="12" Foreground="Gray" Margin="0,5,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource CategoryCardStyle}" Click="Categoria_Click" Tag="Administrativos">
+                    <StackPanel>
+                        <TextBlock Text="👥" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <TextBlock Text="ADMINISTRATIVOS" FontWeight="Bold" FontSize="16" Foreground="#333"/>
+                        <TextBlock Text="Clientes, Cuentas" FontSize="12" Foreground="Gray" Margin="0,5,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Style="{StaticResource CategoryCardStyle}" Click="Categoria_Click" Tag="Cotizaciones">
+                    <StackPanel>
+                        <TextBlock Text="📝" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <TextBlock Text="COTIZACIONES" FontWeight="Bold" FontSize="16" Foreground="#333"/>
+                        <TextBlock Text="Pendientes, Efectividad" FontSize="12" Foreground="Gray" Margin="0,5,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+            </WrapPanel>
+
+            <Grid x:Name="SubMenuContainer" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Button Grid.Row="0" Content="⬅️ Volver a Categorías" HorizontalAlignment="Left" Margin="20,0,0,10"
+            Background="Transparent" Foreground="#007ACC" BorderThickness="0" FontWeight="Bold" Cursor="Hand"
+            Click="BtnVolver_Click"/>
+
+                <WrapPanel x:Name="PanelOpcionesVentas" Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Left" Margin="12,0,0,0">
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Ventas_MasVendidos">
                         <StackPanel>
-                            <TextBlock Text="🛒" Style="{StaticResource ReportIcon}"/>
-                            <TextBlock Text="Historial de Ventas" Style="{StaticResource ReportTitle}"/>
-                            <TextBlock Text="Detalle completo de transacciones por fecha." Style="{StaticResource ReportDesc}"/>
+                            <TextBlock Text="🏆" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Más Vendidos" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Top productos" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
-                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Ventas_PorDepto">
                         <StackPanel>
-                            <TextBlock Text="📅" Style="{StaticResource ReportIcon}"/>
-                            <TextBlock Text="Cortes de Caja" Style="{StaticResource ReportTitle}"/>
-                            <TextBlock Text="Resumen de aperturas y cierres de turno." Style="{StaticResource ReportDesc}"/>
+                            <TextBlock Text="🏷️" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Por Departamento" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Ventas por categoría" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
-                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Ventas_Comparativo">
                         <StackPanel>
-                            <TextBlock Text="🏆" Style="{StaticResource ReportIcon}"/>
-                            <TextBlock Text="Productos Más Vendidos" Style="{StaticResource ReportTitle}"/>
-                            <TextBlock Text="Top 10 productos por cantidad o monto." Style="{StaticResource ReportDesc}"/>
+                            <TextBlock Text="📅" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Comparativo" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Mes actual vs anterior" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                </UniformGrid>
+                </WrapPanel>
 
-                <TextBlock Text="INVENTARIO" FontSize="12" FontWeight="Bold" Foreground="#999" Margin="15,20,0,5"/>
-                <UniformGrid Columns="3">
-                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                <WrapPanel x:Name="PanelOpcionesInventario" Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Left" Margin="12,0,0,0">
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Inv_Valorizado">
                         <StackPanel>
-                            <TextBlock Text="📦" Style="{StaticResource ReportIcon}"/>
-                            <TextBlock Text="Existencias Actuales" Style="{StaticResource ReportTitle}"/>
-                            <TextBlock Text="Reporte valorizado del inventario actual." Style="{StaticResource ReportDesc}"/>
+                            <TextBlock Text="💲" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Valorizado" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Valor total mercancía" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
-                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Inv_BajoStock">
                         <StackPanel>
-                            <TextBlock Text="⚠️" Style="{StaticResource ReportIcon}" Foreground="#D9534F"/>
-                            <TextBlock Text="Bajo Stock" Style="{StaticResource ReportTitle}"/>
-                            <TextBlock Text="Productos que necesitan reposición urgente." Style="{StaticResource ReportDesc}"/>
+                            <TextBlock Text="⚠️" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Bajo Stock" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Productos urgentes" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
-                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Inv_Rotacion">
                         <StackPanel>
-                            <TextBlock Text="📉" Style="{StaticResource ReportIcon}"/>
-                            <TextBlock Text="Movimientos de Inventario" Style="{StaticResource ReportTitle}"/>
-                            <TextBlock Text="Entradas, salidas y ajustes manuales." Style="{StaticResource ReportDesc}"/>
+                            <TextBlock Text="🔄" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Kardex" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Historial movimientos" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                </UniformGrid>
+                </WrapPanel>
 
-                <TextBlock Text="FINANZAS Y CLIENTES" FontSize="12" FontWeight="Bold" Foreground="#999" Margin="15,20,0,5"/>
-                <UniformGrid Columns="3">
-                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                <WrapPanel x:Name="PanelOpcionesFinancieros" Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Left" Margin="12,0,0,0">
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Fin_Utilidad">
                         <StackPanel>
-                            <TextBlock Text="💰" Style="{StaticResource ReportIcon}" Foreground="#28A745"/>
-                            <TextBlock Text="Ganancias" Style="{StaticResource ReportTitle}"/>
-                            <TextBlock Text="Utilidad bruta (Ventas - Costos)." Style="{StaticResource ReportDesc}"/>
+                            <TextBlock Text="📈" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Utilidad Neta" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Ganancia real" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
-                    <Button Style="{StaticResource ReportOptionStyle}" Click="ReportButton_Click">
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Fin_Balance">
                         <StackPanel>
-                            <TextBlock Text="👥" Style="{StaticResource ReportIcon}"/>
-                            <TextBlock Text="Listado de Clientes" Style="{StaticResource ReportTitle}"/>
-                            <TextBlock Text="Directorio de clientes registrados." Style="{StaticResource ReportDesc}"/>
+                            <TextBlock Text="⚖️" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Ingresos vs Egresos" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Flujo de caja" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                </UniformGrid>
+                </WrapPanel>
 
-                <Rectangle Height="20"/>
-            </StackPanel>
-        </ScrollViewer>
+                <WrapPanel x:Name="PanelOpcionesAdmin" Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Left" Margin="12,0,0,0">
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Admin_TopClientes">
+                        <StackPanel>
+                            <TextBlock Text="🥇" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Mejores Clientes" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Top compradores" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </WrapPanel>
 
-        <Border Grid.Row="2" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="20">
+                <WrapPanel x:Name="PanelOpcionesCotizaciones" Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Left" Margin="12,0,0,0">
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Cot_Pendientes">
+                        <StackPanel>
+                            <TextBlock Text="⏳" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Pendientes" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Cotizaciones vigentes" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Cot_Efectividad">
+                        <StackPanel>
+                            <TextBlock Text="🎯" HorizontalAlignment="Center" FontSize="28" Margin="0,0,0,5"/>
+                            <TextBlock Text="Efectividad" FontWeight="SemiBold" FontSize="15"/>
+                            <TextBlock Text="Ventas cerradas" FontSize="11" Foreground="Gray" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </WrapPanel>
+            </Grid>
+
+            <Grid x:Name="VistaResultados" Visibility="Collapsed" Margin="0,10,0,0">
+                <Grid.Effect>
+                    <DropShadowEffect Color="#B0BEC5" Opacity="0.25" BlurRadius="20" ShadowDepth="5"/>
+                </Grid.Effect>
+
+                <Border Background="White" CornerRadius="8" BorderBrush="#E0E0E0" BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" BorderBrush="#EEE" BorderThickness="0,0,0,1" Padding="20,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock x:Name="TxtTituloResultado" Text="Título del Reporte" 
+                                               FontSize="20" FontWeight="Bold" Foreground="#212529"/>
+                                    <TextBlock Text="Visualización de datos generados" 
+                                               FontSize="13" Foreground="#868e96" Margin="0,2,0,0"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="BtnExportar" Click="BtnExportar_Click"
+                                            Content="💾 Exportar Excel"
+                                            Background="#28A745" Foreground="White" FontWeight="Bold"
+                                            Padding="15,8" BorderThickness="0" Cursor="Hand"
+                                            Margin="0,0,15,0">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="4"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
+
+                                    <Button Content="Cerrar Reporte" Style="{StaticResource CloseButtonStyle}"
+                                            Click="BtnCerrarResultados_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <DataGrid x:Name="GridResultados" Grid.Row="1"
+                                  Style="{StaticResource ModernDataGridStyle}"
+                                  ColumnHeaderStyle="{StaticResource ModernColumnHeaderStyle}"
+                                  CellStyle="{StaticResource ModernCellStyle}"
+                                  Margin="0,0,0,10"
+                                  AutoGeneratingColumn="GridResultados_AutoGeneratingColumn"
+                                  ColumnWidth="*">
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <Border Grid.Row="2" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="20" Margin="0,20,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Periodo:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0"/>
-                    <DatePicker Width="120" VerticalContentAlignment="Center"/>
+                <StackPanel x:Name="PanelFiltros" Orientation="Horizontal" VerticalAlignment="Center" IsEnabled="False" Opacity="0.5">
+                    <TextBlock Text="Rango de fechas:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                    <DatePicker x:Name="DtInicio" Width="120" VerticalContentAlignment="Center"/>
                     <TextBlock Text="al" VerticalAlignment="Center" Margin="10,0"/>
-                    <DatePicker Width="120" VerticalContentAlignment="Center"/>
-
-                    <TextBlock Text="Formato:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="25,0,10,0"/>
-                    <ComboBox Width="100" SelectedIndex="0" VerticalContentAlignment="Center">
-                        <ComboBoxItem Content="PDF"/>
-                        <ComboBoxItem Content="Excel"/>
-                        <ComboBoxItem Content="Pantalla"/>
-                    </ComboBox>
+                    <DatePicker x:Name="DtFin" Width="120" VerticalContentAlignment="Center"/>
+                    <TextBlock x:Name="TxtInfoReporte" Text="(Selecciona un reporte arriba)" 
+                               VerticalAlignment="Center" Margin="20,0,0,0" Foreground="Gray" FontStyle="Italic"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="Vista Previa" 
-                            Background="#6c757d" Foreground="White" FontWeight="Bold"
-                            Padding="20,10" BorderThickness="0" Margin="0,0,10,0"
-                            Cursor="Hand">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="5"/>
-                            </Style>
-                        </Button.Resources>
-                    </Button>
-
-                    <Button Content="Generar Reporte" 
-                            Background="#007ACC" Foreground="White" FontWeight="Bold"
-                            Padding="20,10" BorderThickness="0"
-                            Cursor="Hand"
-                            Click="BtnGenerar_Click">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="5"/>
-                            </Style>
-                        </Button.Resources>
-                    </Button>
-                </StackPanel>
+                <Button x:Name="BtnGenerar" Grid.Column="1" Content="🔄 ACTUALIZAR DATOS" 
+                        Background="#007ACC" Foreground="White" FontWeight="Bold"
+                        Padding="25,10" BorderThickness="0" Cursor="Hand"
+                        IsEnabled="False"
+                        Click="BtnGenerar_Click">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="4"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
             </Grid>
         </Border>
     </Grid>
