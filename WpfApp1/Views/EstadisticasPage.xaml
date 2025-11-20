@@ -4,6 +4,9 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:vm="clr-namespace:WpfApp1.ViewModels"
+      
+      xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+      
       mc:Ignorable="d" 
       d:DesignHeight="800" d:DesignWidth="1000"
       Title="EstadisticasPage"
@@ -11,7 +14,7 @@
       Background="{StaticResource LightBackgroundBrush}">
 
     <Page.DataContext>
-        <vm:ViewModelBase/>
+        <vm:EstadisticasViewModel/>
     </Page.DataContext>
 
     <Page.Resources>
@@ -48,12 +51,11 @@
             <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,20"
                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
                 <WrapPanel>
-
                     <StackPanel Orientation="Horizontal" Margin="0,5,25,5" VerticalAlignment="Center">
                         <TextBlock Text="Periodo: " FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <DatePicker Width="120"/>
+                        <DatePicker Width="120" SelectedDate="{Binding FechaInicio}"/>
                         <TextBlock Text="➔" VerticalAlignment="Center" Foreground="Gray" Margin="10,0"/>
-                        <DatePicker Width="120"/>
+                        <DatePicker Width="120" SelectedDate="{Binding FechaFin}"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="0,5,25,5" VerticalAlignment="Center">
@@ -62,19 +64,8 @@
                             <ComboBoxItem Content="Todas"/>
                             <ComboBoxItem Content="Papelería"/>
                             <ComboBoxItem Content="Fiesta"/>
-                            <ComboBoxItem Content="Zapatería"/>
                         </ComboBox>
                     </StackPanel>
-
-                    <StackPanel Orientation="Horizontal" Margin="0,5,25,5" VerticalAlignment="Center">
-                        <TextBlock Text="Tipo de Cliente: " FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                        <ComboBox Width="150" SelectedIndex="0">
-                            <ComboBoxItem Content="Todos"/>
-                            <ComboBoxItem Content="Público General"/>
-                            <ComboBoxItem Content="Mayorista"/>
-                        </ComboBox>
-                    </StackPanel>
-
                 </WrapPanel>
             </Border>
 
@@ -83,32 +74,38 @@
                 <Border Style="{StaticResource MetricCardStyle}" Background="#E8F5E9">
                     <StackPanel>
                         <TextBlock Text="INGRESOS NETOS" FontSize="12" Foreground="#28A745" FontWeight="Bold"/>
-                        <TextBlock Text="+$15,750.50" FontSize="30" Foreground="#28A745" FontWeight="ExtraBold" Margin="0,5,0,0"/>
-                        <TextBlock Text="vs Mes anterior: +5%" FontSize="12" Foreground="#66BB6A"/>
+                        <TextBlock Text="{Binding IngresosNetos, StringFormat={}{0:C}}" 
+                                   FontSize="30" Foreground="#28A745" FontWeight="ExtraBold" Margin="0,5,0,0"/>
+                        <TextBlock Text="{Binding ComparativaIngreso}" FontSize="12" Foreground="#66BB6A"/>
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource MetricCardStyle}" Background="#FFF3E0">
                     <StackPanel>
                         <TextBlock Text="GANANCIA BRUTA" FontSize="12" Foreground="#FF9800" FontWeight="Bold"/>
-                        <TextBlock Text="+$4,120.00" FontSize="30" Foreground="#FF9800" FontWeight="ExtraBold" Margin="0,5,0,0"/>
-                        <TextBlock Text="Margen promedio: 35%" FontSize="12" Foreground="#FFB74D"/>
+                        <TextBlock Text="{Binding GananciaBruta, StringFormat={}{0:C}}" 
+                                   FontSize="30" Foreground="#FF9800" FontWeight="ExtraBold" Margin="0,5,0,0"/>
+                        <TextBlock Text="Margen promedio: --%" FontSize="12" Foreground="#FFB74D"/>
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource MetricCardStyle}" Background="#E3F2FD">
                     <StackPanel>
-                        <TextBlock Text="VENTAS (UNIDADES)" FontSize="12" Foreground="#2196F3" FontWeight="Bold"/>
-                        <TextBlock Text="1,250 u." FontSize="30" Foreground="#2196F3" FontWeight="ExtraBold" Margin="0,5,0,0"/>
-                        <TextBlock Text="Ticket promedio: $150.00" FontSize="12" Foreground="#64B5F6"/>
+                        <TextBlock Text="VENTAS (TICKETS)" FontSize="12" Foreground="#2196F3" FontWeight="Bold"/>
+                        <TextBlock FontSize="30" Foreground="#2196F3" FontWeight="ExtraBold" Margin="0,5,0,0">
+                            <Run Text="{Binding VentasTotales, StringFormat=N0}"/>
+                            <Run Text=" u." FontSize="20"/>
+                        </TextBlock>
+                        <TextBlock Text="Transacciones" FontSize="12" Foreground="#64B5F6"/>
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource MetricCardStyle}" Background="#FBEBEA">
                     <StackPanel>
                         <TextBlock Text="GASTOS OPERATIVOS" FontSize="12" Foreground="#D32F2F" FontWeight="Bold"/>
-                        <TextBlock Text="-$2,800.00" FontSize="30" Foreground="#D32F2F" FontWeight="ExtraBold" Margin="0,5,0,0"/>
-                        <TextBlock Text="vs Mes anterior: +10%" FontSize="12" Foreground="#E57373"/>
+                        <TextBlock Text="{Binding GastosOperativos, StringFormat={}{0:C}}" 
+                                   FontSize="30" Foreground="#D32F2F" FontWeight="ExtraBold" Margin="0,5,0,0"/>
+                        <TextBlock Text="vs Mes anterior: --" FontSize="12" Foreground="#E57373"/>
                     </StackPanel>
                 </Border>
 
@@ -120,33 +117,55 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Style="{StaticResource MetricCardStyle}" Padding="25" Margin="0,0,20,0" Height="450">
-                    <StackPanel>
-                        <TextBlock Text="Tendencia de Ventas (Últimos 12 meses)" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
-                        <Border Background="#F5F5F5" Height="350" CornerRadius="5" BorderBrush="#EEE" BorderThickness="1">
-                            <TextBlock Text="[ÁREA DE GRÁFICO DE LÍNEAS]" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Gray"/>
-                        </Border>
-                    </StackPanel>
+                <Border Grid.Column="0" Style="{StaticResource MetricCardStyle}" Padding="20" Margin="0,0,20,0" Height="450">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Tendencia de Ventas" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
+
+                        <lvc:CartesianChart Grid.Row="1" Series="{Binding SeriesVentas}" LegendLocation="None">
+                            <lvc:CartesianChart.AxisX>
+                                <lvc:Axis Labels="{Binding EtiquetasEjeX}">
+                                    <lvc:Axis.Separator>
+                                        <lvc:Separator Step="1" StrokeThickness="0" />
+                                    </lvc:Axis.Separator>
+                                </lvc:Axis>
+                            </lvc:CartesianChart.AxisX>
+                            <lvc:CartesianChart.AxisY>
+                                <lvc:Axis LabelFormatter="{Binding FormateadorMoneda}" MinValue="0">
+                                    <lvc:Axis.Separator>
+                                        <lvc:Separator Stroke="#E0E0E0" StrokeDashArray="5"/>
+                                    </lvc:Axis.Separator>
+                                </lvc:Axis>
+                            </lvc:CartesianChart.AxisY>
+                        </lvc:CartesianChart>
+                    </Grid>
                 </Border>
 
                 <Border Grid.Column="1" Style="{StaticResource MetricCardStyle}" Padding="25" Height="450">
                     <StackPanel>
-                        <TextBlock Text="Top 5 Productos Vendidos (Unidades)" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
-                        <DataGrid AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" 
-                                  CanUserAddRows="False" GridLinesVisibility="None" RowHeaderWidth="0">
+                        <TextBlock Text="Top 5 Productos Vendidos" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
+
+                        <DataGrid AutoGenerateColumns="False" 
+                                  IsReadOnly="True" 
+                                  HeadersVisibility="Column" 
+                                  CanUserAddRows="False" 
+                                  GridLinesVisibility="None" 
+                                  RowHeaderWidth="0"
+                                  ItemsSource="{Binding TopProductos}">
+
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Producto" Width="*" Binding="{Binding Nombre}" Foreground="{StaticResource PrimaryTextBrush}"/>
-                                <DataGridTextColumn Header="Und." Width="Auto" Binding="{Binding Cantidad}" FontWeight="Bold" Foreground="{StaticResource SecondaryAccentBrush}"/>
+                                <DataGridTextColumn Header="Producto" Width="*" 
+                                                    Binding="{Binding Nombre}" 
+                                                    Foreground="{StaticResource PrimaryTextBrush}"/>
+                                <DataGridTextColumn Header="Und." Width="Auto" 
+                                                    Binding="{Binding Cantidad}" 
+                                                    FontWeight="Bold" 
+                                                    Foreground="{StaticResource SecondaryAccentBrush}"/>
                             </DataGrid.Columns>
-                            <DataGrid.ItemsSource>
-                                <x:Array Type="{x:Type vm:VentaHistorialItem}">
-                                    <vm:VentaHistorialItem Cliente="Cuaderno Scribe" Total="250"/>
-                                    <vm:VentaHistorialItem Cliente="Boli. BIC Azul" Total="180"/>
-                                    <vm:VentaHistorialItem Cliente="Hojas Blancas" Total="110"/>
-                                    <vm:VentaHistorialItem Cliente="Tenis Blancos" Total="55"/>
-                                    <vm:VentaHistorialItem Cliente="Globos #9" Total="40"/>
-                                </x:Array>
-                            </DataGrid.ItemsSource>
                         </DataGrid>
                     </StackPanel>
                 </Border>

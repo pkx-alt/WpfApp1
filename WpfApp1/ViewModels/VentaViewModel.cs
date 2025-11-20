@@ -195,22 +195,22 @@ namespace WpfApp1.ViewModels
 
         private void ActualizarTotales()
         {
-            Subtotal = CarritoItems.Sum(item => item.Subtotal);
-            Iva = Subtotal * TASA_IVA;
+            // 1. Sumamos el precio de lista de todos los productos
+            // (Asumimos que tus precios en 'Productos' YA incluyen IVA)
+            decimal sumaTotalConImpuestos = CarritoItems.Sum(item => item.Subtotal);
 
-            // --- ¡CAMBIOS AQUÍ! ---
-            // 1. Calculamos el total "bruto" (sin descuentos)
-            decimal totalBruto = Subtotal + Iva;
+            // 2. Desglosamos el Subtotal (Matemática: Total / 1.16)
+            Subtotal = sumaTotalConImpuestos / (1 + TASA_IVA);
 
-            // 2. Aplicamos el descuento que tenemos guardado
-            Total = totalBruto - MontoDescuento;
-            // --- FIN DE CAMBIOS ---
+            // 3. Calculamos cuánto de eso es IVA
+            Iva = sumaTotalConImpuestos - Subtotal;
 
+            // 4. Calculamos el Total Final a pagar
+            // Al total de los productos le restamos el descuento (si hay)
+            Total = sumaTotalConImpuestos - MontoDescuento;
 
-            // Le avisamos a TODOS los comandos que dependen de esto
+            // --- (El resto se queda igual para notificar a la vista) ---
             (FinalizarVentaCommand as RelayCommand)?.RaiseCanExecuteChanged();
-
-            // ¡Asegúrate de añadir esta línea para el nuevo comando!
             (RealizarDescuentoCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (CancelarDescuentoCommand as RelayCommand)?.RaiseCanExecuteChanged();
         }
@@ -382,18 +382,18 @@ namespace WpfApp1.ViewModels
                 return;
             }
 
-            // 1. Preparamos el modal (siempre lo abrimos para elegir cliente)
+            // 1. Preparamos el modal
             var modalPago = new FormaPagoModal();
             modalPago.Owner = Application.Current.MainWindow;
             modalPago.TotalAPagar = this.Total;
 
-            // 2. Pasamos el "Modo" al ViewModel del Modal
-            if (modalPago.DataContext is FormaPagoViewModel vmModal)
+            // Pasamos el modo al ViewModel del modal
+            if (modalPago.DataContext is FormaPagoViewModel vmDelModal)
             {
-                vmModal.EsModoCotizacion = this.EsModoCotizacion;
+                vmDelModal.EsModoCotizacion = this.EsModoCotizacion;
             }
 
-            // 3. Mostramos el modal y esperamos respuesta
+            // 2. Mostramos el modal
             bool? resultado = modalPago.ShowDialog();
 
             if (resultado == true)
@@ -404,37 +404,67 @@ namespace WpfApp1.ViewModels
 
                     if (this.EsModoCotizacion)
                     {
-                        // --- MODO COTIZACIÓN ---
+                        // --- LÓGICA DE COTIZACIÓN ---
                         GuardarCotizacionEnBD(cliente);
-                        MessageBox.Show("Cotización guardada correctamente (No se descontó inventario).", "Éxito");
+                        MessageBox.Show("Cotización guardada correctamente.", "Éxito");
                     }
                     else
                     {
-                        // --- MODO VENTA NORMAL ---
+                        // --- LÓGICA DE VENTA NORMAL ---
                         decimal pago = modalPago.PagoRecibidoEnModal;
                         decimal cambio = pago - this.Total;
 
-                        GuardarVentaEnBD(this.Subtotal, this.Iva, this.Total, cliente, pago, cambio);
-                        // 2. Decidimos qué mensaje mostrar según si pagó o no
+                        // A. Guardamos en BD y obtenemos la venta guardada (para el Folio)
+                        var ventaGuardada = GuardarVentaEnBD(this.Subtotal, this.Iva, this.Total, cliente, pago, cambio);
+
+                        // B. Validamos si pagó completo o es crédito
                         if (cambio < 0)
                         {
-                            // Caso A: Quedó a deber (Cambio negativo)
                             decimal deuda = Math.Abs(cambio);
-                            MessageBox.Show(
-                                $"Se ha registrado la venta con un ADEUDO de {deuda:C}.\n\n" +
-                                "Podrás verla y abonar en la pantalla de 'Cuentas por Cobrar'.",
-                                "Crédito Registrado",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Information);
+                            MessageBox.Show($"Venta a CRÉDITO registrada. Adeudo: {deuda:C}", "Crédito");
                         }
                         else
                         {
-                            // Caso B: Pagó completo
-                            MessageBox.Show("Venta realizada y pagada con éxito.", "Venta Finalizada", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("Venta realizada con éxito.", "Venta Finalizada");
+                        }
+
+                        // C. --- IMPRESIÓN DE TICKET ---
+                        // Verificamos si el usuario marcó "Imprimir ticket" en el modal
+                        if (modalPago.DataContext is FormaPagoViewModel vmFinal && vmFinal.ImprimirTicket)
+                        {
+                            // 1. Convertimos los items del carrito al formato del impresor
+                            var listaParaImprimir = new List<WpfApp1.Services.ItemTicket>();
+                            foreach (var item in this.CarritoItems)
+                            {
+                                listaParaImprimir.Add(new WpfApp1.Services.ItemTicket
+                                {
+                                    Nombre = item.Description,
+                                    Cantidad = item.Quantity,
+                                    Precio = item.Price
+                                });
+                            }
+
+                            // 2. Obtenemos datos finales
+                            string nombreCliente = (cliente != null) ? cliente.RazonSocial : "Público General";
+                            string folioString = ventaGuardada.VentaId.ToString();
+
+                          
+                            // 3. Llamamos al servicio (AHORA CON MÁS DATOS)
+                            WpfApp1.Services.TicketPrintingService.ImprimirTicket(
+                                productos: listaParaImprimir,
+                                subtotal: this.Subtotal,
+                                iva: this.Iva,
+                                descuento: this.MontoDescuento, // Agregamos el descuento también por si acaso
+                                total: this.Total,
+                                pago: pago,
+                                cambio: cambio,
+                                cliente: nombreCliente,
+                                folio: folioString
+                            );
                         }
                     }
 
-                    // Limpieza final para ambos casos
+                    // Limpieza final
                     LimpiarSesion();
                 }
                 catch (Exception ex)
@@ -483,7 +513,7 @@ namespace WpfApp1.ViewModels
             }
         }
 
-        private void GuardarVentaEnBD(decimal subtotal, decimal iva, decimal total, Cliente cliente, decimal pago, decimal cambio)
+        private Venta GuardarVentaEnBD(decimal subtotal, decimal iva, decimal total, Cliente cliente, decimal pago, decimal cambio)
         {
             // (Esta lógica estaba perfecta, solo la copié y pegué)
             using (var db = new InventarioDbContext())
@@ -529,6 +559,7 @@ namespace WpfApp1.ViewModels
                 }
                 db.Ventas.Add(nuevaVenta);
                 db.SaveChanges();
+                return nuevaVenta; // <--- Agrega esto
             }
         }
 
@@ -553,8 +584,10 @@ namespace WpfApp1.ViewModels
                 // 4. Calcular y guardar el descuento
                 if (esPorcentaje)
                 {
-                    // Calculamos sobre el total bruto (Subtotal + IVA)
-                    decimal totalBruto = Subtotal + Iva;
+                    // Antes calculabas: (Subtotal + Iva) * porcentaje
+                    // Ahora es lo mismo, pero conceptualmente es la suma directa:
+                    decimal totalBruto = CarritoItems.Sum(item => item.Subtotal);
+
                     MontoDescuento = totalBruto * (valor / 100);
                     TipoDescuento = $"{valor}%";
                 }
