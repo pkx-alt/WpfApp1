@@ -39,6 +39,12 @@ namespace WpfApp1.Models
         // Propiedad de navegación: Una Venta tiene MUCHOS Detalles
         public virtual ICollection<VentaDetalle> Detalles { get; set; }
 
+        // --- DATOS CRÍTICOS PARA CFDI (Nivel Comprobante) ---
+        public string FormaPagoSAT { get; set; } // Cód. SAT de Forma de Pago (Ej: "01", "03", "28")
+        public string MetodoPagoSAT { get; set; } // Cód. SAT de Método de Pago (Ej: "PUE", "PPD")
+        public string Moneda { get; set; } = "MXN"; // Tipo de Moneda
+        // ----------------------------------------------------
+
         public Venta()
         {
             Detalles = new List<VentaDetalle>();

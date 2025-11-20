@@ -38,6 +38,7 @@ namespace WpfApp1.Data
         }
 
         // --- SEMILLA DE DATOS (SEED DATA) ---
+
         public void SeedData()
         {
             // Esto crea la DB si no existe (¡vital!)
@@ -48,17 +49,49 @@ namespace WpfApp1.Data
             {
                 var listaClientes = new List<Cliente>
                 {
-                    // El cliente ID 0 o 1 suele ser el genérico
-                    new Cliente { RFC = "XAXX010101000", RazonSocial = "Público en General", Telefono = "000-000-0000", Activo = true },
+                    // El cliente ID 0 o 1 suele ser el genérico (¡AÑADIMOS DATOS!)
+                    new Cliente {
+                        RFC = "XAXX010101000",
+                        RazonSocial = "Público en General",
+                        Telefono = "000-000-0000",
+                        Activo = true,
+                        CodigoPostal = "00000", // Valor dummy obligatorio
+                        RegimenFiscal = "616", // Sin Obligaciones Fiscales
+                        UsoCFDI = "P01"        // Por definir
+                    },
                     
-                    // Clientes reales
-                    new Cliente { RFC = "GOME900101HDF", RazonSocial = "Abarrotes Doña Lupe", Telefono = "818-123-4567", Activo = true },
-                    new Cliente { RFC = "COMP8505201A1", RazonSocial = "Computadoras y Sistemas S.A.", Telefono = "554-888-9999", Activo = true },
-                    new Cliente { RFC = "HEPR991212KL2", RazonSocial = "Escuela Primaria Benito Juárez", Telefono = "811-222-3333", Activo = true }
+                    // Clientes reales (¡AÑADIMOS DATOS!)
+                    new Cliente {
+                        RFC = "GOME900101HDF",
+                        RazonSocial = "Abarrotes Doña Lupe",
+                        Telefono = "818-123-4567",
+                        Activo = true,
+                        CodigoPostal = "64000", // CP real
+                        RegimenFiscal = "605", // Personas Físicas con Actividades Empresariales y Profesionales
+                        UsoCFDI = "G01"        // Adquisición de mercancías
+                    },
+                    new Cliente {
+                        RFC = "COMP8505201A1",
+                        RazonSocial = "Computadoras y Sistemas S.A.",
+                        Telefono = "554-888-9999",
+                        Activo = true,
+                        CodigoPostal = "01000",
+                        RegimenFiscal = "601", // General de Ley Personas Morales
+                        UsoCFDI = "G03"        // Gastos en general
+                    },
+                    new Cliente {
+                        RFC = "HEPR991212KL2",
+                        RazonSocial = "Escuela Primaria Benito Juárez",
+                        Telefono = "811-222-3333",
+                        Activo = true,
+                        CodigoPostal = "66000",
+                        RegimenFiscal = "603", // Personas Morales con Fines no Lucrativos
+                        UsoCFDI = "P01"        // Por definir
+                    }
                 };
 
                 this.Clientes.AddRange(listaClientes);
-                this.SaveChanges(); // Guardamos clientes primero
+                this.SaveChanges(); // <-- ¡Aquí es donde ya no fallará!
             }
 
             // --- 2. SEMBRAR CATEGORÍAS Y PRODUCTOS ---
@@ -152,13 +185,15 @@ namespace WpfApp1.Data
             this.SaveChanges();
 
             // 4. SEMBRAR VENTAS (CON DIAGNÓSTICO)
+            // 4. SEMBRAR VENTAS (CON DIAGNÓSTICO)
             if (!this.Ventas.Any())
             {
                 // 1. Intentamos buscar los datos
-                var clienteTienda = this.Clientes.FirstOrDefault(c => c.RazonSocial.Contains("Doña Lupe"));
-                var clienteEscuela = this.Clientes.FirstOrDefault(c => c.RazonSocial.Contains("Benito Juárez"));
-                var productoCuaderno = this.Productos.FirstOrDefault(p => p.Descripcion.Contains("Cuaderno"));
-                var productoLapiz = this.Productos.FirstOrDefault(p => p.Descripcion.Contains("Bolígrafo"));
+                // ¡CORRECCIÓN! Declaramos las variables con su tipo explícito para fijar el ámbito.
+                Cliente clienteTienda = this.Clientes.FirstOrDefault(c => c.RazonSocial.Contains("Doña Lupe"));
+                Cliente clienteEscuela = this.Clientes.FirstOrDefault(c => c.RazonSocial.Contains("Benito Juárez"));
+                Producto productoCuaderno = this.Productos.FirstOrDefault(p => p.Descripcion.Contains("Cuaderno"));
+                Producto productoLapiz = this.Productos.FirstOrDefault(p => p.Descripcion.Contains("Bolígrafo"));
 
                 // 2. DIAGNÓSTICO: ¿Encontró todo?
                 string reporte = "Diagnóstico de carga:\n";
@@ -183,7 +218,10 @@ namespace WpfApp1.Data
                         IVA = (productoCuaderno.Precio * 10) * 0.16m,
                         Total = (productoCuaderno.Precio * 10) * 1.16m,
                         PagoRecibido = 0, // Debe todo
-                        Cambio = 0
+                        Cambio = 0,
+                        // Datos CFDI para crédito
+                        FormaPagoSAT = "99",
+                        MetodoPagoSAT = "PPD"
                     };
                     ventaCreditoTotal.Detalles.Add(new VentaDetalle
                     {
@@ -200,7 +238,10 @@ namespace WpfApp1.Data
                         IVA = 80,
                         Total = 580,
                         PagoRecibido = 200.00m, // Pagó parcial
-                        Cambio = 0
+                        Cambio = 0,
+                        // Datos CFDI para abono
+                        FormaPagoSAT = "99",
+                        MetodoPagoSAT = "PPD"
                     };
                     // (Para simplificar, si no encuentra el lápiz, usamos el cuaderno también)
                     var prodParaVenta2 = productoLapiz ?? productoCuaderno;
@@ -211,7 +252,21 @@ namespace WpfApp1.Data
                         PrecioUnitario = 10
                     });
 
-                    this.Ventas.AddRange(ventaCreditoTotal, ventaAbonada);
+                    var ventaContado = new Venta
+                    {
+                        Fecha = DateTime.Now.AddDays(-1),
+                        ClienteId = clienteEscuela.ID,
+                        Subtotal = 100,
+                        IVA = 16,
+                        Total = 116,
+                        PagoRecibido = 116,
+                        Cambio = 0,
+                        // Datos CFDI para contado (PUE)
+                        FormaPagoSAT = "01",
+                        MetodoPagoSAT = "PUE"
+                    };
+
+                    this.Ventas.AddRange(ventaCreditoTotal, ventaAbonada, ventaContado);
                     this.SaveChanges();
 
                     MessageBox.Show("✅ ¡SE HAN CREADO LAS DEUDAS DE PRUEBA!", "Éxito");
@@ -225,5 +280,6 @@ namespace WpfApp1.Data
             // F) GUARDAR CAMBIOS
             this.SaveChanges();
         }
+        
     }
 }

@@ -9,8 +9,10 @@
         SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterScreen"
         Background="#F5F5F5"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize"
+        FontFamily="Segoe UI">
     <Grid Margin="20">
+
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -36,6 +38,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Categoría:" VerticalAlignment="Center" Margin="0,5,10,5"/>
@@ -47,6 +51,7 @@
             <ComboBox  Grid.Row="1" Grid.Column="1" x:Name="CmbSubcategoria" Margin="0,5" Padding="3"
                        DisplayMemberPath="Nombre"
                        IsEnabled="False"/>
+
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Descripción:" VerticalAlignment="Center" Margin="0,5,10,5"/>
             <TextBox   Grid.Row="2" Grid.Column="1" x:Name="txtDescripcion" Margin="0,5" Padding="3"/>
 
@@ -56,11 +61,16 @@
             <TextBlock Grid.Row="4" Grid.Column="0" Text="Costo:" VerticalAlignment="Center" Margin="0,5,10,5"/>
             <TextBox   Grid.Row="4" Grid.Column="1" x:Name="txtCosto" Margin="0,5" Padding="3"/>
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="Stock:" VerticalAlignment="Center" Margin="0,5,10,5"/>
-            <TextBox   Grid.Row="5" Grid.Column="1" x:Name="txtStock" Margin="0,5" Padding="3"/>
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Clave SAT (8 dgs):" VerticalAlignment="Center" Margin="0,5,10,5"/>
+            <TextBox   Grid.Row="5" Grid.Column="1" x:Name="txtClaveSat" MaxLength="8" Margin="0,5" Padding="3" Text="01010101"/>
 
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="URL de Imagen:" VerticalAlignment="Center" Margin="0,5,10,5"/>
-            <TextBox   Grid.Row="6" Grid.Column="1" x:Name="txtImagenUrl" Margin="0,5" Padding="3"/>
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Clave Unidad:" VerticalAlignment="Center" Margin="0,5,10,5"/>
+            <TextBox   Grid.Row="6" Grid.Column="1" x:Name="txtClaveUnidad" MaxLength="3" Margin="0,5" Padding="3" Text="H87"/>
+            <TextBlock Grid.Row="7" Grid.Column="0" Text="Stock:" VerticalAlignment="Center" Margin="0,5,10,5"/>
+            <TextBox   Grid.Row="7" Grid.Column="1" x:Name="txtStock" Margin="0,5" Padding="3"/>
+
+            <TextBlock Grid.Row="8" Grid.Column="0" Text="URL de Imagen:" VerticalAlignment="Center" Margin="0,5,10,5"/>
+            <TextBox   Grid.Row="8" Grid.Column="1" x:Name="txtImagenUrl" Margin="0,5" Padding="3"/>
         </Grid>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">

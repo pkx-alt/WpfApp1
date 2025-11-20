@@ -1,24 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// WpfApp1/Views/Dialogs/NuevoClienteWindow.xaml.cs - MODIFICADO
+using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using WpfApp1.Data;
 using WpfApp1.Models;
 
 namespace WpfApp1.Views.Dialogs
 {
-    /// <summary>
-    /// Lógica de interacción para NuevoClienteWindow.xaml
-    /// </summary>
     public partial class NuevoClienteWindow : Window
     {
         public NuevoClienteWindow()
@@ -38,16 +25,21 @@ namespace WpfApp1.Views.Dialogs
             // 2. Crear el objeto Cliente
             var nuevoCliente = new Cliente
             {
-                RFC = txtRfc.Text,
-                RazonSocial = txtRazonSocial.Text,
-                Telefono = txtTelefono.Text
-                // La fecha 'Creado' se pone sola por el valor por defecto
+                RFC = txtRfc.Text.Trim(),
+                RazonSocial = txtRazonSocial.Text.Trim(),
+                Telefono = txtTelefono.Text.Trim(),
+
+                // ¡AÑADIDOS NUEVOS CAMPOS CFDI!
+                CodigoPostal = txtCodigoPostal.Text.Trim(),
+                RegimenFiscal = txtRegimenFiscal.Text.Trim(),
+                UsoCFDI = txtUsoCFDI.Text.Trim(),
+
+                Activo = true // Por defecto
             };
 
             try
             {
                 // 3. Guardar en la BD
-                // El 'using' se encarga de abrir y cerrar la conexión
                 using (var db = new InventarioDbContext())
                 {
                     db.Clientes.Add(nuevoCliente);
@@ -56,7 +48,7 @@ namespace WpfApp1.Views.Dialogs
 
                 // 4. Avisar y cerrar
                 MessageBox.Show("¡Cliente guardado con éxito!", "Éxito");
-                this.DialogResult = true; // Esto le dice a la página anterior que "todo salió bien"
+                this.DialogResult = true;
                 this.Close();
             }
             catch (Exception ex)

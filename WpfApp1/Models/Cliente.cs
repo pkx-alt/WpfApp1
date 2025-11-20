@@ -15,6 +15,14 @@ namespace WpfApp1.Models
         [MaxLength(13)]
         public string RFC { get; set; }
 
+
+
+        public string CodigoPostal { get; set; } // Domicilio Fiscal Receptor (el CP de 5 dígitos)
+
+        public string RegimenFiscal { get; set; } // Régimen Fiscal Receptor (Ej. 612)
+
+        [MaxLength(3)]
+        public string UsoCFDI { get; set; } // Uso CFDI (Ej. G03)
         [Required]
         public string RazonSocial { get; set; }
 

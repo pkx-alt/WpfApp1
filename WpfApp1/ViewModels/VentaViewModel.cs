@@ -403,7 +403,13 @@ namespace WpfApp1.ViewModels
             {
                 try
                 {
+                    // --- RECOLECCIÓN DE DATOS FINALES ---
                     var cliente = modalPago.ClienteSeleccionadoEnModal;
+                    decimal pago = modalPago.PagoRecibidoEnModal;
+
+                    // --- ¡DATOS CFDI DEL MODAL! ---
+                    string formaPagoSat = modalPago.FormaPagoSATEnModal;
+                    string metodoPagoSat = modalPago.MetodoPagoSATEnModal;
 
                     if (this.EsModoCotizacion)
                     {
@@ -414,11 +420,11 @@ namespace WpfApp1.ViewModels
                     else
                     {
                         // --- LÓGICA DE VENTA NORMAL ---
-                        decimal pago = modalPago.PagoRecibidoEnModal;
+                        decimal montoPago = modalPago.PagoRecibidoEnModal;
                         decimal cambio = pago - this.Total;
 
                         // A. Guardamos en BD y obtenemos la venta guardada (para el Folio)
-                        var ventaGuardada = GuardarVentaEnBD(this.Subtotal, this.Iva, this.Total, cliente, pago, cambio);
+                        var ventaGuardada = GuardarVentaEnBD(this.Subtotal, this.Iva, this.Total, cliente, montoPago, cambio, formaPagoSat, metodoPagoSat);
 
                         // B. Validamos si pagó completo o es crédito
                         if (cambio < 0)
@@ -459,7 +465,7 @@ namespace WpfApp1.ViewModels
                                 iva: this.Iva,
                                 descuento: this.MontoDescuento, // Agregamos el descuento también por si acaso
                                 total: this.Total,
-                                pago: pago,
+                                pago: montoPago,
                                 cambio: cambio,
                                 cliente: nombreCliente,
                                 folio: folioString
@@ -516,7 +522,7 @@ namespace WpfApp1.ViewModels
             }
         }
 
-        private Venta GuardarVentaEnBD(decimal subtotal, decimal iva, decimal total, Cliente cliente, decimal pago, decimal cambio)
+        private Venta GuardarVentaEnBD(decimal subtotal, decimal iva, decimal total, Cliente cliente, decimal pago, decimal cambio, string formaPagoSat, string metodoPagoSat)
         {
             // (Esta lógica estaba perfecta, solo la copié y pegué)
             using (var db = new InventarioDbContext())
@@ -533,6 +539,10 @@ namespace WpfApp1.ViewModels
                     // --- ¡AQUÍ ESTÁ LA MAGIA! ---
                     // Si el cliente no es nulo Y su ID no es 0 (Público General),
                     // guardamos su ID. Si no, guardamos null.
+
+                    // --- ¡ASIGNACIÓN DE CAMPOS CFDI! ---
+                    FormaPagoSAT = formaPagoSat,
+                    MetodoPagoSAT = metodoPagoSat,
                     ClienteId = (cliente != null && cliente.ID != 0) ? (int?)cliente.ID : null
                 };
 

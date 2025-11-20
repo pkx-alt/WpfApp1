@@ -12,8 +12,7 @@ namespace WpfApp1.ViewModels
     public class FormaPagoViewModel : ViewModelBase
     {
         // --- 1. Propiedades para el Estado ---
-
-
+        // --- 1. Propiedades para el Estado ---
 
         private decimal _totalAPagar;
         public decimal TotalAPagar
@@ -23,13 +22,10 @@ namespace WpfApp1.ViewModels
             {
                 _totalAPagar = value;
                 OnPropertyChanged();
-
-                // ¡REACCIÓN! Si el total cambia, recalculamos el cambio
                 OnPropertyChanged(nameof(Cambio));
-
-                // Ponemos el total como sugerencia de pago
+                // Dispara la re-evaluación del pago (auto-llenado)
                 PagoRecibido = _totalAPagar;
-                ActualizarLogicaDePago(); // Para que el pago se auto-llene si es Tarjeta/Transfer
+                ActualizarLogicaDePago();
             }
         }
 
@@ -41,11 +37,9 @@ namespace WpfApp1.ViewModels
             {
                 _pagoRecibido = value;
                 OnPropertyChanged();
-
-                // ¡REACCIÓN! Si el pago cambia, recalculamos el cambio
                 OnPropertyChanged(nameof(Cambio));
-
-                // También le avisamos al botón de Finalizar que re-evalúe
+                // ¡Avisa que los códigos SAT también pueden cambiar!
+                OnPropertyChanged(nameof(MetodoPagoSAT));
                 (FinalizarVentaCommand as RelayCommand)?.RaiseCanExecuteChanged();
             }
         }
@@ -69,11 +63,9 @@ namespace WpfApp1.ViewModels
             {
                 _metodoPagoSeleccionado = value;
                 OnPropertyChanged();
-
-                // ¡¡AQUÍ ESTÁ LA LÓGICA!!
-                // Cada vez que el método de pago cambia,
-                // ejecutamos nuestra lógica de actualización.
                 ActualizarLogicaDePago();
+                // Notifica que la forma de pago SAT cambió
+                OnPropertyChanged(nameof(FormaPagoSAT));
             }
         }
 
@@ -88,21 +80,50 @@ namespace WpfApp1.ViewModels
             {
                 _clienteSeleccionado = value;
                 OnPropertyChanged();
+                // Notifica que el método SAT puede cambiar si se vuelve a "Público General"
+                OnPropertyChanged(nameof(MetodoPagoSAT));
+                (FinalizarVentaCommand as RelayCommand)?.RaiseCanExecuteChanged();
             }
         }
 
-        // Un campo privado para guardar nuestro cliente "dummy"
         private Cliente _clientePublicoGeneral;
 
-        // ¡Propiedad Calculada! Esta es la nueva forma de hacerlo.
-        // No guarda un valor, solo lo calcula cuando se lo piden.
         public decimal Cambio => PagoRecibido - TotalAPagar;
-
-        public bool ImprimirTicket { get; set; } = true; // Valor por defecto
-
-        // Esta propiedad "especial" la usaremos para cerrar la ventana
-        // Es un "truco" para que el VM le ordene al View que se cierre.
+        public bool ImprimirTicket { get; set; } = true;
         public Action<bool> CloseAction { get; set; }
+
+        // --- PROPIEDADES CFDI CALCULADAS ---
+
+        // FormaPagoSAT (Se calcula según el enum seleccionado)
+        public string FormaPagoSAT
+        {
+            get
+            {
+                // Mapeo simple a códigos SAT
+                switch (MetodoPagoSeleccionado)
+                {
+                    case MetodoPago.Efectivo: return "01";
+                    case MetodoPago.Tarjeta: return "04"; // 04: Tarjeta de Crédito, 28: Débito. Usamos el genérico.
+                    case MetodoPago.Transferencia: return "03";
+                    case MetodoPago.Mixto: return "99";
+                    default: return "99"; // Otros
+                }
+            }
+        }
+
+        // MetodoPagoSAT (PUE o PPD)
+        public string MetodoPagoSAT
+        {
+            get
+            {
+                // Si falta dinero (Cambio < 0) Y NO es Público General, es PPD (Crédito)
+                if (Cambio < 0 && ClienteSeleccionado != null && ClienteSeleccionado.ID != 0)
+                    return "PPD"; // Pago en Parcialidades o Diferido (Crédito)
+
+                return "PUE"; // Pago en Una Sola Exhibición (Contado)
+            }
+        }
+        // ------------------------------------
 
 
         // --- 2. Comandos ---
@@ -149,24 +170,24 @@ namespace WpfApp1.ViewModels
             }
 
             // Si es Cliente y falta dinero -> AVISO DE CRÉDITO
-            if (ClienteSeleccionado != null && ClienteSeleccionado.ID != 0 && PagoRecibido < TotalAPagar)
+            if (MetodoPagoSAT == "PPD") // Usamos la nueva propiedad calculada
             {
                 decimal deuda = TotalAPagar - PagoRecibido;
                 var resultado = MessageBox.Show(
                     $"El pago es menor al total.\n\n" +
                     $"Se registrará una deuda de {deuda:C} al cliente '{ClienteSeleccionado.RazonSocial}'.\n\n" +
                     "¿Desea continuar?",
-                    "Venta a Crédito",
+                    "Venta a Crédito (PPD)",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Question);
 
                 if (resultado == MessageBoxResult.No)
                 {
-                    return; // Cancelar si el usuario se arrepintió
+                    return;
                 }
             }
 
-            // ¡Todo bien! Cerramos
+            // ¡Todo bien! Cerramos y devolvemos true
             CloseAction?.Invoke(true);
         }
 
@@ -174,18 +195,15 @@ namespace WpfApp1.ViewModels
 
         private bool PuedeFinalizarVenta(object parameter)
         {
-            // Regla 1: El pago no puede ser negativo (obvio)
             if (PagoRecibido < 0) return false;
 
-            // Regla 2: Si es "Público en General" (ID = 0), DEBE pagar completo.
-            // (No le fiamos a desconocidos)
+            // Si es Público en General, DEBE pagar PUE (completo)
             if (ClienteSeleccionado == null || ClienteSeleccionado.ID == 0)
             {
                 return PagoRecibido >= TotalAPagar;
             }
 
-            // Regla 3: Si es un Cliente registrado, ¡puede pagar lo que sea! (Incluso 0)
-            // El sistema registrará la deuda automáticamente.
+            // Si es un Cliente registrado, siempre puede continuar (puede ser a crédito/PPD)
             return true;
         }
 
@@ -220,6 +238,9 @@ namespace WpfApp1.ViewModels
                     // MetodoPagoSeleccionado = MetodoPago.Efectivo; 
                     break;
             }
+
+            // Forzamos la re-evaluación del método SAT (MetodoPagoSAT)
+            OnPropertyChanged(nameof(MetodoPagoSAT));
         }
         private void CargarClientesParaCombo()
         {

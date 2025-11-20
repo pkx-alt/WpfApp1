@@ -29,6 +29,14 @@ namespace WpfApp1.Models
         //    a la que este producto pertenece.
         public int SubcategoriaId { get; set; }
 
+        // --- DATOS FISCALES CFDI CONCEPTO ---
+        [MaxLength(8)]
+        public string ClaveSat { get; set; } // Clave de Producto/Servicio
+
+        [MaxLength(3)]
+        public string ClaveUnidad { get; set; } // Clave de Unidad (Ej. H87 - Pieza)
+        // ------------------------------------
+
         // 2. La Propiedad de Navegación
         //    Esto le dice a EF Core: "Ese 'SubcategoriaId' de arriba
         //    se 'enlaza' a un objeto 'Subcategoria' completo".
@@ -39,6 +47,8 @@ namespace WpfApp1.Models
             Descripcion = string.Empty;
             ImagenUrl = string.Empty;
             Activo = true; // Por defecto, un producto siempre nace "Activo"
+            ClaveSat = "01010101"; // Genérico: "No existe en el catálogo"
+            ClaveUnidad = "H87";    // Genérico: "Pieza"
         }
     }
 }
