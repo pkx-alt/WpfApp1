@@ -160,6 +160,7 @@
                         IsEnabled="False"/>
 
                 <Button x:Name="BtnHistorialCaja" 
+                        Click="BtnHistorialCaja_Click" 
                         Content="Historial de caja" 
                         Background="#2A4B6A" 
                         Foreground="White"/>

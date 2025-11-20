@@ -1,51 +1,42 @@
-﻿using System.Collections.ObjectModel;
-using System.Linq;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using WpfApp1.Data;
 using WpfApp1.Models;
+using WpfApp1.ViewModels;
 using WpfApp1.Views.Dialogs;
-using System.Windows.Media;
-using System.Windows;
-using WpfApp1.ViewModels; // ¡IMPORTANTE!
 
 namespace WpfApp1.Views
 {
     public partial class InventarioPage : Page
     {
-        // ¡Ya no necesitamos la propiedad Productos!
-        // ¡Ya no necesitamos la constante NivelBajoStock!
-
-        // Solo dejamos el placeholder si quieres manejarlo desde aquí
+        // Texto para el buscador
         private const string PlaceholderText = "Buscar por nombre o descripción...";
 
         public InventarioPage()
         {
             InitializeComponent();
 
-            // --- ¡EL GRAN CAMBIO! ---
-            // Ya no es DataContext = this
+            // Conectamos el ViewModel
             this.DataContext = new InventarioViewModel();
 
-            SetupPlaceholder(); // Mantenemos la lógica del placeholder
+            // Configuramos el texto gris del buscador
+            SetupPlaceholder();
         }
 
-        // --- ¡TODA LA LÓGICA DE CARGA Y FILTROS SE FUE AL VIEWMODEL! ---
-        // private void CargarProductos() { ... } // ¡ELIMINADO!
-        // private void Filtro_Actualizado(object sender, ...) { ... } // ¡ELIMINADO!
-        // private void LimpiarFiltrosButton_Click(object sender, ...) { ... } // ¡ELIMINADO!
-        // private void NuevoProducto_Click(object sender, ...) { ... } // ¡ELIMINADO!
+        // Atajo para acceder al ViewModel desde el código
+        private InventarioViewModel VM => (InventarioViewModel)DataContext;
 
-        // --- LÓGICA DEL PLACEHOLDER (SE QUEDA) ---
+        // --- Lógica del Buscador (Placeholder) ---
         private void SetupPlaceholder()
         {
-            // (Tu código de SetupPlaceholder... se queda igual)
             SearchTextBox.Text = PlaceholderText;
             SearchTextBox.Foreground = Brushes.Gray;
         }
 
         private void SearchTextBox_GotFocus(object sender, RoutedEventArgs e)
         {
-            // (Tu código de GotFocus... se queda igual)
             if (SearchTextBox.Text == PlaceholderText)
             {
                 SearchTextBox.Text = "";
@@ -55,7 +46,6 @@ namespace WpfApp1.Views
 
         private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            // (Tu código de LostFocus... se queda igual)
             if (string.IsNullOrWhiteSpace(SearchTextBox.Text))
             {
                 SearchTextBox.Text = PlaceholderText;
@@ -63,26 +53,18 @@ namespace WpfApp1.Views
             }
         }
 
-
-        // --- LÓGICA DE CLICS DEL DATAGRID (SE QUEDA... POR AHORA) ---
-        // La única diferencia es que ahora llamamos al CargarProductos()
-        // PÚBLICO de nuestro ViewModel.
-
-        // Obtenemos el ViewModel
-        private InventarioViewModel VM => (InventarioViewModel)DataContext;
-
+        // --- Acciones de Stock (+ / -) ---
         private void AddStock_Click(object sender, RoutedEventArgs e)
         {
             var boton = sender as FrameworkElement;
             if (boton == null) return;
-            var productoSeleccionado = boton.DataContext as Producto;
-            if (productoSeleccionado == null) return;
+            var producto = boton.DataContext as Producto;
+            if (producto == null) return;
 
-            var modal = new AgregarStockModal(productoSeleccionado);
-            bool? resultado = modal.ShowDialog();
-            if (resultado == true)
+            var modal = new AgregarStockModal(producto);
+            if (modal.ShowDialog() == true)
             {
-                VM.CargarProductos(); // ¡Llama al método del VM!
+                VM.CargarProductos(); // Recargar lista
             }
         }
 
@@ -90,90 +72,81 @@ namespace WpfApp1.Views
         {
             var boton = sender as FrameworkElement;
             if (boton == null) return;
+            var producto = boton.DataContext as Producto;
+            if (producto == null) return;
 
-            // 1. Identificamos qué producto se seleccionó
-            var productoSeleccionado = boton.DataContext as Producto;
-            if (productoSeleccionado == null) return;
-
-            // 2. Creamos la ventana de DISMINUIR (ya la tienes lista)
-            var modal = new DisminuirStockModal(productoSeleccionado);
-
-            // Opcional: Que aparezca centrada sobre la ventana principal
+            var modal = new DisminuirStockModal(producto);
             modal.Owner = Window.GetWindow(this);
-
-            // 3. La mostramos y esperamos
-            bool? resultado = modal.ShowDialog();
-
-            // 4. Si guardó cambios (resultado == true), refrescamos la tabla
-            if (resultado == true)
+            if (modal.ShowDialog() == true)
             {
-                VM.CargarProductos();
+                VM.CargarProductos(); // Recargar lista
             }
         }
 
+        // --- Menú de Opciones y Clic Derecho ---
+
+        // Este evento abre el menú del botón "..."
         private void OpcionesButton_Click(object sender, RoutedEventArgs e)
         {
-            // (Tu lógica de OpcionesButton_Click... se queda igual)
             var boton = sender as Button;
-            if (boton == null || boton.ContextMenu == null) return;
+            if (boton?.ContextMenu == null) return;
+
+            // Asignar el producto al menú para que sepa qué editar
             boton.ContextMenu.DataContext = boton.DataContext;
             boton.ContextMenu.PlacementTarget = boton;
             boton.ContextMenu.IsOpen = true;
         }
 
+        // --- Funciones del Menú (Compartidas por Botón y Clic Derecho) ---
+
         private void EditarProducto_Click(object sender, RoutedEventArgs e)
         {
-            // (Tu lógica de EditarProducto_Click... se queda igual)
             var menuItem = sender as MenuItem;
-            if (menuItem == null) return;
-            var producto = menuItem.DataContext as Producto;
+            var producto = menuItem?.DataContext as Producto;
             if (producto == null) return;
-            MessageBox.Show($"Vas a EDITAR: {producto.Descripcion}");
-            // Si editas, al final llama a VM.CargarProductos();
+
+            MessageBox.Show($"Editar: {producto.Descripcion} (Próximamente)");
+            // Aquí abrirías tu ventana de edición real
         }
 
         private void VerDetalles_Click(object sender, RoutedEventArgs e)
         {
-            // (Tu lógica... se queda igual)
             var menuItem = sender as MenuItem;
-            if (menuItem == null) return;
-            var producto = menuItem.DataContext as Producto;
+            var producto = menuItem?.DataContext as Producto;
             if (producto == null) return;
-            MessageBox.Show($"Vas a VER DETALLES de: {producto.Descripcion}");
+
+            MessageBox.Show($"Detalles: {producto.Descripcion} (Próximamente)");
         }
 
         private void Duplicar_Click(object sender, RoutedEventArgs e)
         {
-            // (Tu lógica... se queda igual)
             var menuItem = sender as MenuItem;
-            if (menuItem == null) return;
-            var producto = menuItem.DataContext as Producto;
+            var producto = menuItem?.DataContext as Producto;
             if (producto == null) return;
-            MessageBox.Show($"Vas a DUPLICAR: {producto.Descripcion}");
+
+            MessageBox.Show($"Duplicar: {producto.Descripcion} (Próximamente)");
         }
 
         private void Historial_Click(object sender, RoutedEventArgs e)
         {
-            // (Tu lógica... se queda igual)
             var menuItem = sender as MenuItem;
-            if (menuItem == null) return;
-            var producto = menuItem.DataContext as Producto;
+            var producto = menuItem?.DataContext as Producto;
             if (producto == null) return;
-            MessageBox.Show($"Vas a VER HISTORIAL de: {producto.Descripcion}");
+
+            // Navegar a la página de movimientos con el filtro
+            this.NavigationService.Navigate(new MovimientosPage(producto.ID));
         }
 
         private void Deshabilitar_Click(object sender, RoutedEventArgs e)
         {
             var menuItem = sender as MenuItem;
-            if (menuItem == null) return;
-            var producto = menuItem.DataContext as Producto;
+            var producto = menuItem?.DataContext as Producto;
             if (producto == null) return;
 
             bool esParaDeshabilitar = producto.Activo;
-            var modalConfirmar = new ConfirmarEstadoModal(producto, esParaDeshabilitar);
-            bool? resultado = modalConfirmar.ShowDialog();
+            var modal = new ConfirmarEstadoModal(producto, esParaDeshabilitar);
 
-            if (resultado == true)
+            if (modal.ShowDialog() == true)
             {
                 producto.Activo = !producto.Activo;
                 try
@@ -183,15 +156,12 @@ namespace WpfApp1.Views
                         db.Productos.Update(producto);
                         db.SaveChanges();
                     }
+                    VM.CargarProductos();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error al actualizar: {ex.Message}");
-                    producto.Activo = !producto.Activo; // Revertimos
-                    return;
+                    MessageBox.Show($"Error: {ex.Message}");
                 }
-
-                VM.CargarProductos(); // ¡Llama al método del VM!
             }
         }
     }

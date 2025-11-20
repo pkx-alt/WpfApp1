@@ -95,65 +95,60 @@ namespace WpfApp1.Views
 
             if (estadoActual == true)
             {
-                // --- ¡NUEVA LÓGICA PARA CERRAR LA CAJA! ---
+                // -------------------------------------------------------
+                // LÓGICA DE CIERRE (CAJA YA ESTABA ABIERTA)
+                // -------------------------------------------------------
 
-                // 1. Calcular el "Efectivo Esperado".
-                //    ¡¡OJO!! Aún no tenemos ventas ni egresos.
-                //    Por ahora, el efectivo esperado será el MontoInicial.
-                //    (En el futuro, la fórmula será: MontoInicial + Ingresos - Egresos)
                 decimal montoInicial = Properties.Settings.Default.MontoInicialCaja;
-                // decimal ventasDia = ... (Lógica futura de ventas) ...
-                // decimal egresosDia = ... (Lógica futura de egresos) ...
-                decimal efectivoEsperado = montoInicial; // + ventasDia - egresosDia;
+                // Aquí podrías sumar ventas reales para calcular el esperado exacto
+                decimal efectivoEsperado = montoInicial;
 
-                // 2. Crear y mostrar el diálogo de cierre
+                // Abrimos el diálogo de conteo
                 CierreCajaWindow dialog = new CierreCajaWindow(efectivoEsperado);
                 dialog.Owner = Window.GetWindow(this);
                 bool? dialogResult = dialog.ShowDialog();
 
-                // 3. Comprobar si el usuario hizo clic en "Finalizar"
                 if (dialogResult == true)
                 {
-                    // 4. Recuperar los datos del diálogo
                     decimal totalContado = dialog.TotalContado;
                     string notas = dialog.Notas;
                     decimal diferencia = totalContado - efectivoEsperado;
 
-                    // 5. Proceder a cerrar la caja
-                    bool nuevoEstado = false; // 'false' = Cerrada
-                    string formatoFechaAccion = "dddd, dd 'de' MMMM 'a las' hh:mm tt";
-                    string fechaAccion = DateTime.Now.ToString(formatoFechaAccion, culturaEspanol);
-
-                    // 6. Crear el mensaje de cierre
-                    string nuevoMensaje = $"Cierre con {diferencia.ToString("C", culturaEspanol)} de diferencia el {fechaAccion}";
-                    if (diferencia == 0)
+                    // 1. GUARDAR EN BASE DE DATOS (NUEVO)
+                    using (var db = new InventarioDbContext())
                     {
-                        nuevoMensaje = $"Cierre cuadrado el {fechaAccion}";
+                        // Buscamos el corte que estaba abierto (el último creado)
+                        var corteActivo = db.CortesCaja
+                                            .OrderByDescending(c => c.Id)
+                                            .FirstOrDefault(c => c.Abierta);
+
+                        if (corteActivo != null)
+                        {
+                            corteActivo.FechaCierre = DateTime.Now;
+                            corteActivo.MontoFinal = totalContado;
+                            corteActivo.Diferencia = diferencia;
+                            corteActivo.Notas = notas;
+                            corteActivo.Abierta = false; // ¡Cerramos el ciclo!
+
+                            db.SaveChanges();
+                        }
                     }
 
-                    // 7. Guardar TODO en los Settings
-                    Properties.Settings.Default.IsBoxOpen = nuevoEstado;
-                    Properties.Settings.Default.LastActionMessage = nuevoMensaje;
-                    Properties.Settings.Default.MontoInicialCaja = 0; // Reseteamos el monto inicial
-                    Properties.Settings.Default.MontoFinalContado = totalContado;
-                    Properties.Settings.Default.DiferenciaCierre = diferencia;
-                    Properties.Settings.Default.NotasCierre = notas;
+                    // 2. Guardar en Settings (Para mantener la UI sincronizada)
+                    Properties.Settings.Default.IsBoxOpen = false;
+                    Properties.Settings.Default.LastActionMessage = $"Cierre realizado el {DateTime.Now:g}";
+                    Properties.Settings.Default.MontoInicialCaja = 0;
                     Properties.Settings.Default.Save();
 
-                    // 8. Actualizar la UI de esta página
-                    ActualizarVisualCaja(nuevoEstado, nuevoMensaje);
-
-                    // (El Sidebar se actualizará solo, gracias al PropertyChanged de 'IsBoxOpen')
-                }
-                else
-                {
-                    // El usuario canceló. no hacemos nada.
+                    // 3. Refrescar Pantalla
+                    ActualizarVisualCaja(false, Properties.Settings.Default.LastActionMessage);
                 }
             }
             else
             {
-                // --- LÓGICA PARA ABRIR LA CAJA (ya la tenías) ---
-                // (Esta parte no cambia)
+                // -------------------------------------------------------
+                // LÓGICA DE APERTURA (CAJA ESTABA CERRADA)
+                // -------------------------------------------------------
 
                 AperturaCajaWindow dialog = new AperturaCajaWindow();
                 dialog.Owner = Window.GetWindow(this);
@@ -162,17 +157,31 @@ namespace WpfApp1.Views
                 if (dialogResult == true)
                 {
                     decimal montoInicial = dialog.MontoInicial;
-                    bool nuevoEstado = true;
-                    string formatoFechaAccion = "dddd, dd 'de' MMMM 'a las' hh:mm tt";
-                    string fechaAccion = DateTime.Now.ToString(formatoFechaAccion, culturaEspanol);
-                    string nuevoMensaje = $"Apertura con {montoInicial.ToString("C", culturaEspanol)} el {fechaAccion}";
 
-                    Properties.Settings.Default.IsBoxOpen = nuevoEstado;
-                    Properties.Settings.Default.LastActionMessage = nuevoMensaje;
+                    // 1. GUARDAR EN BASE DE DATOS (NUEVO)
+                    using (var db = new InventarioDbContext())
+                    {
+                        var nuevoCorte = new CorteCaja
+                        {
+                            FechaApertura = DateTime.Now,
+                            MontoInicial = montoInicial,
+                            Abierta = true, // ¡Abrimos ciclo!
+                            MontoFinal = 0,
+                            Diferencia = 0,
+                            Notas = ""
+                        };
+                        db.CortesCaja.Add(nuevoCorte);
+                        db.SaveChanges();
+                    }
+
+                    // 2. Guardar en Settings
+                    Properties.Settings.Default.IsBoxOpen = true;
                     Properties.Settings.Default.MontoInicialCaja = montoInicial;
+                    Properties.Settings.Default.LastActionMessage = $"Apertura realizada el {DateTime.Now:g}";
                     Properties.Settings.Default.Save();
 
-                    ActualizarVisualCaja(nuevoEstado, nuevoMensaje);
+                    // 3. Refrescar Pantalla
+                    ActualizarVisualCaja(true, Properties.Settings.Default.LastActionMessage);
                 }
             }
         }
@@ -362,6 +371,14 @@ namespace WpfApp1.Views
                 string mensaje = Properties.Settings.Default.LastActionMessage;
                 ActualizarVisualCaja(true, mensaje);
             }
+        }
+
+        private void BtnHistorialCaja_Click(object sender, RoutedEventArgs e)
+        {
+            // Abrimos la nueva ventana
+            var ventanaHistorial = new Views.Dialogs.HistorialCajaWindow();
+            ventanaHistorial.Owner = Window.GetWindow(this); // Para que salga centrada
+            ventanaHistorial.ShowDialog();
         }
 
     }

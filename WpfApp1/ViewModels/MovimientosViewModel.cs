@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore; // ¡Vital para .Include()!
+﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -9,13 +9,21 @@ namespace WpfApp1.ViewModels
 {
     public class MovimientosViewModel : ViewModelBase
     {
-        // La lista que verá la tabla
         public ObservableCollection<MovimientoInventario> ListaMovimientos { get; set; }
 
-        // Constructor
+        // --- NUEVA PROPIEDAD ---
+        private string _tituloPagina;
+        public string TituloPagina
+        {
+            get { return _tituloPagina; }
+            set { _tituloPagina = value; OnPropertyChanged(); }
+        }
+        // -----------------------
+
         public MovimientosViewModel()
         {
             ListaMovimientos = new ObservableCollection<MovimientoInventario>();
+            // Carga inicial por defecto (sin filtro)
             CargarMovimientos();
         }
 
@@ -26,21 +34,26 @@ namespace WpfApp1.ViewModels
             {
                 try
                 {
-                    // 1. Preparamos la consulta
                     var query = db.Movimientos
-                                  .Include(m => m.Producto) // ¡Traemos el nombre del producto!
+                                  .Include(m => m.Producto)
                                   .AsQueryable();
 
-                    // 2. ¿Hay filtro? (Para cuando vengas desde el botón de Inventario)
                     if (productoIdFiltro.HasValue)
                     {
                         query = query.Where(m => m.ProductoId == productoIdFiltro.Value);
+
+                        // --- DETALLE PROFESIONAL ---
+                        // Buscamos el nombre del producto para ponerlo en el título
+                        var prod = db.Productos.Find(productoIdFiltro.Value);
+                        TituloPagina = prod != null ? $"Kardex: {prod.Descripcion}" : "Historial de Movimientos";
+                    }
+                    else
+                    {
+                        TituloPagina = "Kardex General de Movimientos";
                     }
 
-                    // 3. Ordenamos: Lo más nuevo arriba
                     var resultados = query.OrderByDescending(m => m.Fecha).ToList();
 
-                    // 4. Llenamos la lista
                     ListaMovimientos.Clear();
                     foreach (var item in resultados)
                     {

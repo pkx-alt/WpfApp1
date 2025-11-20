@@ -23,6 +23,7 @@ namespace WpfApp1.Data
         public DbSet<Gasto> Gastos { get; set; }
         public DbSet<Ingreso> Ingresos { get; set; } // <--- AGREGA ESTO
         public DbSet<MovimientoInventario> Movimientos { get; set; }
+        public DbSet<CorteCaja> CortesCaja { get; set; }
 
         // CONFIGURACIÓN DE LA RUTA DB
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

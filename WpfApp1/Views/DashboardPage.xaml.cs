@@ -1,69 +1,51 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-// ¡Ya no necesitamos 'using WpfApp1;' aquí!
+using WpfApp1.ViewModels; // <--- ¡No olvides este using!
 
 namespace WpfApp1.Views
 {
-    /// <summary>
-    /// Lógica de interacción para DashboardPage.xaml
-    /// </summary>
     public partial class DashboardPage : Page
     {
+        // Guardamos una referencia al ViewModel para poder llamarlo luego
+        private DashboardViewModel _vm;
+
         public DashboardPage()
         {
             InitializeComponent();
+
+            // 1. Instanciamos el ViewModel
+            _vm = new DashboardViewModel();
+
+            // 2. Se lo asignamos a la página
+            this.DataContext = _vm;
+
+            // 3. Nos suscribimos al evento "Loaded".
+            // Esto se dispara CADA VEZ que la página aparece en pantalla.
+            this.Loaded += DashboardPage_Loaded;
         }
 
-        // --- ¡ESTA ES LA NUEVA LÓGICA DE "ATAQUE DIRECTO"! ---
+        private void DashboardPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Recargamos los números para que estén frescos
+            _vm.CargarMetricas();
+        }
 
-        /// <summary>
-        /// Método de ayuda para buscar la MainWindow y llamar su método público.
-        /// </summary>
+        // --- TUS MÉTODOS DE NAVEGACIÓN (Déjalos tal cual estaban) ---
         private void Navegar(string pageIdentifier)
         {
-            // 1. Buscamos la Ventana (Window) que contiene esta Página (Page)
             Window parentWindow = Window.GetWindow(this);
-
-            // 2. Comprobamos que sea nuestra 'MainWindow'
             if (parentWindow is MainWindow mainWindow)
             {
-                // 3. ¡Llamamos al método PÚBLICO que creamos en MainWindow!
                 mainWindow.NavigateToPage(pageIdentifier);
             }
         }
 
-        // --- Métodos de Clic de las Tarjetas ---
-        // (El XAML no cambia, sigue siendo 'MouseLeftButtonDown')
-
-        private void CardNuevaVenta_Click(object sender, MouseButtonEventArgs e)
-        {
-            Navegar("NuevaVenta");
-        }
-
-        private void CardCotizacion_Click(object sender, MouseButtonEventArgs e)
-        {
-            Navegar("Cotizaciones");
-        }
-
-        private void CardInventario_Click(object sender, MouseButtonEventArgs e)
-        {
-            Navegar("Inventario");
-        }
-
-        private void CardVentasRealizadas_Click(object sender, MouseButtonEventArgs e)
-        {
-            Navegar("Ventas realizadas");
-        }
-
-        private void CardCaja_Click(object sender, MouseButtonEventArgs e)
-        {
-            Navegar("Caja");
-        }
-
-        private void CardAjustes_Click(object sender, MouseButtonEventArgs e)
-        {
-            Navegar("Ajustes");
-        }
+        private void CardNuevaVenta_Click(object sender, MouseButtonEventArgs e) => Navegar("NuevaVenta");
+        private void CardCotizacion_Click(object sender, MouseButtonEventArgs e) => Navegar("Cotizaciones");
+        private void CardInventario_Click(object sender, MouseButtonEventArgs e) => Navegar("Inventario");
+        private void CardVentasRealizadas_Click(object sender, MouseButtonEventArgs e) => Navegar("Ventas realizadas");
+        private void CardCaja_Click(object sender, MouseButtonEventArgs e) => Navegar("Caja");
+        private void CardAjustes_Click(object sender, MouseButtonEventArgs e) => Navegar("Ajustes");
     }
 }

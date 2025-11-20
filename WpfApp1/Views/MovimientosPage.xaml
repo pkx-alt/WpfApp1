@@ -21,12 +21,37 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="Kardex de Movimientos 📋" 
-                       FontSize="28" FontWeight="Bold" Foreground="#333"/>
-            <TextBlock Text="Historial detallado de entradas, salidas y ajustes de inventario." 
-                       FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
-        </StackPanel>
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding TituloPagina}" 
+                           FontSize="28" FontWeight="Bold" Foreground="#333"/>
+                <TextBlock Text="Historial detallado de entradas, salidas y ajustes."
+                           FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <Button Grid.Column="1" 
+                    Content="⬅ Volver al Inventario"
+                    Click="BtnVolver_Click"
+                    Height="40"
+                    Padding="15,0"
+                    Background="White"
+                    BorderBrush="#DDD"
+                    BorderThickness="1"
+                    Foreground="#555"
+                    FontWeight="SemiBold"
+                    Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="5"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </Grid>
 
         <DataGrid Grid.Row="1" 
                   ItemsSource="{Binding ListaMovimientos}"

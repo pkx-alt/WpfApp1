@@ -11,6 +11,29 @@
       Background="White"
       d:DataContext="{d:DesignInstance Type=vm:InventarioViewModel, IsDesignTimeCreatable=False}">
 
+    <!-- DEFINICIÓN DEL MENÚ DE CONTEXTO COMO RECURSO PARA REUTILIZAR -->
+    <Page.Resources>
+        <ContextMenu x:Key="MenuAccionesProducto">
+            <MenuItem Header="Editar Producto" Click="EditarProducto_Click"/>
+            <MenuItem Header="Ver detalles" Click="VerDetalles_Click"/>
+            <MenuItem Header="Duplicar" Click="Duplicar_Click"/>
+            <MenuItem Header="Historial de movimientos" Click="Historial_Click"/>
+            <Separator/>
+            <MenuItem Click="Deshabilitar_Click">
+                <MenuItem.Style>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Header" Value="Deshabilitar"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Activo}" Value="False">
+                                <Setter Property="Header" Value="Habilitar"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </MenuItem.Style>
+            </MenuItem>
+        </ContextMenu>
+    </Page.Resources>
+
     <Grid>
         <Grid Margin="20">
             <Grid.RowDefinitions>
@@ -102,6 +125,13 @@
                       HorizontalGridLinesBrush="#EEE"
                       Margin="0,10,0,0">
 
+                <!-- APLICAR EL MENÚ DE CONTEXTO A CADA FILA -->
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="ContextMenu" Value="{StaticResource MenuAccionesProducto}"/>
+                    </Style>
+                </DataGrid.RowStyle>
+
                 <DataGrid.Columns>
 
                     <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="Auto"/>
@@ -159,30 +189,10 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Button Content="+" Margin="3" ToolTip="Añadir stock" Click="AddStock_Click"/>
                                     <Button Content="-" Margin="3" ToolTip="Quitar stock" Click="RemoveStock_Click"/>
+                                    <!-- BOTÓN VINCULADO AL MISMO MENÚ DE RECURSOS -->
                                     <Button Content="..." Margin="3" ToolTip="Más opciones" 
-                                            Click="OpcionesButton_Click">
-                                        <Button.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem Header="Editar Producto" Click="EditarProducto_Click"/>
-                                                <MenuItem Header="Ver detalles" Click="VerDetalles_Click"/>
-                                                <MenuItem Header="Duplicar" Click="Duplicar_Click"/>
-                                                <MenuItem Header="Historial de movimientos" Click="Historial_Click"/>
-                                                <Separator/>
-                                                <MenuItem Click="Deshabilitar_Click">
-                                                    <MenuItem.Style>
-                                                        <Style TargetType="MenuItem">
-                                                            <Setter Property="Header" Value="Deshabilitar"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Activo}" Value="False">
-                                                                    <Setter Property="Header" Value="Habilitar"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </MenuItem.Style>
-                                                </MenuItem>
-                                            </ContextMenu>
-                                        </Button.ContextMenu>
-                                    </Button>
+                                            Click="OpcionesButton_Click"
+                                            ContextMenu="{StaticResource MenuAccionesProducto}"/>
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
