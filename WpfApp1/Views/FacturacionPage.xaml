@@ -97,14 +97,14 @@
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="🔎" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="Gray"/>
                                 <TextBox Width="150" Padding="6" VerticalContentAlignment="Center" FontSize="14"
-         Tag="Buscar folio..." 
-         Text="{Binding TextoBusquedaPendiente, UpdateSourceTrigger=PropertyChanged}"/>
+                                         Tag="Buscar folio..." 
+                                         Text="{Binding TextoBusquedaPendiente, UpdateSourceTrigger=PropertyChanged}"/>
 
                                 <TextBlock Text="Cliente:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="20,0,10,0" Foreground="#555"/>
-<ComboBox Width="180" Padding="5" 
-          ItemsSource="{Binding ListaClientes}"
-          SelectedItem="{Binding ClienteFiltroPendiente}"
-          DisplayMemberPath="RazonSocial"/>
+                                <ComboBox Width="180" Padding="5" 
+                                          ItemsSource="{Binding ListaClientes}"
+                                          SelectedItem="{Binding ClienteFiltroPendiente}"
+                                          DisplayMemberPath="RazonSocial"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -120,7 +120,8 @@
                                 <Button Content="Generar" 
                                         Background="#495057" Foreground="White" FontWeight="SemiBold"
                                         Padding="20,6" BorderThickness="0" Margin="0,0,15,0" Cursor="Hand"
-                                        ToolTip="Generar factura global para el periodo seleccionado">
+                                        ToolTip="Generar factura global para el periodo seleccionado"
+                                        Command="{Binding GenerarGlobalCommand}">
                                     <Button.Resources>
                                         <Style TargetType="Border">
                                             <Setter Property="CornerRadius" Value="4"/>
@@ -131,21 +132,21 @@
                                 <Rectangle Width="1" Height="24" Fill="#DDD" Margin="0,0,15,0"/>
 
                                 <Button Content="🔄" FontSize="16" ToolTip="Actualizar lista"
-        Command="{Binding RefrescarCommand}"
-        Background="Transparent" BorderThickness="0" Foreground="#007ACC" Cursor="Hand"/>
+                                        Command="{Binding RefrescarCommand}"
+                                        Background="Transparent" BorderThickness="0" Foreground="#007ACC" Cursor="Hand"/>
                             </StackPanel>
                         </Grid>
                     </Border>
 
                     <DataGrid Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
-          ItemsSource="{Binding ListaPendientes}" 
-          Background="White" BorderThickness="0" RowHeaderWidth="0"
-          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEE"
-          RowHeight="45" VerticalGridLinesBrush="Transparent">
+                              ItemsSource="{Binding ListaPendientes}" 
+                              Background="White" BorderThickness="0" RowHeaderWidth="0"
+                              GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEE"
+                              RowHeight="45" VerticalGridLinesBrush="Transparent">
 
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Width="50" ElementStyle="{StaticResource {x:Type CheckBox}}"
-                                Binding="{Binding Seleccionado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                    Binding="{Binding Seleccionado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                             </DataGridCheckBoxColumn>
 
                             <DataGridTextColumn Header="Ticket" Binding="{Binding Folio}" Width="80" FontWeight="Bold"/>
@@ -169,9 +170,9 @@
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Content="Facturar" 
-                            Command="{Binding DataContext.FacturarTicketCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                            CommandParameter="{Binding}"
-                            Background="#007ACC" Foreground="White" Padding="10,4" BorderThickness="0" FontSize="12" Cursor="Hand">
+                                                Command="{Binding DataContext.FacturarTicketCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}"
+                                                Background="#007ACC" Foreground="White" Padding="10,4" BorderThickness="0" FontSize="12" Cursor="Hand">
                                             <Button.Resources>
                                                 <Style TargetType="Border">
                                                     <Setter Property="CornerRadius" Value="4"/>
@@ -203,32 +204,29 @@
 
                             <StackPanel Orientation="Horizontal" Margin="0,0,25,0">
                                 <TextBlock Text="Mes:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
-                                <ComboBox Width="120" SelectedIndex="0" Padding="4">
-                                    <ComboBoxItem Content="Noviembre"/>
-                                    <ComboBoxItem Content="Octubre"/>
-                                    <ComboBoxItem Content="Septiembre"/>
-                                </ComboBox>
+                                <ComboBox Width="120" Padding="4"
+                                          ItemsSource="{Binding ListaMeses}"
+                                          SelectedItem="{Binding MesSeleccionadoHistorial}"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Margin="0,0,25,0">
                                 <TextBlock Text="Estado:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
-                                <ComboBox Width="120" SelectedIndex="0" Padding="4">
-                                    <ComboBoxItem Content="Todas"/>
-                                    <ComboBoxItem Content="Vigentes"/>
-                                    <ComboBoxItem Content="Canceladas"/>
-                                </ComboBox>
+                                <ComboBox Width="120" Padding="4"
+                                          ItemsSource="{Binding ListaEstados}"
+                                          SelectedItem="{Binding EstadoSeleccionadoHistorial}"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" Margin="0,0,25,0">
                                 <TextBlock Text="Cliente:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
-                                <ComboBox Width="150" SelectedIndex="0" Padding="4">
-                                    <ComboBoxItem Content="Todos"/>
-                                    <ComboBoxItem Content="Escuela Benito..."/>
-                                    <ComboBoxItem Content="Constructora..."/>
-                                </ComboBox>
+                                <ComboBox Width="150" Padding="4"
+                                          ItemsSource="{Binding ListaClientes}"
+                                          SelectedItem="{Binding ClienteFiltroHistorial}"
+                                          DisplayMemberPath="RazonSocial"/>
                             </StackPanel>
 
-                            <Button Content="Buscar" Background="#007ACC" Foreground="White" Padding="25,5" BorderThickness="0" FontWeight="Bold" Cursor="Hand">
+                            <Button Content="Buscar" 
+                                    Command="{Binding BuscarHistorialCommand}"
+                                    Background="#007ACC" Foreground="White" Padding="25,5" BorderThickness="0" FontWeight="Bold" Cursor="Hand">
                                 <Button.Resources>
                                     <Style TargetType="Border">
                                         <Setter Property="CornerRadius" Value="4"/>
@@ -238,24 +236,34 @@
                         </WrapPanel>
                     </Border>
 
-                    <DataGrid Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
-                              Background="White" BorderThickness="0" RowHeaderWidth="0"
-                              GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEE"
-                              RowHeight="45" VerticalGridLinesBrush="Transparent">
+                    <DataGrid Grid.Row="1" 
+                              AutoGenerateColumns="False" 
+                              CanUserAddRows="False" 
+                              IsReadOnly="True"
+                              ItemsSource="{Binding ListaHistorial}" 
+                              Background="White" 
+                              BorderThickness="0" 
+                              RowHeaderWidth="0"
+                              GridLinesVisibility="Horizontal" 
+                              HorizontalGridLinesBrush="#EEE"
+                              RowHeight="45" 
+                              VerticalGridLinesBrush="Transparent">
                         <DataGrid.Effect>
                             <DropShadowEffect Color="#B0BEC5" Opacity="0.1" BlurRadius="10" ShadowDepth="2"/>
                         </DataGrid.Effect>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Serie/Folio" Binding="{Binding SerieFolio}" Width="100" FontWeight="Bold"/>
                             <DataGridTextColumn Header="UUID (Fiscal)" Binding="{Binding UUID}" Width="2*" Foreground="Gray"/>
-                            <DataGridTextColumn Header="Receptor" Binding="{Binding Cliente}" Width="2*"/>
-                            <DataGridTextColumn Header="Total" Binding="{Binding Total}" Width="100" FontWeight="Bold"/>
+
+                            <DataGridTextColumn Header="Receptor" Binding="{Binding Receptor}" Width="2*"/>
+
+                            <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=C}" Width="100" FontWeight="Bold"/>
 
                             <DataGridTemplateColumn Header="Estado" Width="120">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border Background="#D4EDDA" CornerRadius="10" Padding="8,2" HorizontalAlignment="Center" Width="80">
-                                            <TextBlock Text="Vigente" Foreground="#155724" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Estado}" Foreground="#155724" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
                                         </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

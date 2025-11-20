@@ -17,6 +17,56 @@ namespace WpfApp1.ViewModels
         public ObservableCollection<FacturaHistorialItem> ListaHistorial { get; set; }
         public ObservableCollection<Cliente> ListaClientes { get; set; }
 
+        // --- FILTROS HISTORIAL ---
+
+        // 1. Filtro por Mes (Simple: usaremos un entero 1-12, 0 para "Todos")
+        public ObservableCollection<string> ListaMeses { get; set; } = new ObservableCollection<string>
+{
+    "Todos", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+};
+
+        private string _mesSeleccionadoHistorial;
+        public string MesSeleccionadoHistorial
+        {
+            get => _mesSeleccionadoHistorial;
+            set
+            {
+                _mesSeleccionadoHistorial = value;
+                OnPropertyChanged();
+                CargarHistorial(); // <--- ¡El truco! Recarga al cambiar
+            }
+        }
+
+        // 2. Filtro por Estado ("Todas", "Vigentes", "Canceladas")
+        public ObservableCollection<string> ListaEstados { get; set; } = new ObservableCollection<string> { "Todas", "Vigente", "Cancelada" };
+
+        private string _estadoSeleccionadoHistorial;
+        public string EstadoSeleccionadoHistorial
+        {
+            get => _estadoSeleccionadoHistorial;
+            set
+            {
+                _estadoSeleccionadoHistorial = value;
+                OnPropertyChanged();
+                CargarHistorial(); // <--- ¡El truco! Recarga al cambiar
+            }
+        }
+        // 3. Filtro por Cliente (Reutilizamos la ListaClientes que ya tienes)
+        private Cliente _clienteFiltroHistorial;
+        public Cliente ClienteFiltroHistorial
+        {
+            get => _clienteFiltroHistorial;
+            set
+            {
+                _clienteFiltroHistorial = value;
+                OnPropertyChanged();
+                CargarHistorial(); // <--- ¡El truco! Recarga al cambiar
+            }
+        }
+        // Comando para el botón "Buscar"
+        public ICommand BuscarHistorialCommand { get; }
+
         // --- FILTROS PENDIENTES ---
         private string _textoBusquedaPendiente;
         public string TextoBusquedaPendiente
@@ -47,6 +97,13 @@ namespace WpfApp1.ViewModels
             FacturarTicketCommand = new RelayCommand(FacturarIndividual);
             GenerarGlobalCommand = new RelayCommand(GenerarGlobal);
             RefrescarCommand = new RelayCommand(p => CargarDatosIniciales());
+            // Inicializar filtros historial
+            MesSeleccionadoHistorial = "Todos";
+            EstadoSeleccionadoHistorial = "Todas";
+            // ClienteFiltroHistorial se iniciará con el primero de la lista automáticamente si usamos la misma lógica
+
+            // Conectar el comando nuevo
+            BuscarHistorialCommand = new RelayCommand(p => CargarHistorial());
 
             CargarDatosIniciales();
             CargarHistorial(); // <--- ¡AGREGA ESTA LÍNEA!
@@ -59,12 +116,17 @@ namespace WpfApp1.ViewModels
                 // 1. Cargar Clientes
                 var clientes = db.Clientes.Where(c => c.Activo).OrderBy(c => c.RazonSocial).ToList();
                 ListaClientes.Clear();
-                ListaClientes.Add(new Cliente { ID = 0, RazonSocial = "Todos los clientes" }); // Opción por defecto
+                ListaClientes.Add(new Cliente { ID = 0, RazonSocial = "Todos los clientes" });
                 foreach (var c in clientes) ListaClientes.Add(c);
 
-                // Seleccionamos "Todos" por defecto si no hay nada seleccionado
+                // Seleccionamos "Todos" por defecto para PENDIENTES
                 if (ClienteFiltroPendiente == null)
                     ClienteFiltroPendiente = ListaClientes.First();
+
+                // --- ¡AGREGA ESTO! ---
+                // Seleccionamos "Todos" por defecto para HISTORIAL
+                if (ClienteFiltroHistorial == null)
+                    ClienteFiltroHistorial = ListaClientes.First();
 
                 // 2. Cargar Tickets
                 CargarPendientes();
@@ -190,10 +252,34 @@ namespace WpfApp1.ViewModels
         {
             using (var db = new InventarioDbContext())
             {
-                // Traemos las facturas ordenadas por fecha (la más nueva arriba)
-                var facturasDb = db.Facturas
-                                   .OrderByDescending(f => f.FechaEmision)
-                                   .ToList();
+                var query = db.Facturas.AsQueryable();
+
+                // FILTRO 1: Estado
+                // Validamos que no sea nulo y que no sea "Todas"
+                if (!string.IsNullOrEmpty(EstadoSeleccionadoHistorial) && EstadoSeleccionadoHistorial != "Todas")
+                {
+                    query = query.Where(f => f.Estado == EstadoSeleccionadoHistorial);
+                }
+
+                // FILTRO 2: Cliente
+                // Validamos que el objeto cliente no sea nulo y que su ID no sea 0 (Todos)
+                if (ClienteFiltroHistorial != null && ClienteFiltroHistorial.ID != 0)
+                {
+                    query = query.Where(f => f.ReceptorNombre == ClienteFiltroHistorial.RazonSocial);
+                }
+
+                // FILTRO 3: Mes
+                // Validamos nulo y "Todos"
+                if (!string.IsNullOrEmpty(MesSeleccionadoHistorial) && MesSeleccionadoHistorial != "Todos")
+                {
+                    int numeroMes = ListaMeses.IndexOf(MesSeleccionadoHistorial);
+                    if (numeroMes > 0) // Validación extra
+                    {
+                        query = query.Where(f => f.FechaEmision.Month == numeroMes && f.FechaEmision.Year == DateTime.Now.Year);
+                    }
+                }
+
+                var facturasDb = query.OrderByDescending(f => f.FechaEmision).ToList();
 
                 ListaHistorial.Clear();
                 foreach (var f in facturasDb)
@@ -209,33 +295,33 @@ namespace WpfApp1.ViewModels
                 }
             }
         }
-    }
 
-    // --- CLASES AUXILIARES (Wrappers para el DataGrid) ---
+        // --- CLASES AUXILIARES (Wrappers para el DataGrid) ---
 
-    public class TicketPendienteItem : ViewModelBase
-    {
-        public int VentaId { get; set; }
-        public string Folio { get; set; }
-        public DateTime Fecha { get; set; }
-        public string ClienteNombre { get; set; }
-        public string RFC { get; set; }
-        public decimal Total { get; set; }
-
-        private bool _seleccionado;
-        public bool Seleccionado
+        public class TicketPendienteItem : ViewModelBase
         {
-            get => _seleccionado;
-            set { _seleccionado = value; OnPropertyChanged(); }
-        }
-    }
+            public int VentaId { get; set; }
+            public string Folio { get; set; }
+            public DateTime Fecha { get; set; }
+            public string ClienteNombre { get; set; }
+            public string RFC { get; set; }
+            public decimal Total { get; set; }
 
-    public class FacturaHistorialItem
-    {
-        public string UUID { get; set; }
-        public string SerieFolio { get; set; }
-        public string Receptor { get; set; }
-        public decimal Total { get; set; }
-        public string Estado { get; set; } // "Vigente" o "Cancelada"
+            private bool _seleccionado;
+            public bool Seleccionado
+            {
+                get => _seleccionado;
+                set { _seleccionado = value; OnPropertyChanged(); }
+            }
+        }
+
+        public class FacturaHistorialItem
+        {
+            public string UUID { get; set; }
+            public string SerieFolio { get; set; }
+            public string Receptor { get; set; }
+            public decimal Total { get; set; }
+            public string Estado { get; set; } // "Vigente" o "Cancelada"
+        }
     }
 }
