@@ -24,6 +24,8 @@ namespace WpfApp1.Data
         public DbSet<Ingreso> Ingresos { get; set; } // <--- AGREGA ESTO
         public DbSet<MovimientoInventario> Movimientos { get; set; }
         public DbSet<CorteCaja> CortesCaja { get; set; }
+        // ¡AGREGA ESTA LÍNEA! 👇
+        public DbSet<Factura> Facturas { get; set; }
 
         // CONFIGURACIÓN DE LA RUTA DB
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

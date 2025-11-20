@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using WpfApp1.ViewModels;
 
 namespace WpfApp1.Views
 {
@@ -7,24 +8,8 @@ namespace WpfApp1.Views
         public FacturacionPage()
         {
             InitializeComponent();
+            // Conectamos el ViewModel
+            this.DataContext = new FacturacionViewModel();
         }
-    }
-
-    // --- CLASES SIMPLES SOLO PARA QUE SE VEA EL DISEÑO (BORRAR LUEGO O MOVER A MODELS) ---
-    public class FacturaEjemplo
-    {
-        public string Folio { get; set; }
-        public string Fecha { get; set; }
-        public string Cliente { get; set; }
-        public string RFC { get; set; }
-        public double Total { get; set; }
-    }
-
-    public class FacturaHistorialEjemplo
-    {
-        public string UUID { get; set; }
-        public string SerieFolio { get; set; }
-        public string Cliente { get; set; }
-        public string Total { get; set; }
     }
 }
