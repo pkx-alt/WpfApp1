@@ -10,13 +10,11 @@
       Background="#F4F7F9">
 
     <Page.Resources>
-
         <Style x:Key="CategoryCardStyle" TargetType="Button">
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#E0E0E0"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Margin" Value="10"/>
-
             <Setter Property="Width" Value="280"/>
             <Setter Property="Height" Value="150"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -60,15 +58,14 @@
             <Setter Property="Margin" Value="12"/>
             <Setter Property="Width" Value="260"/>
             <Setter Property="Height" Value="130"/>
-
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="border" Background="{TemplateBinding Background}" 
-                        BorderBrush="{TemplateBinding BorderBrush}" 
-                        BorderThickness="{TemplateBinding BorderThickness}" 
-                        CornerRadius="10">
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
                             <Border.Effect>
                                 <DropShadowEffect Color="#B0BEC5" Opacity="0.1" BlurRadius="8" ShadowDepth="2"/>
@@ -80,7 +77,6 @@
                                 <Setter TargetName="border" Property="BorderBrush" Value="#2196F3"/>
                                 <Setter TargetName="border" Property="BorderThickness" Value="2"/>
                             </Trigger>
-
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="border" Property="Background" Value="#F9F9F9"/>
                                 <Setter TargetName="border" Property="BorderBrush" Value="#007ACC"/>
@@ -170,6 +166,32 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="ViewToggleStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#6c757d"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,5"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="4" BorderBrush="#CCC" BorderThickness="1" Margin="0,0,5,0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="#007ACC"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="#007ACC"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Page.Resources>
 
     <Grid Margin="30">
@@ -231,7 +253,6 @@
                         <TextBlock Text="Pendientes, Efectividad" FontSize="12" Foreground="Gray" Margin="0,5,0,0" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-
             </WrapPanel>
 
             <Grid x:Name="SubMenuContainer" Visibility="Collapsed">
@@ -241,8 +262,8 @@
                 </Grid.RowDefinitions>
 
                 <Button Grid.Row="0" Content="⬅️ Volver a Categorías" HorizontalAlignment="Left" Margin="20,0,0,10"
-            Background="Transparent" Foreground="#007ACC" BorderThickness="0" FontWeight="Bold" Cursor="Hand"
-            Click="BtnVolver_Click"/>
+                        Background="Transparent" Foreground="#007ACC" BorderThickness="0" FontWeight="Bold" Cursor="Hand"
+                        Click="BtnVolver_Click"/>
 
                 <WrapPanel x:Name="PanelOpcionesVentas" Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Left" Margin="12,0,0,0">
                     <Button Style="{StaticResource ReportButtonStyle}" Click="ReporteEspecifico_Click" Tag="Ventas_MasVendidos">
@@ -359,37 +380,87 @@
                                 <StackPanel Grid.Column="0">
                                     <TextBlock x:Name="TxtTituloResultado" Text="Título del Reporte" 
                                                FontSize="20" FontWeight="Bold" Foreground="#212529"/>
-                                    <TextBlock Text="Visualización de datos generados" 
-                                               FontSize="13" Foreground="#868e96" Margin="0,2,0,0"/>
+
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <RadioButton x:Name="RadioTabla" Content="Tabla de Datos" IsChecked="True"
+                                                     Style="{StaticResource ViewToggleStyle}" 
+                                                     Checked="ToggleVista_Checked"/>
+
+                                        <RadioButton x:Name="RadioGrafica" Content="Gráfica Visual"
+                                                     Style="{StaticResource ViewToggleStyle}" 
+                                                     Checked="ToggleVista_Checked"/>
+                                    </StackPanel>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button x:Name="BtnExportar" Click="BtnExportar_Click"
-                                            Content="💾 Exportar Excel"
-                                            Background="#28A745" Foreground="White" FontWeight="Bold"
-                                            Padding="15,8" BorderThickness="0" Cursor="Hand"
-                                            Margin="0,0,15,0">
-                                        <Button.Resources>
-                                            <Style TargetType="Border">
-                                                <Setter Property="CornerRadius" Value="4"/>
-                                            </Style>
-                                        </Button.Resources>
-                                    </Button>
-
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
                                     <Button Content="Cerrar Reporte" Style="{StaticResource CloseButtonStyle}"
                                             Click="BtnCerrarResultados_Click"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
 
-                        <DataGrid x:Name="GridResultados" Grid.Row="1"
+                        <Grid Grid.Row="1">
+                            <DataGrid x:Name="GridResultados" 
                                   Style="{StaticResource ModernDataGridStyle}"
                                   ColumnHeaderStyle="{StaticResource ModernColumnHeaderStyle}"
                                   CellStyle="{StaticResource ModernCellStyle}"
                                   Margin="0,0,0,10"
                                   AutoGeneratingColumn="GridResultados_AutoGeneratingColumn"
                                   ColumnWidth="*">
-                        </DataGrid>
+                            </DataGrid>
+
+                            <Grid x:Name="ContenedorGrafica" Visibility="Collapsed" Margin="10">
+                                <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+                  VerticalScrollBarVisibility="Auto" 
+                  PanningMode="Both">
+
+                                    <ItemsControl x:Name="GraficaItemsControl">
+
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="10,0,10,15" Width="110">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="*"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+
+                                                    <TextBlock Grid.Row="0" Text="{Binding ValorFormateado}" 
+                                   HorizontalAlignment="Center" FontSize="12" FontWeight="Bold" 
+                                   Foreground="#555" Margin="0,0,0,5"/>
+
+                                                    <Border Grid.Row="2" BorderBrush="#999" BorderThickness="0,0,0,1" Padding="0,0,0,0">
+                                                        <Border Height="{Binding AlturaCalculada}" 
+                                    Background="{Binding ColorBarra}" 
+                                    CornerRadius="4,4,0,0"
+                                    VerticalAlignment="Bottom"
+                                    Margin="15,0" 
+                                    ToolTip="{Binding TooltipTexto}"/>
+                                                    </Border>
+
+                                                    <TextBlock Grid.Row="3" Text="{Binding Etiqueta}" 
+                                   HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                                   FontSize="11" Margin="2,8,2,0" Foreground="#333" 
+                                   Height="60" TextTrimming="CharacterEllipsis"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+
+                                <TextBlock x:Name="TxtSinGrafica" Text="Vista gráfica no disponible para este reporte." 
+               Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" 
+               FontSize="16" Foreground="Gray"/>
+                            </Grid>
+                        </Grid>
+
                     </Grid>
                 </Border>
             </Grid>
@@ -402,20 +473,24 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel x:Name="PanelFiltros" Orientation="Horizontal" VerticalAlignment="Center" IsEnabled="False" Opacity="0.5">
+                <StackPanel x:Name="PanelFiltros" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Rango de fechas:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0"/>
-                    <DatePicker x:Name="DtInicio" Width="120" VerticalContentAlignment="Center"/>
+
+                    <DatePicker x:Name="DtInicio" Width="120" VerticalContentAlignment="Center"
+                                SelectedDateChanged="OnFechaFiltroChanged"/>
                     <TextBlock Text="al" VerticalAlignment="Center" Margin="10,0"/>
-                    <DatePicker x:Name="DtFin" Width="120" VerticalContentAlignment="Center"/>
+                    <DatePicker x:Name="DtFin" Width="120" VerticalContentAlignment="Center"
+                                SelectedDateChanged="OnFechaFiltroChanged"/>
+
                     <TextBlock x:Name="TxtInfoReporte" Text="(Selecciona un reporte arriba)" 
                                VerticalAlignment="Center" Margin="20,0,0,0" Foreground="Gray" FontStyle="Italic"/>
                 </StackPanel>
 
-                <Button x:Name="BtnGenerar" Grid.Column="1" Content="🔄 ACTUALIZAR DATOS" 
-                        Background="#007ACC" Foreground="White" FontWeight="Bold"
+                <Button x:Name="BtnExportar" Click="BtnExportar_Click"
+                        Grid.Column="1" Content="💾 Exportar Excel" 
+                        Background="#28A745" Foreground="White" FontWeight="Bold"
                         Padding="25,10" BorderThickness="0" Cursor="Hand"
-                        IsEnabled="False"
-                        Click="BtnGenerar_Click">
+                        IsEnabled="False">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="4"/>
