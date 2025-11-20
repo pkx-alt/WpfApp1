@@ -233,6 +233,30 @@
                                     </Style>
                                 </Button.Resources>
                             </Button>
+
+                            <Button Content="📥 Exportar Excel" 
+        Click="BtnExportarHistorial_Click"
+        Margin="15,0,0,0"
+        Background="#28A745" Foreground="White" Padding="20,5" BorderThickness="0" FontWeight="Bold" Cursor="Hand"
+        ToolTip="Descargar esta lista en formato Excel (CSV)">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+
+                            <Button Content="🖨️ Imprimir / PDF" 
+        Click="BtnImprimirHistorial_Click"
+        Margin="15,0,0,0"
+        Background="#6c757d" Foreground="White" Padding="20,5" BorderThickness="0" FontWeight="Bold" Cursor="Hand"
+        ToolTip="Generar reporte visual para imprimir o guardar como PDF">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
                         </WrapPanel>
                     </Border>
 

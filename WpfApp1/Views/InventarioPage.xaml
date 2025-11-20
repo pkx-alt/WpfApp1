@@ -52,8 +52,28 @@
                     <TextBlock Grid.Column="0" Text="Inventario" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button Content="Importar" Margin="5,0"/>
-                        <Button Content="Exportar" Margin="20,0"/>
+                        <Button Content="Importar (CSV)" 
+            Click="BtnImportar_Click" 
+            Margin="5,0"
+            ToolTip="Cargar productos desde un archivo Excel (.csv)"/>
+
+                        <Button Content="Exportar (CSV)" 
+            Click="BtnExportar_Click"
+            Margin="20,0"
+            ToolTip="Descargar inventario a Excel (.csv)"/>
+
+                        <Button Content="Importar (XML SAT)" 
+        Click="BtnImportarXML_Click" 
+        Margin="5,0"
+        Background="#FF5722" Foreground="White" FontWeight="Bold"
+        ToolTip="Cargar productos desde una factura XML (CFDI)"/>
+
+                        <Button Content="📧 Escanear Correo" 
+        Click="BtnEscanearCorreo_Click" 
+        Margin="5,0"
+        Background="#007ACC" Foreground="White" FontWeight="Bold"
+        ToolTip="Buscar facturas nuevas en Gmail y cargarlas"/>
+
                         <Button Content="Nuevo producto" Margin="0,0" FontWeight="Bold"
                                 Command="{Binding NuevoProductoCommand}"/>
                     </StackPanel>

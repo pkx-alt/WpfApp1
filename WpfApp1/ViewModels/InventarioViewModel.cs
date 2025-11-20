@@ -21,6 +21,8 @@ namespace WpfApp1.ViewModels
         private bool _verInactivos;
         private bool _verBajoStock;
         public const int NivelBajoStock = 5;
+        // 1. AGREGA ESTA CONSTANTE AL PRINCIPIO DE LA CLASE
+        public const string TextoPredeterminado = "Buscar por nombre o descripción...";
 
         // --- Propiedades Públicas (para el Binding) ---
         public ObservableCollection<Producto> Productos { get; set; }
@@ -166,8 +168,10 @@ namespace WpfApp1.ViewModels
         private void OnLimpiarFiltros(object obj)
         {
             CategoriaSeleccionada = CategoriasDisponibles.FirstOrDefault(c => c.Id == 0);
-            // SubcategoriaSeleccionada se actualiza sola
-            TextoBusqueda = "";
+
+            // 2. CAMBIA ESTO: En lugar de "", usamos el texto
+            TextoBusqueda = TextoPredeterminado;
+
             VerActivos = true;
             VerInactivos = false;
             VerBajoStock = false;
@@ -195,10 +199,12 @@ namespace WpfApp1.ViewModels
             // 2. Leemos el estado de NUESTRAS PROPIEDADES
 
             // FILTRO 1: Por Texto
-            if (!string.IsNullOrWhiteSpace(TextoBusqueda))
+            // Si el texto NO es vacío Y NO es el texto predeterminado, entonces filtramos.
+            if (!string.IsNullOrWhiteSpace(TextoBusqueda) && TextoBusqueda != TextoPredeterminado)
             {
                 string filtroLower = TextoBusqueda.ToLower();
-                query = query.Where(p => p.Descripcion.ToLower().Contains(filtroLower) || p.Descripcion.ToLower().Contains(filtroLower));
+                query = query.Where(p => p.Descripcion.ToLower().Contains(filtroLower) ||
+                                         p.ID.ToString().Contains(filtroLower));
             }
 
             // FILTRO 2: Por Categoría/Subcategoría

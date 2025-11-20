@@ -37,12 +37,12 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBox Grid.Column="0" 
-                             VerticalContentAlignment="Center"
-                             Padding="5"
-
-                             Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
-
-                             Tag="Buscar ventas por folio o cliente...." />
+         x:Name="TxtBusquedaHistorial" 
+         VerticalContentAlignment="Center"
+         Padding="5"
+         Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
+         GotFocus="TxtBusquedaHistorial_GotFocus"
+         LostFocus="TxtBusquedaHistorial_LostFocus" />
                     </Grid>
 
                     <WrapPanel Margin="0,0,0,10">

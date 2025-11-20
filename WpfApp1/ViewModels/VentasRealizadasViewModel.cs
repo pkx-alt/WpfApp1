@@ -22,6 +22,9 @@ namespace WpfApp1.ViewModels
         public ObservableCollection<VentaHistorialItem> Ventas { get; set; }
         public ICommand VerDetalleCommand { get; }
 
+        // 1. DEFINIR EL TEXTO PREDETERMINADO
+        public const string PlaceholderBusqueda = "Buscar ventas por folio o cliente....";
+
         // --- ¡NUEVAS PROPIEDADES PARA EL RESUMEN! ---
         private string _resumenTitulo;
         public string ResumenTitulo
@@ -147,6 +150,7 @@ namespace WpfApp1.ViewModels
             ListaCategorias = new ObservableCollection<Categoria>(); // ¡NUEVO!
             FechaHasta = DateTime.Now.Date; // Hoy, sin la hora
             FechaDesde = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1); // 1ro del mes
+            TextoBusqueda = PlaceholderBusqueda;
             CargarFiltros();
             CargarHistorialVentas();
             ActualizarResumen(); // ¡NUEVO!
@@ -277,7 +281,8 @@ namespace WpfApp1.ViewModels
                 }
 
                 // --- 2. FILTRO BÚSQUEDA ---
-                if (!string.IsNullOrWhiteSpace(TextoBusqueda))
+                if (!string.IsNullOrWhiteSpace(TextoBusqueda) &&
+                TextoBusqueda != PlaceholderBusqueda)
                 {
                     string busquedaLower = TextoBusqueda.ToLower().Trim();
                     if (int.TryParse(busquedaLower, out int folio))

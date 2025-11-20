@@ -1,6 +1,7 @@
 ﻿// App.xaml.cs
 using System.Windows;
 using WpfApp1.Data; // ¡Añade este using para traer tu DbContext!
+using QuestPDF.Infrastructure;
 
 namespace WpfApp1
 {
@@ -10,6 +11,7 @@ namespace WpfApp1
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            QuestPDF.Settings.License = LicenseType.Community;
 
             // Creamos una instancia de nuestro DbContext
             // El 'using' se asegura de que la conexión se cierre

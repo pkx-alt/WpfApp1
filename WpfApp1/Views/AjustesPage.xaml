@@ -75,7 +75,7 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Nombre de la Tienda:" Style="{StaticResource FieldLabel}"/>
-                                <TextBox Text="Papelería Orysí"/>
+                                <TextBox Text="Papelería Orysi"/>
 
                                 <TextBlock Text="Dirección:" Style="{StaticResource FieldLabel}"/>
                                 <TextBox Text="Av. Principal #123, Centro"/>

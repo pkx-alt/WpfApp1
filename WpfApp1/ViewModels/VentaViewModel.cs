@@ -313,13 +313,16 @@ namespace WpfApp1.ViewModels
 
                 if (esId)
                 {
-                    productosEncontrados = db.Productos.Where(p => p.ID == idBusqueda).ToList();
+                    // AGREGA: && p.Activo
+                    productosEncontrados = db.Productos
+                        .Where(p => p.ID == idBusqueda && p.Activo)
+                        .ToList();
                 }
                 else
                 {
                     string busquedaLower = terminoBusqueda.ToLower();
                     productosEncontrados = db.Productos
-                                           .Where(p => p.Descripcion.ToLower().Contains(busquedaLower))
+                                           .Where(p => p.Activo && p.Descripcion.ToLower().Contains(busquedaLower)) // AGREGA: p.Activo &&
                                            .Take(15).ToList();
                 }
 
@@ -337,7 +340,7 @@ namespace WpfApp1.ViewModels
             {
                 if (int.TryParse(SearchText, out int idBusqueda))
                 {
-                    productoParaAgregar = db.Productos.FirstOrDefault(p => p.ID == idBusqueda);
+                    productoParaAgregar = db.Productos.FirstOrDefault(p => p.ID == idBusqueda && p.Activo);
                 }
 
                 if (productoParaAgregar == null && ResultadosBusqueda.Any())
@@ -541,6 +544,10 @@ namespace WpfApp1.ViewModels
                     if (productoEnDb == null)
                     {
                         throw new Exception($"El producto '{item.Description}' (ID: {item.ID}) ya no existe.");
+                    }
+                    if (!productoEnDb.Activo)
+                    {
+                        throw new Exception($"El producto '{item.Description}' está desactivado y no se puede vender.");
                     }
                     if (productoEnDb.Stock < item.Quantity)
                     {

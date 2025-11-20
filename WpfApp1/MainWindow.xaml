@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
-        Title="Papelería Orysí - Sistema" Height="720" Width="1280"
+        Title="Papelería Orysi - Sistema" Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
         Background="#FFFFFF">
 
