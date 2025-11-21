@@ -129,6 +129,18 @@
                                     </Button.Resources>
                                 </Button>
 
+                                <Button Content="📥" 
+        Click="BtnExportarPendientes_Click" 
+        Background="#28A745" Foreground="White" FontWeight="SemiBold"
+        Padding="20,6" BorderThickness="0" Margin="0,0,15,0" Cursor="Hand"
+        ToolTip="Exportar tickets pendientes a un archivo CSV (Excel)">
+                                    <Button.Resources>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="4"/>
+                                        </Style>
+                                    </Button.Resources>
+                                </Button>
+
                                 <Rectangle Width="1" Height="24" Fill="#DDD" Margin="0,0,15,0"/>
 
                                 <Button Content="🔄" FontSize="16" ToolTip="Actualizar lista"

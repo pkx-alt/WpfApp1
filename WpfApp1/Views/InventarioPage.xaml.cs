@@ -1,17 +1,24 @@
-﻿using Microsoft.Win32; // Para el diálogo de guardar/abrir
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32; // Para el diálogo de guardar/abrir
 using System;
 using System.IO;       // Para leer/escribir archivos
 using System.Linq;      // Para consultas rápidas
 using System.Text;     // Para el StringBuilder
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Xml.Linq; // <--- ¡VITAL! Para entender el lenguaje del SAT
 using WpfApp1.Data;
 using WpfApp1.Models;
 using WpfApp1.ViewModels;
-using System.Windows.Input;
 using WpfApp1.Views.Dialogs;
+
+public class ProductoDetalleItem
+{
+    public string Propiedad { get; set; }
+    public string Valor { get; set; }
+}
 
 namespace WpfApp1.Views
 {
@@ -61,6 +68,8 @@ namespace WpfApp1.Views
 
         // En Views/InventarioPage.xaml.cs
 
+        // En Views/InventarioPage.xaml.cs
+
         private void BtnExportar_Click(object sender, RoutedEventArgs e)
         {
             // 1. Obtenemos los datos visibles en la tabla
@@ -76,7 +85,7 @@ namespace WpfApp1.Views
             {
                 Filter = "Archivo CSV (*.csv)|*.csv",
                 FileName = $"Inventario_{DateTime.Now:yyyyMMdd}.csv",
-                Title = "Exportar Inventario"
+                Title = "Exportar Inventario Completo"
             };
 
             if (saveDialog.ShowDialog() == true)
@@ -85,24 +94,25 @@ namespace WpfApp1.Views
                 {
                     var sb = new StringBuilder();
 
-                    // 3. ENCABEZAOS (El formato que Excel entenderá)
-                    // Agregamos Subcategoría para que sea más completo
-                    sb.AppendLine("ID,Descripcion,Precio,Costo,Stock,Subcategoria,Activo");
+                    // 3. ENCABEZADOS (Incluyendo campos CFDI, Ganancia, Categoría/Subcategoría)
+                    sb.AppendLine("ID,Descripcion,Precio,Costo,Ganancia,Stock,Activo,ClaveSat,ClaveUnidad,Subcategoria,Categoria");
 
                     // 4. FILAS
                     foreach (var p in vm.Productos)
                     {
-                        // Limpiamos la descripción de comas para no romper el CSV
-                        string desc = p.Descripcion.Replace(",", " ");
-                        string subcat = p.Subcategoria != null ? p.Subcategoria.Nombre.Replace(",", " ") : "Sin Clasificar";
+                        // Limpiamos la descripción de comas para no romper el CSV y usamos comillas para proteger el texto
+                        string desc = p.Descripcion.Replace("\"", "\"\""); // Duplicamos comillas para escapar
+                        string subcatNombre = p.Subcategoria?.Nombre.Replace("\"", "\"\"") ?? "Sin Subcategoría";
+                        string catNombre = p.Subcategoria?.Categoria?.Nombre.Replace("\"", "\"\"") ?? "Sin Categoría";
                         string estado = p.Activo ? "Si" : "No";
 
-                        sb.AppendLine($"{p.ID},{desc},{p.Precio},{p.Costo},{p.Stock},{subcat},{estado}");
+                        // Usamos comillas dobles al inicio y fin de los campos de texto
+                        sb.AppendLine($"{p.ID},\"{desc}\",{p.Precio},{p.Costo},{p.Ganancia},{p.Stock},{estado},{p.ClaveSat},{p.ClaveUnidad},\"{subcatNombre}\",\"{catNombre}\"");
                     }
 
                     // 5. GUARDAR
                     File.WriteAllText(saveDialog.FileName, sb.ToString(), Encoding.UTF8);
-                    MessageBox.Show("Inventario exportado correctamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Inventario completo exportado correctamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
@@ -316,6 +326,8 @@ namespace WpfApp1.Views
         // En Views/InventarioPage.xaml.cs
 
         // Método público que recibe la ruta de un archivo XML y lo procesa
+        // En Views/InventarioPage.xaml.cs
+
         public int ProcesarArchivoXML(string rutaArchivo)
         {
             int nuevos = 0;
@@ -326,7 +338,7 @@ namespace WpfApp1.Views
                 // 1. DATABASE CONTEXT
                 using (var db = new WpfApp1.Data.InventarioDbContext())
                 {
-                    // Buscamos la subcategoría por defecto para asignarla a los nuevos productos.
+                    // Buscamos la subcategoría por defecto
                     var subcatPorDefecto = db.Subcategorias.FirstOrDefault(s => s.Nombre == "General")
                                            ?? db.Subcategorias.FirstOrDefault();
 
@@ -334,7 +346,7 @@ namespace WpfApp1.Views
 
                     // 2. CARGAR Y ANALIZAR XML (CFDI)
                     var doc = System.Xml.Linq.XDocument.Load(rutaArchivo);
-                    // Detectamos el Namespace del SAT (para CFDI 3.3, 4.0, etc.)
+                    // Detectamos el Namespace del SAT
                     System.Xml.Linq.XNamespace cfdi = doc.Root.Name.Namespace;
 
                     // Obtenemos todos los <cfdi:Concepto>
@@ -347,27 +359,35 @@ namespace WpfApp1.Views
 
                         if (string.IsNullOrWhiteSpace(descripcion)) continue;
 
+                        // --- ¡NUEVAS LÍNEAS CLAVE! ---
+                        // Leemos las claves fiscales del XML
+                        string claveSat = concepto.Attribute("ClaveProdServ")?.Value;
+                        string claveUnidad = concepto.Attribute("ClaveUnidad")?.Value;
+                        // -----------------------------
+
                         decimal cantDec = decimal.Parse(concepto.Attribute("Cantidad")?.Value ?? "0");
                         int cantidad = (int)Math.Round(cantDec);
-
-                        // El ValorUnitario del XML es nuestro Costo
                         decimal costo = decimal.Parse(concepto.Attribute("ValorUnitario")?.Value ?? "0");
                         decimal precioSugerido = costo * 1.30m; // Sugerimos un 30% de ganancia
 
                         // 4. LÓGICA DE MATCH (ANTI-DUPLICADOS)
-                        // A. Buscamos en el caché local (productos que ACABAMOS de crear en este ciclo)
                         var productoEnMemoria = db.Productos.Local
                             .FirstOrDefault(p => p.Descripcion.ToLower() == descripcion.ToLower());
 
-                        // B. Si no está en memoria, buscamos en la Base de Datos
                         var productoExistente = productoEnMemoria ?? db.Productos
                             .FirstOrDefault(p => p.Descripcion.ToLower() == descripcion.ToLower());
 
                         if (productoExistente != null)
                         {
-                            // 5. ACTUALIZAR STOCK Y COSTO
+                            // 5. ACTUALIZAR STOCK, COSTO Y CLAVES FISCALES
                             productoExistente.Stock += cantidad;
-                            if (costo > 0) productoExistente.Costo = costo; // Solo actualizamos costo si vino en el XML
+                            if (costo > 0) productoExistente.Costo = costo;
+
+                            // --- ¡AÑADIDO PARA ACTUALIZAR DATOS FISCALES! ---
+                            if (!string.IsNullOrEmpty(claveSat)) productoExistente.ClaveSat = claveSat;
+                            if (!string.IsNullOrEmpty(claveUnidad)) productoExistente.ClaveUnidad = claveUnidad;
+                            // ------------------------------------------------
+
                             actualizados++;
                         }
                         else
@@ -381,7 +401,13 @@ namespace WpfApp1.Views
                                 Stock = cantidad,
                                 Activo = true,
                                 SubcategoriaId = subcatPorDefecto.Id,
-                                ImagenUrl = "https://via.placeholder.com/150"
+                                ImagenUrl = "https://via.placeholder.com/150",
+
+                                // --- ¡AÑADIDO PARA ASIGNAR DATOS FISCALES! ---
+                                // Usamos el operador ?? para asignar un valor por defecto si la lectura del XML falló.
+                                ClaveSat = claveSat ?? "01010101",
+                                ClaveUnidad = claveUnidad ?? "H87"
+                                // --------------------------------------------
                             };
 
                             db.Productos.Add(nuevoProd);
@@ -392,17 +418,112 @@ namespace WpfApp1.Views
                     // 7. GUARDAR Y REFRESCAR
                     db.SaveChanges();
 
-                    var vm = this.DataContext as WpfApp1.ViewModels.InventarioViewModel;
-                    //vm?.CargarProductos();
+                    // La recarga de la vista se hace en el código que llama a esta función (BtnEscanearCorreo_Click)
                 }
             }
             catch (Exception ex)
             {
-                // En caso de error, lo mostramos en la consola de depuración y devolvemos 0
                 System.Diagnostics.Debug.WriteLine("Error procesando archivo: " + ex.Message);
             }
 
             return nuevos + actualizados;
+        }
+
+        // 1. Maneja el clic en "Ver detalles" del menú contextual
+        private void VerDetalles_Click(object sender, RoutedEventArgs e)
+        {
+            var menuItem = sender as MenuItem;
+            var producto = menuItem?.DataContext as Producto;
+            if (producto != null)
+            {
+                MostrarDetalleProducto(producto.ID);
+            }
+        }
+
+        // 2. Maneja el doble clic en la fila de la tabla
+        private void GridProductos_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var dataGrid = sender as DataGrid;
+            // Aseguramos que el doble clic haya sido en una fila de datos
+            if (dataGrid?.SelectedItem is Producto productoSeleccionado)
+            {
+                MostrarDetalleProducto(productoSeleccionado.ID);
+            }
+        }
+
+        // 3. Lógica central para buscar y mostrar el diálogo
+        private void MostrarDetalleProducto(int productoId)
+        {
+            Producto productoCompleto;
+
+            using (var db = new WpfApp1.Data.InventarioDbContext())
+            {
+                // Traemos el producto completo, incluyendo Subcategoría y Categoría
+                productoCompleto = db.Productos
+                    .Include(p => p.Subcategoria)
+                        .ThenInclude(s => s.Categoria)
+                    .FirstOrDefault(p => p.ID == productoId);
+            }
+
+            if (productoCompleto == null)
+            {
+                MessageBox.Show("No se pudo cargar el detalle del producto.", "Error");
+                return;
+            }
+
+            // 4. Transformar el objeto en una lista de Propiedad: Valor
+            var detalles = new List<ProductoDetalleItem>
+            {
+                new ProductoDetalleItem { Propiedad = "ID (SKU)", Valor = productoCompleto.ID.ToString() },
+                new ProductoDetalleItem { Propiedad = "Descripción", Valor = productoCompleto.Descripcion },
+                new ProductoDetalleItem { Propiedad = "Categoría", Valor = productoCompleto.Subcategoria?.Categoria?.Nombre ?? "N/A" },
+                new ProductoDetalleItem { Propiedad = "Subcategoría", Valor = productoCompleto.Subcategoria?.Nombre ?? "N/A" },
+                new ProductoDetalleItem { Propiedad = "Precio Venta", Valor = productoCompleto.Precio.ToString("C") },
+                new ProductoDetalleItem { Propiedad = "Costo", Valor = productoCompleto.Costo.ToString("C") },
+                new ProductoDetalleItem { Propiedad = "Ganancia (Margen)", Valor = productoCompleto.Ganancia.ToString("C") },
+                new ProductoDetalleItem { Propiedad = "Stock Actual", Valor = productoCompleto.Stock.ToString() + " uds." },
+                new ProductoDetalleItem { Propiedad = "Activo para Venta", Valor = productoCompleto.Activo ? "Sí" : "No" },
+                new ProductoDetalleItem { Propiedad = "Clave SAT", Valor = productoCompleto.ClaveSat },
+                new ProductoDetalleItem { Propiedad = "Clave Unidad", Valor = productoCompleto.ClaveUnidad },
+                new ProductoDetalleItem { Propiedad = "URL Imagen", Valor = productoCompleto.ImagenUrl },
+            };
+
+            // 5. Mostrar el diálogo (VisorReporteWindow)
+            var dialog = new VisorReporteWindow($"Detalle: {productoCompleto.Descripcion}", detalles);
+            dialog.Owner = Window.GetWindow(this);
+
+            // --- TRUCO VISUAL PARA EL VISOR DE REPORTE ---
+            dialog.GridDatos.AutoGenerateColumns = false;
+            dialog.GridDatos.Columns.Clear();
+
+            // 1. Definir el estilo de la columna Propiedad (Negrita)
+            var boldTextStyle = new Style(typeof(TextBlock));
+            // Necesitas el using System.Windows.Controls y System.Windows.Media
+            boldTextStyle.Setters.Add(new Setter(TextBlock.FontWeightProperty, FontWeights.Bold));
+
+            // Columna Propiedad (Negrita, ancho fijo)
+            dialog.GridDatos.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Propiedad",
+                Binding = new System.Windows.Data.Binding("Propiedad"),
+                // ASIGNAMOS EL ESTILO AQUÍ
+                ElementStyle = boldTextStyle,
+                Width = new DataGridLength(1, DataGridLengthUnitType.Star)
+            });
+
+            // Columna Valor (Ancho flexible)
+            dialog.GridDatos.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Valor",
+                Binding = new System.Windows.Data.Binding("Valor"),
+                Width = new DataGridLength(2, DataGridLengthUnitType.Star)
+            });
+
+            // Ocultamos encabezados de columna para que parezca una lista vertical
+            dialog.GridDatos.HeadersVisibility = DataGridHeadersVisibility.Column;
+
+
+            dialog.ShowDialog();
         }
         // --- Acciones de Stock (+ / -) ---
         private void AddStock_Click(object sender, RoutedEventArgs e)
@@ -460,14 +581,7 @@ namespace WpfApp1.Views
             // Aquí abrirías tu ventana de edición real
         }
 
-        private void VerDetalles_Click(object sender, RoutedEventArgs e)
-        {
-            var menuItem = sender as MenuItem;
-            var producto = menuItem?.DataContext as Producto;
-            if (producto == null) return;
-
-            MessageBox.Show($"Detalles: {producto.Descripcion} (Próximamente)");
-        }
+        
 
         private void Duplicar_Click(object sender, RoutedEventArgs e)
         {

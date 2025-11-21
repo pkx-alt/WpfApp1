@@ -13,6 +13,14 @@ using QRCoder; // <--- ¡Nuevo!
 using System.Diagnostics; // Para abrir el PDF automáticamente al final
 using Colors = QuestPDF.Helpers.Colors; // Para evitar conflicto con System.Windows.Media.Colors
 
+// --- ¡NUEVOS USINGS OBLIGATORIOS PARA ACCEDER A LA BD Y MODELOS! ---
+using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using WpfApp1.Data;
+using WpfApp1.Models;
+// ------------------------------------------------------------------
+
 namespace WpfApp1.Views
 {
     public partial class FacturacionPage : Page
@@ -86,7 +94,107 @@ namespace WpfApp1.Views
             }
         }
 
-        // En Views/FacturacionPage.xaml.cs
+        // --- MÉTODO NUEVO: EXPORTAR TICKETS PENDIENTES CON DETALLE CFDI ---
+        private void BtnExportarPendientes_Click(object sender, RoutedEventArgs e)
+        {
+            var vm = this.DataContext as FacturacionViewModel;
+
+            if (vm == null || vm.ListaPendientes.Count == 0)
+            {
+                MessageBox.Show("No hay tickets pendientes para exportar.", "Aviso");
+                return;
+            }
+
+            // 1. Diálogo para guardar
+            SaveFileDialog saveDialog = new SaveFileDialog
+            {
+                Filter = "Archivo Excel (CSV)|*.csv",
+                FileName = $"TicketsPendientes_{DateTime.Now:yyyyMMdd_HHmm}.csv",
+                Title = "Exportar Tickets Pendientes"
+            };
+
+            if (saveDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var sb = new StringBuilder();
+
+                    // --- ENCABEZADOS CFDI (LO CRÍTICO PARA EL CONTADOR) ---
+                    sb.AppendLine("VentaId,Fecha,Total,Subtotal,IVA,MetodoPagoSAT,FormaPagoSAT,ClienteRFC,ClienteRazonSocial,ClienteUsoCFDI,ClienteRegimenFiscal,ClienteCP,ClaveSat,ClaveUnidad,Cantidad,Descripcion,PrecioUnitario");
+
+                    using (var db = new InventarioDbContext())
+                    {
+                        // Solo exportamos las ventas visibles en la lista actual
+                        var idsAExportar = vm.ListaPendientes.Select(p => p.VentaId).ToList();
+
+                        // Traemos de la DB las ventas completas.
+                        // Usamos .Include() y .ThenInclude() para traer la información de otras tablas.
+                        var ventasCompletas = db.Ventas
+                            .Include(v => v.Cliente)
+                            .Include(v => v.Detalles)
+                                .ThenInclude(d => d.Producto) // Accedemos al Producto desde el Detalle
+                            .Where(v => idsAExportar.Contains(v.VentaId))
+                            .ToList();
+
+                        // 2. CONSTRUCCIÓN DE LAS FILAS
+                        foreach (var venta in ventasCompletas)
+                        {
+                            // DATOS DEL RECEPTOR (Cliente). Usamos valores por defecto si es Público General.
+                            string rfc = venta.Cliente?.RFC ?? "XAXX010101000";
+                            string razonSocial = venta.Cliente?.RazonSocial ?? "Público en General";
+                            string usoCfdi = venta.Cliente?.UsoCFDI ?? "P01";
+                            string regimenFiscal = venta.Cliente?.RegimenFiscal ?? "616"; // 616: Sin Obligaciones Fiscales (para Púb. Gral.)
+                            string cp = venta.Cliente?.CodigoPostal ?? "00000";
+
+                            // Iteramos los detalles de cada venta
+                            foreach (var detalle in venta.Detalles)
+                            {
+                                // DATOS DEL CONCEPTO (Producto)
+                                // Usamos el operador ternario para asegurarnos de que no sea null
+                                string claveSat = detalle.Producto?.ClaveSat ?? "01010101";
+                                string claveUnidad = detalle.Producto?.ClaveUnidad ?? "H87";
+
+                                // Limpiamos descripciones de comas y comillas para el CSV
+                                string descLimpia = detalle.Producto?.Descripcion.Replace(",", " ").Replace("\"", "") ?? "Producto sin descripción";
+
+                                // CONSTRUCCIÓN DE LA LÍNEA
+                                sb.AppendLine(
+                                    $"{venta.VentaId}," +
+                                    $"{venta.Fecha:yyyy-MM-dd HH:mm:ss}," +
+                                    $"{venta.Total}," +
+                                    $"{venta.Subtotal}," +
+                                    $"{venta.IVA}," +
+                                    $"{venta.MetodoPagoSAT}," +
+                                    $"{venta.FormaPagoSAT}," +
+                                    $"{rfc}," +
+                                    $"\"{razonSocial}\"," + // Ponemos comillas para proteger el nombre
+                                    $"{usoCfdi}," +
+                                    $"{regimenFiscal}," +
+                                    $"{cp}," +
+                                    $"{claveSat}," +
+                                    $"{claveUnidad}," +
+                                    $"{detalle.Cantidad}," +
+                                    $"\"{descLimpia}\"," +
+                                    $"{detalle.PrecioUnitario}"
+                                );
+                            }
+                        }
+                    }
+
+                    // 3. Guardar el archivo
+                    File.WriteAllText(saveDialog.FileName, sb.ToString(), Encoding.UTF8);
+
+                    MessageBox.Show("¡Tickets pendientes exportados correctamente! El contador tiene todo lo que necesita.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ocurrió un error al guardar: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        // --- FIN MÉTODO NUEVO ---
+
 
         // En Views/FacturacionPage.xaml.cs
 
@@ -261,6 +369,7 @@ namespace WpfApp1.Views
                 }
             }
         }
+
 
         // Método ayudante para no repetir código al crear celdas
         private TableCell CrearCelda(string texto)

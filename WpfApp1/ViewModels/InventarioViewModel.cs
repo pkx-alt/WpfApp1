@@ -194,7 +194,11 @@ namespace WpfApp1.ViewModels
         public void CargarProductos()
         {
             // 1. Empezamos con la consulta base
-            IQueryable<Producto> query = _context.Productos;
+            IQueryable<Producto> query = _context.Productos
+                // AÑADIDO: Incluye la Subcategoría
+                .Include(p => p.Subcategoria)
+                    // AÑADIDO: Y también la Categoría que está dentro de la Subcategoría
+                    .ThenInclude(s => s.Categoria);
 
             // 2. Leemos el estado de NUESTRAS PROPIEDADES
 
