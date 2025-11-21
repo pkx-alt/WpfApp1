@@ -20,5 +20,29 @@
     <Setting Name="NotasCierre" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="NombreTienda" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Papelería Orysi</Value>
+    </Setting>
+    <Setting Name="DireccionTienda" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Av. Principal #123</Value>
+    </Setting>
+    <Setting Name="TelefonoTienda" Type="System.String" Scope="User">
+      <Value Profile="(Default)">55 1234 5678</Value>
+    </Setting>
+    <Setting Name="RFCTienda" Type="System.String" Scope="User">
+      <Value Profile="(Default)">XAXX010101000</Value>
+    </Setting>
+    <Setting Name="MensajeTicket" Type="System.String" Scope="User">
+      <Value Profile="(Default)">¡Gracias por su compra!</Value>
+    </Setting>
+    <Setting Name="Impresora" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Microsoft Print to PDF</Value>
+    </Setting>
+    <Setting Name="AnchoPapel" Type="System.String" Scope="User">
+      <Value Profile="(Default)">80mm</Value>
+    </Setting>
+    <Setting Name="ImprimirTicketDefault" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

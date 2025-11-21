@@ -75,23 +75,24 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Nombre de la Tienda:" Style="{StaticResource FieldLabel}"/>
-                                <TextBox Text="Papelería Orysi"/>
+                                <TextBox Text="{Binding NombreTienda, UpdateSourceTrigger=PropertyChanged}"/>
 
                                 <TextBlock Text="Dirección:" Style="{StaticResource FieldLabel}"/>
-                                <TextBox Text="Av. Principal #123, Centro"/>
+                                <TextBox Text="{Binding DireccionTienda, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="RFC (Opcional):" Style="{StaticResource FieldLabel}"/>
-                                <TextBox Text="XAXX010101000"/>
+                                <TextBox Text="{Binding RFCTienda, UpdateSourceTrigger=PropertyChanged}"/>
 
                                 <TextBlock Text="Teléfono:" Style="{StaticResource FieldLabel}"/>
-                                <TextBox Text="55 1234 5678"/>
+                                <TextBox Text="{Binding TelefonoTienda, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
                         </Grid>
 
                         <TextBlock Text="Mensaje al final del ticket:" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="¡Gracias por su compra!" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                        <TextBox Text="{Binding MensajeTicket, UpdateSourceTrigger=PropertyChanged}" 
+                                 Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
                     </StackPanel>
                 </Border>
 
@@ -111,11 +112,9 @@
 
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Seleccionar Impresora:" Style="{StaticResource FieldLabel}"/>
-                                <ComboBox Height="30" Margin="0,0,0,15" SelectedIndex="0">
-                                    <ComboBoxItem Content="Microsoft Print to PDF"/>
-                                    <ComboBoxItem Content="EPSON TM-T20II"/>
-                                    <ComboBoxItem Content="POS-58"/>
-                                </ComboBox>
+                                <ComboBox Height="30" Margin="0,0,0,15"
+                                          ItemsSource="{Binding ListaImpresoras}"
+                                          SelectedItem="{Binding ImpresoraSeleccionada}"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
@@ -127,9 +126,8 @@
                             </StackPanel>
                         </Grid>
 
-                        <CheckBox Content="Preguntar antes de imprimir al finalizar venta" 
-                                  IsChecked="True" Margin="0,5"/>
-                        <CheckBox Content="Imprimir copia para el negocio" 
+                        <CheckBox Content="Imprimir ticket al finalizar venta por defecto" 
+                                  IsChecked="{Binding ImprimirTicketDefault}" 
                                   Margin="0,5"/>
                     </StackPanel>
                 </Border>
@@ -173,7 +171,7 @@
                         Background="#28A745" Foreground="White" FontWeight="Bold" FontSize="16"
                         Padding="30,10" BorderThickness="0" Cursor="Hand"
                         Content="Guardar Cambios"
-                        Click="BtnGuardar_Click">
+                        Command="{Binding GuardarCommand}">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="5"/>

@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using WpfApp1.ViewModels;
 
 namespace WpfApp1.Views
 {
@@ -8,6 +9,8 @@ namespace WpfApp1.Views
         public AjustesPage()
         {
             InitializeComponent();
+            // Conectamos el cerebro a la cara
+            this.DataContext = new AjustesViewModel();
         }
 
         private void BtnGuardar_Click(object sender, RoutedEventArgs e)

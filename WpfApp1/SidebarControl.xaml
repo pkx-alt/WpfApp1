@@ -71,12 +71,14 @@
     <Border Background="{StaticResource SidebarColorBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="0,0,0,20">
-                <TextBlock Text="Papelería Orysi"
-                   FontWeight="Bold"
-                   FontSize="20"
-                   Margin="20"
-                   HorizontalAlignment="Center"
-                   Cursor="Hand" MouseLeftButtonDown="Title_MouseLeftButtonDown" />
+                <TextBlock x:Name="TxtNombreTienda"
+               Text="Cargando..." 
+               FontWeight="Bold"
+               FontSize="20"
+               Margin="20"
+               HorizontalAlignment="Center"
+               Cursor="Hand" 
+               MouseLeftButtonDown="Title_MouseLeftButtonDown" />
 
                 <Button Margin="20,0,20,10" Background="#007ACC" Foreground="White" Content="Nueva venta"
                   Click="NuevaVenta_Click"

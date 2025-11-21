@@ -94,5 +94,101 @@ namespace WpfApp1.Properties {
                 this["NotasCierre"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Papelería Orysi")]
+        public string NombreTienda {
+            get {
+                return ((string)(this["NombreTienda"]));
+            }
+            set {
+                this["NombreTienda"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Av. Principal #123")]
+        public string DireccionTienda {
+            get {
+                return ((string)(this["DireccionTienda"]));
+            }
+            set {
+                this["DireccionTienda"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("55 1234 5678")]
+        public string TelefonoTienda {
+            get {
+                return ((string)(this["TelefonoTienda"]));
+            }
+            set {
+                this["TelefonoTienda"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("XAXX010101000")]
+        public string RFCTienda {
+            get {
+                return ((string)(this["RFCTienda"]));
+            }
+            set {
+                this["RFCTienda"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("¡Gracias por su compra!")]
+        public string MensajeTicket {
+            get {
+                return ((string)(this["MensajeTicket"]));
+            }
+            set {
+                this["MensajeTicket"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Microsoft Print to PDF")]
+        public string Impresora {
+            get {
+                return ((string)(this["Impresora"]));
+            }
+            set {
+                this["Impresora"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("80mm")]
+        public string AnchoPapel {
+            get {
+                return ((string)(this["AnchoPapel"]));
+            }
+            set {
+                this["AnchoPapel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ImprimirTicketDefault {
+            get {
+                return ((bool)(this["ImprimirTicketDefault"]));
+            }
+            set {
+                this["ImprimirTicketDefault"] = value;
+            }
+        }
     }
 }

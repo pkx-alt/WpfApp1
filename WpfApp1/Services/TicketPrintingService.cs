@@ -5,6 +5,7 @@ using System.Text; // Necesario para StringBuilder
 using ESCPOS_NET;
 using ESCPOS_NET.Emitters;
 using ESCPOS_NET.Utilities;
+// Asegúrate de tener acceso a las propiedades. Si da error, agrega: using WpfApp1.Properties;
 
 namespace WpfApp1.Services
 {
@@ -18,7 +19,10 @@ namespace WpfApp1.Services
 
     public class TicketPrintingService
     {
-        private const string NOMBRE_IMPRESORA = "XP-58"; // ¡Verifica que este sea el nombre en Windows!
+        // CONSEJO PRO: También podrías leer esto de Settings si el usuario cambia de impresora
+        // private static string NOMBRE_IMPRESORA => WpfApp1.Properties.Settings.Default.ImpresoraSeleccionada; 
+        // Pero por ahora lo dejamos constante como pediste en el código original o fijo.
+        private const string NOMBRE_IMPRESORA = "XP-58";
 
         public static void ImprimirTicket(List<ItemTicket> productos, decimal subtotal, decimal iva, decimal descuento, decimal total, decimal pago, decimal cambio, string cliente, string folio)
         {
@@ -30,22 +34,39 @@ namespace WpfApp1.Services
                 // Inicializamos
                 commands.Add(emitter.Initialize());
 
-                // --- ENCABEZADO ---
+                // --- ENCABEZADO DINÁMICO ---
                 commands.Add(emitter.CenterAlign());
                 commands.Add(emitter.SetStyles(PrintStyle.Bold | PrintStyle.DoubleHeight | PrintStyle.DoubleWidth));
-                commands.Add(emitter.PrintLine("Papeleria OrySi"));
+
+                // 1. NOMBRE DE LA TIENDA (Desde Ajustes)
+                string nombreTienda = WpfApp1.Properties.Settings.Default.NombreTienda;
+                if (string.IsNullOrWhiteSpace(nombreTienda)) nombreTienda = "Mi Punto de Venta"; // Texto por defecto si está vacío
+
+                commands.Add(emitter.PrintLine(SinTildes(nombreTienda)));
+
                 commands.Add(emitter.SetStyles(PrintStyle.None));
 
-                // Usamos SinTildes() en textos fijos que podrían tener acentos
-                commands.Add(emitter.PrintLine(SinTildes("Av. Principal #123, Centro")));
-                commands.Add(emitter.PrintLine("Tel: 55 1234 5678"));
+                // 2. DIRECCIÓN (Desde Ajustes)
+                string direccion = WpfApp1.Properties.Settings.Default.DireccionTienda;
+                if (!string.IsNullOrWhiteSpace(direccion))
+                {
+                    commands.Add(emitter.PrintLine(SinTildes(direccion)));
+                }
+
+                // 3. TELÉFONO (Desde Ajustes)
+                string telefono = WpfApp1.Properties.Settings.Default.TelefonoTienda;
+                if (!string.IsNullOrWhiteSpace(telefono))
+                {
+                    commands.Add(emitter.PrintLine($"Tel: {telefono}"));
+                }
+
+                // Fecha y Hora
                 commands.Add(emitter.PrintLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm")));
                 commands.Add(emitter.PrintLine(new string('-', 32)));
 
-                // --- DATOS CLIENTE (Limpiamos el nombre del cliente) ---
+                // --- DATOS CLIENTE ---
                 commands.Add(emitter.LeftAlign());
                 commands.Add(emitter.PrintLine($"Folio: {folio}"));
-                // ¡AQUÍ ESTÁ EL TRUCO! Limpiamos la variable cliente
                 commands.Add(emitter.PrintLine($"Cliente: {SinTildes(cliente)}"));
 
                 // --- TABLA DE PRODUCTOS ---
@@ -58,14 +79,15 @@ namespace WpfApp1.Services
 
                 foreach (var item in productos)
                 {
-                    // 1. Nombre del producto LIMPIO de tildes
+                    // Nombre del producto limpio
                     string nombreLimpio = SinTildes(item.Nombre);
                     commands.Add(emitter.PrintLine(nombreLimpio));
 
-                    // 2. Números
+                    // Números
                     string parteIzq = $"{item.Cantidad} x {item.Precio:C}";
                     string parteDer = $"{item.Total:C}";
 
+                    // Cálculo simple de espacios para alinear a la derecha (asumiendo 32 caracteres de ancho)
                     int espacios = 32 - parteIzq.Length - parteDer.Length;
                     if (espacios < 1) espacios = 1;
 
@@ -100,13 +122,20 @@ namespace WpfApp1.Services
                 // --- PIE ---
                 commands.Add(emitter.FeedLines(2));
                 commands.Add(emitter.CenterAlign());
-                commands.Add(emitter.PrintLine("Gracias por su compra!")); // Sin signos de apertura ¡ ¿ que a veces fallan
-                commands.Add(emitter.PrintLine("Conserve este ticket"));
+
+                // 4. MENSAJE PERSONALIZADO (Desde Ajustes)
+                string mensajeFinal = WpfApp1.Properties.Settings.Default.MensajeTicket;
+                if (string.IsNullOrWhiteSpace(mensajeFinal)) mensajeFinal = "Gracias por su compra!";
+
+                commands.Add(emitter.PrintLine(SinTildes(mensajeFinal)));
+
                 commands.Add(emitter.FeedLines(4));
                 commands.Add(emitter.FullCut());
 
                 // Enviar a impresora
                 byte[] bytes = ByteSplicer.Combine(commands.ToArray());
+
+                // Aquí podrías también usar Settings.Default.ImpresoraSeleccionada si quisieras hacerlo dinámico
                 RawPrinterHelper.SendBytesToPrinter(NOMBRE_IMPRESORA, bytes);
             }
             catch (Exception ex)
@@ -127,7 +156,6 @@ namespace WpfApp1.Services
             return cmds;
         }
 
-        // --- NUEVA FUNCIÓN MAGICA: ELIMINA ACENTOS ---
         public static string SinTildes(string texto)
         {
             if (string.IsNullOrEmpty(texto)) return "";
@@ -146,7 +174,6 @@ namespace WpfApp1.Services
         }
     }
 
-    // --- TU CLASE RAW PRINTER HELPER (NO CAMBIA) ---
     public class RawPrinterHelper
     {
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]

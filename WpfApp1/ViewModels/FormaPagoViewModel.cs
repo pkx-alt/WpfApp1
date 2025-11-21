@@ -89,7 +89,7 @@ namespace WpfApp1.ViewModels
         private Cliente _clientePublicoGeneral;
 
         public decimal Cambio => PagoRecibido - TotalAPagar;
-        public bool ImprimirTicket { get; set; } = true;
+        public bool ImprimirTicket { get; set; }
         public Action<bool> CloseAction { get; set; }
 
         // --- PROPIEDADES CFDI CALCULADAS ---
@@ -154,6 +154,11 @@ namespace WpfApp1.ViewModels
 
             // 5. Establecer el estado inicial del método de pago
             MetodoPagoSeleccionado = MetodoPago.Efectivo;
+
+            ImprimirTicket = WpfApp1.Properties.Settings.Default.ImprimirTicketDefault;
+
+            // (Opcional) Si quieres que la vista se entere inmediatamente si usas INotify en esta propiedad:
+            OnPropertyChanged(nameof(ImprimirTicket));
         }
 
         // --- 4. Lógica de Métodos (Acciones) ---
@@ -187,6 +192,12 @@ namespace WpfApp1.ViewModels
                 }
             }
 
+
+            if (WpfApp1.Properties.Settings.Default.ImprimirTicketDefault != this.ImprimirTicket)
+            {
+                WpfApp1.Properties.Settings.Default.ImprimirTicketDefault = this.ImprimirTicket;
+                WpfApp1.Properties.Settings.Default.Save(); // ¡Importante guardar!
+            }
             // ¡Todo bien! Cerramos y devolvemos true
             CloseAction?.Invoke(true);
         }

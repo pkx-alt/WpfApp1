@@ -88,6 +88,7 @@ namespace WpfApp1
         {
             // Primero, refrescamos el estado de la UI por si acaso
             ActualizarIndicadorCaja();
+            ActualizarNombreTienda(); // <--- ¡AGREGA ESTO!
 
             // <-- ¡MODIFICADO!
             // 1. Leemos el estado de la caja DESDE LOS SETTINGS
@@ -153,6 +154,10 @@ namespace WpfApp1
                 // ¡Es el nuestro! Actualizamos la UI.
                 ActualizarIndicadorCaja();
             }
+            else if (e.PropertyName == "NombreTienda")
+            {
+                ActualizarNombreTienda();
+            }
         }
         public void ActualizarIndicadorCaja()
         {
@@ -170,6 +175,22 @@ namespace WpfApp1
                 // Estado Cerrada
                 CajaStatusBorder.Background = colorRojoCerrado;
                 CajaStatusText.Text = "Cerrada";
+            }
+        }
+
+        private void ActualizarNombreTienda()
+        {
+            // Leemos de la configuración
+            string nombre = Settings.Default.NombreTienda;
+
+            // Si por alguna razón está vacío, ponemos uno por defecto
+            if (string.IsNullOrWhiteSpace(nombre))
+            {
+                TxtNombreTienda.Text = "Mi Punto de Venta";
+            }
+            else
+            {
+                TxtNombreTienda.Text = nombre;
             }
         }
     }
