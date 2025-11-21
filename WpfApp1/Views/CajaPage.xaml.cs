@@ -14,19 +14,19 @@ namespace WpfApp1.Views
 {
     public partial class CajaPage : Page
     {
-        // Variables del Reloj (ya las tenías)
+        // Variables del Reloj
         private DispatcherTimer timerReloj;
         private CultureInfo culturaEspanol = new CultureInfo("es-ES");
 
-        // <-- NUEVO: Variables para los colores (así es más fácil cambiarlos)
-        private SolidColorBrush colorVerdeAbierto = (SolidColorBrush)new BrushConverter().ConvertFrom("#28A745");
-        private SolidColorBrush colorRojoCerrado = (SolidColorBrush)new BrushConverter().ConvertFrom("#D90429");
-        private SolidColorBrush colorGrisDesactivado = (SolidColorBrush)new BrushConverter().ConvertFrom("#E0E0E0");
-        private SolidColorBrush colorTextoGris = (SolidColorBrush)new BrushConverter().ConvertFrom("#A0A0A0");
-        private SolidColorBrush colorAzulIngreso = (SolidColorBrush)new BrushConverter().ConvertFrom("#007BFF"); // Un azul para el botón
-        private SolidColorBrush colorNaranjaEgreso = (SolidColorBrush)new BrushConverter().ConvertFrom("#FF8C00"); // Una naranja para el otro
+        // --- COLORES DEL TEMA (Vinculados a GlobalStyles) ---
+        // En lugar de crear colores nuevos, los "pedimos" a la App.
+        private Brush colorVerdeAbierto => (Brush)Application.Current.Resources["SuccessColor"];
+        private Brush colorRojoCerrado => (Brush)Application.Current.Resources["DangerColor"];
+        private Brush colorGrisDesactivado => (Brush)Application.Current.Resources["BorderBrush"];
 
-
+        // Estos son para los botones secundarios
+        private Brush colorAzulIngreso => (Brush)Application.Current.Resources["PrimaryColor"];
+        private Brush colorNaranjaEgreso => (Brush)Application.Current.Resources["WarningColor"];
         public CajaPage()
         {
             InitializeComponent();
@@ -282,11 +282,11 @@ namespace WpfApp1.Views
                 // Botones de acciones
                 BtnRegistrarIngreso.IsEnabled = false;
                 BtnRegistrarIngreso.Background = colorGrisDesactivado;
-                BtnRegistrarIngreso.Foreground = colorTextoGris;
+                BtnRegistrarIngreso.Foreground = colorGrisDesactivado;
 
                 BtnRegistrarEgreso.IsEnabled = false;
                 BtnRegistrarEgreso.Background = colorGrisDesactivado;
-                BtnRegistrarEgreso.Foreground = colorTextoGris;
+                BtnRegistrarEgreso.Foreground = colorGrisDesactivado;
 
                 // --- ¡NUEVO! Ocultamos el panel de resúmenes ---
                 ResumenesPanel.Visibility = Visibility.Collapsed;

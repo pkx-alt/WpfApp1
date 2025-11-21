@@ -2,172 +2,152 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.expression/blend/2008" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:WpfApp1.Views"
       mc:Ignorable="d" 
-      d:DesignHeight="600" d:DesignWidth="800"
+      d:DesignHeight="600" d:DesignWidth="900"
       Title="ClientesPage"
-      Background="White">
+      Background="{StaticResource PageBackground}">
 
-    <Grid>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <Grid Margin="20">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <Grid Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Row="0" Orientation="Vertical">
-
-                    <TextBlock Text="Clientes" 
-                               FontSize="24" 
-                               FontWeight="Bold" 
-                               Margin="0,0,0,15"/>
-
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBox Grid.Column="0" 
-                                 x:Name="txtBusqueda" 
-                                 Padding="5" 
-                                 VerticalContentAlignment="Center"
-                                 Text="Buscar cliente por RFC o razón social"
-                                 Foreground="Gray"
-                                 TextChanged="txtBusqueda_TextChanged"
-                                 GotFocus="txtBusqueda_GotFocus"     
-                                 LostFocus="txtBusqueda_LostFocus"/>
-                    </Grid>
-
-                    <Grid Margin="0,0,0,10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <CheckBox x:Name="chkActivos" Content="Clientes activos" 
-                                      IsChecked="True" 
-                                      Margin="0,0,15,0"
-                                      Click="chkStatus_Click"/>
-                            <CheckBox x:Name="chkInactivos" Content="Clientes inactivos" 
-                                      Margin="0,0,15,0"
-                                      Click="chkStatus_Click"/>
-                        </StackPanel>
-
-                        <Button Grid.Column="1"
-                                x:Name="btnNuevoCliente"
-                                Content="Nuevo cliente" 
-                                FontWeight="Bold"
-                                Padding="10,5"
-                                Click="btnNuevoCliente_Click"/>
-                    </Grid>
-
-                    <StackPanel x:Name="spAccionesSeleccion" 
-                                Orientation="Horizontal" 
-                                Visibility="Collapsed" 
-                                Margin="0,5,0,10">
-                        <TextBlock x:Name="txtConteoSeleccion" 
-                                   Text="0 Clientes seleccionados" 
-                                   VerticalAlignment="Center" 
-                                   FontWeight="SemiBold"
-                                   Foreground="Gray"/>
-                        <Button x:Name="btnDeshabilitarSeleccion" 
-                                Content="Deshabilitar selección" 
-                                Margin="10,0,0,0"
-                                Padding="10,5"
-                                Background="#F44336" 
-                                Foreground="White"
-                                BorderThickness="0"
-                                Click="btnDeshabilitarSeleccion_Click"/>
-                    </StackPanel>
-
+                <StackPanel>
+                    <TextBlock Text="Clientes" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                    <TextBlock Text="Gestión de cartera de clientes" FontSize="14" Foreground="{StaticResource TextSecondary}"/>
                 </StackPanel>
 
-                <DataGrid Grid.Row="1"
-                          AutoGenerateColumns="False"
-                          ItemsSource="{Binding Clientes}" IsReadOnly="True"
-                          CanUserAddRows="False"
-                          VerticalGridLinesBrush="Transparent"
-                          HorizontalGridLinesBrush="#EEE"
-                          Margin="0,10,0,0">
-
-                    <DataGrid.Columns>
-
-                        <DataGridTemplateColumn Width="Auto">
-                            <DataGridTemplateColumn.Header>
-                                <CheckBox x:Name="chkSeleccionarTodo" 
-                                          Click="chkSeleccionarTodo_Click" />
-                            </DataGridTemplateColumn.Header>
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" 
-                                              HorizontalAlignment="Center" 
-                                              VerticalAlignment="Center"
-                                              Checked="ClienteCheckBox_Changed"   
-                                              Unchecked="ClienteCheckBox_Changed"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                        <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="60"/>
-                        <DataGridTextColumn Header="RFC" Binding="{Binding RFC}" Width="*"/>
-                        <DataGridTextColumn Header="Razón social" Binding="{Binding RazonSocial}" Width="2*"/>
-                        <DataGridTextColumn Header="Teléfono" Binding="{Binding Telefono}" Width="120"/>
-                        <DataGridTextColumn Header="Venta" Binding="{Binding Venta, StringFormat=C}" Width="100"/>
-
-                        <DataGridTemplateColumn Header="Creado" Width="110">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="#EEE" 
-                                            CornerRadius="10" 
-                                            Padding="8,3"
-                                            HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding Creado, StringFormat='dd/MM/yyyy'}" />
-                                    </Border>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                        <DataGridTemplateColumn Header="Acciones" Width="200">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Button Content="Info" Margin="3" ToolTip="Ver detalles"/>
-                                        <Button Content="Editar" Margin="3" ToolTip="Editar cliente"/>
-                                        <Button x:Name="btnCambiarEstado"
-                                                Margin="3" 
-                                                Click="btnCambiarEstado_Click">
-
-                                            <Button.Style>
-                                                <Style TargetType="Button">
-
-                                                    <Setter Property="Content" Value="Activar"/>
-                                                    <Setter Property="ToolTip" Value="Activar este cliente"/>
-                                                    <Setter Property="Foreground" Value="Green"/>
-                                                    <Setter Property="FontWeight" Value="Bold"/>
-
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Activo}" Value="True">
-                                                            <Setter Property="Content" Value="Desactivar"/>
-                                                            <Setter Property="ToolTip" Value="Desactivar este cliente"/>
-                                                            <Setter Property="Foreground" Value="Red"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Button.Style>
-                                        </Button>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                    </DataGrid.Columns>
-                </DataGrid>
-
+                <Button Grid.Column="1" 
+                        x:Name="btnNuevoCliente"
+                        Content="+ Nuevo Cliente" 
+                        Style="{StaticResource BtnSuccess}"
+                        Click="btnNuevoCliente_Click"/>
             </Grid>
-        </ScrollViewer>
+
+            <Border Background="{StaticResource SurfaceBrush}" 
+                    CornerRadius="8" 
+                    Padding="20,20,20,10" 
+                    Margin="0,0,0,20" 
+                    BorderBrush="{StaticResource BorderBrush}" 
+                    BorderThickness="1">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Grid VerticalAlignment="Center" Margin="0,0,20,10">
+                            <TextBox x:Name="txtBusqueda" Width="300"
+                                     Text="Buscar cliente por RFC o razón social"
+                                     Foreground="Gray"
+                                     TextChanged="txtBusqueda_TextChanged"
+                                     GotFocus="txtBusqueda_GotFocus"     
+                                     LostFocus="txtBusqueda_LostFocus"/>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,10">
+                            <CheckBox x:Name="chkActivos" Content="Activos" IsChecked="True" Margin="0,0,15,0" Click="chkStatus_Click"/>
+                            <CheckBox x:Name="chkInactivos" Content="Inactivos" Click="chkStatus_Click"/>
+                        </StackPanel>
+                    </WrapPanel>
+
+                    <StackPanel x:Name="spAccionesSeleccion" 
+                                Grid.Column="1" 
+                                Orientation="Horizontal" 
+                                Visibility="Collapsed" 
+                                VerticalAlignment="Center"
+                                Margin="0,0,0,10">
+
+                        <TextBlock x:Name="txtConteoSeleccion" 
+                                   Text="0 seleccionados" 
+                                   VerticalAlignment="Center" 
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondary}"
+                                   Margin="0,0,15,0"/>
+
+                        <Button x:Name="btnDeshabilitarSeleccion" 
+                                Content="Deshabilitar Selección" 
+                                Style="{StaticResource BtnWarning}"
+                                Click="btnDeshabilitarSeleccion_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1"
+                  x:Name="GridClientes"
+                  ItemsSource="{Binding Clientes}">
+
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Width="50">
+                    <DataGridTemplateColumn.Header>
+                        <CheckBox x:Name="chkSeleccionarTodo" Click="chkSeleccionarTodo_Click" ToolTip="Seleccionar todo"/>
+                    </DataGridTemplateColumn.Header>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" 
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Checked="ClienteCheckBox_Changed" Unchecked="ClienteCheckBox_Changed"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="60" ElementStyle="{StaticResource {x:Type TextBlock}}">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="RFC" Binding="{Binding RFC}" Width="120" FontWeight="SemiBold"/>
+                <DataGridTextColumn Header="Razón Social" Binding="{Binding RazonSocial}" Width="2*"/>
+                <DataGridTextColumn Header="Teléfono" Binding="{Binding Telefono}" Width="120"/>
+
+                <DataGridTextColumn Header="Venta Acum." Binding="{Binding Venta, StringFormat=C}" Width="120" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
+                <DataGridTextColumn Header="Registro" Binding="{Binding Creado, StringFormat='dd/MM/yyyy'}" Width="100" Foreground="{StaticResource TextSecondary}"/>
+
+                <DataGridTemplateColumn Header="Acciones" Width="220">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Info" Margin="2" Padding="8,4" FontSize="12" Style="{StaticResource BtnSecondary}"/>
+                                <Button Content="Editar" Margin="2" Padding="8,4" FontSize="12" Style="{StaticResource BtnSecondary}"/>
+
+                                <Button x:Name="btnCambiarEstado" Margin="2" Padding="10,4" FontSize="12" Click="btnCambiarEstado_Click">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                            <Setter Property="Content" Value="Desactivar"/>
+                                            <Setter Property="Background" Value="{StaticResource DangerColor}"/>
+
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Activo}" Value="False">
+                                                    <Setter Property="Content" Value="Activar"/>
+                                                    <Setter Property="Background" Value="{StaticResource SuccessColor}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </Page>

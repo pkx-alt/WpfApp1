@@ -7,8 +7,7 @@
       mc:Ignorable="d" 
       d:DesignHeight="700" d:DesignWidth="1000"
       Title="Facturación"
-      FontFamily="Segoe UI"
-      Background="#F4F7F9">
+      Background="{StaticResource PageBackground}">
 
     <Page.Resources>
         <Style TargetType="TabItem">
@@ -28,15 +27,15 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="Border" Property="BorderBrush" Value="#007ACC"/>
-                                <Setter Property="Foreground" Value="#007ACC"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="False">
-                                <Setter Property="Foreground" Value="#6c757d"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="#005A9E"/>
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryDarkColor}"/>
                                 <Setter Property="Cursor" Value="Hand"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -44,15 +43,7 @@
                 </Setter.Value>
             </Setter>
             <Setter Property="FontSize" Value="16"/>
-        </Style>
-
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Background" Value="#E3F2FD"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Padding" Value="10,8"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-            <Setter Property="BorderBrush" Value="#BDC3C7"/>
+            <Setter Property="Background" Value="Transparent"/>
         </Style>
     </Page.Resources>
 
@@ -67,137 +58,109 @@
             <TextBlock Text="Facturación Electrónica 🧾" 
                        FontSize="28" 
                        FontWeight="Bold" 
-                       Foreground="#343a40"/>
+                       Foreground="{StaticResource TextPrimary}"/>
             <TextBlock Text="Gestiona tus CFDI 4.0: Facturas globales y por cliente."
                        FontSize="14" 
-                       Foreground="#6c757d" 
+                       Foreground="{StaticResource TextSecondary}" 
                        Margin="0,5,0,0"/>
         </StackPanel>
 
-        <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0">
+        <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0" Margin="0,-10,0,0">
 
             <TabItem Header="Pendientes de Facturar">
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
-                        <Border.Effect>
-                            <DropShadowEffect Color="#B0BEC5" Opacity="0.1" BlurRadius="10" ShadowDepth="2"/>
-                        </Border.Effect>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                    <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" 
+                            CornerRadius="8" Padding="20" Margin="0,0,0,15"
+                            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
 
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="🔎" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="Gray"/>
-                                <TextBox Width="150" Padding="6" VerticalContentAlignment="Center" FontSize="14"
-                                         Tag="Buscar folio..." 
-                                         Text="{Binding TextoBusquedaPendiente, UpdateSourceTrigger=PropertyChanged}"/>
+                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBox Width="200" Margin="0,0,15,10"
+                                     Text="{Binding TextoBusquedaPendiente, UpdateSourceTrigger=PropertyChanged}"
+                                     Tag="Buscar folio..."/>
+                            <ComboBox Width="200" Margin="0,0,30,10"
+                                      ItemsSource="{Binding ListaClientes}"
+                                      SelectedItem="{Binding ClienteFiltroPendiente}"
+                                      DisplayMemberPath="RazonSocial"/>
 
-                                <TextBlock Text="Cliente:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="20,0,10,0" Foreground="#555"/>
-                                <ComboBox Width="180" Padding="5" 
-                                          ItemsSource="{Binding ListaClientes}"
-                                          SelectedItem="{Binding ClienteFiltroPendiente}"
-                                          DisplayMemberPath="RazonSocial"/>
-                            </StackPanel>
+                            <Border Width="1" Height="30" Background="{StaticResource BorderBrush}" Margin="0,0,30,10"/>
 
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-
-                                <TextBlock Text="Factura Global:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Foreground="#555"/>
-
-                                <ComboBox Width="120" SelectedIndex="0" VerticalContentAlignment="Center" Padding="5" Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,10">
+                                <TextBlock Text="Global:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Foreground="{StaticResource TextSecondary}"/>
+                                <ComboBox Width="140" SelectedIndex="0" Margin="0,0,10,0">
                                     <ComboBoxItem Content="Del Día 📅"/>
                                     <ComboBoxItem Content="Semanal 📆"/>
                                     <ComboBoxItem Content="Mensual 🗓️"/>
                                 </ComboBox>
-
-                                <Button Content="Generar" 
-                                        Background="#495057" Foreground="White" FontWeight="SemiBold"
-                                        Padding="20,6" BorderThickness="0" Margin="0,0,15,0" Cursor="Hand"
-                                        ToolTip="Generar factura global para el periodo seleccionado"
-                                        Command="{Binding GenerarGlobalCommand}">
-                                    <Button.Resources>
-                                        <Style TargetType="Border">
-                                            <Setter Property="CornerRadius" Value="4"/>
-                                        </Style>
-                                    </Button.Resources>
-                                </Button>
-
-                                <Button Content="📥" 
-        Click="BtnExportarPendientes_Click" 
-        Background="#28A745" Foreground="White" FontWeight="SemiBold"
-        Padding="20,6" BorderThickness="0" Margin="0,0,15,0" Cursor="Hand"
-        ToolTip="Exportar tickets pendientes a un archivo CSV (Excel)">
-                                    <Button.Resources>
-                                        <Style TargetType="Border">
-                                            <Setter Property="CornerRadius" Value="4"/>
-                                        </Style>
-                                    </Button.Resources>
-                                </Button>
-
-                                <Rectangle Width="1" Height="24" Fill="#DDD" Margin="0,0,15,0"/>
-
-                                <Button Content="🔄" FontSize="16" ToolTip="Actualizar lista"
-                                        Command="{Binding RefrescarCommand}"
-                                        Background="Transparent" BorderThickness="0" Foreground="#007ACC" Cursor="Hand"/>
+                                <Button Content="Generar Global" 
+                                        Command="{Binding GenerarGlobalCommand}"
+                                        Style="{StaticResource BtnWarning}" 
+                                        Padding="15,0" Height="38"/>
                             </StackPanel>
-                        </Grid>
+
+                            <StackPanel Orientation="Horizontal" Margin="15,0,0,10">
+                                <Button Content="📥 Exportar" 
+                                        Click="BtnExportarPendientes_Click" 
+                                        Style="{StaticResource BtnSuccess}"
+                                        Height="38" Margin="0,0,10,0"/>
+
+                                <Button Content="🔄" 
+                                        Command="{Binding RefrescarCommand}"
+                                        Style="{StaticResource BtnSecondary}"
+                                        Height="38" Width="40" Padding="0"
+                                        ToolTip="Actualizar lista"/>
+                            </StackPanel>
+                        </WrapPanel>
                     </Border>
 
-                    <DataGrid Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
-                              ItemsSource="{Binding ListaPendientes}" 
-                              Background="White" BorderThickness="0" RowHeaderWidth="0"
-                              GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEE"
-                              RowHeight="45" VerticalGridLinesBrush="Transparent">
-
+                    <DataGrid Grid.Row="1" 
+                              ItemsSource="{Binding ListaPendientes}">
                         <DataGrid.Columns>
-                            <DataGridCheckBoxColumn Width="50" ElementStyle="{StaticResource {x:Type CheckBox}}"
+                            <DataGridCheckBoxColumn Width="50" 
                                                     Binding="{Binding Seleccionado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                <DataGridCheckBoxColumn.ElementStyle>
+                                    <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridCheckBoxColumn.ElementStyle>
                             </DataGridCheckBoxColumn>
 
                             <DataGridTextColumn Header="Ticket" Binding="{Binding Folio}" Width="80" FontWeight="Bold"/>
-
-                            <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat='dd/MM/yy HH:mm'}" Width="140" Foreground="#555"/>
+                            <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat='dd/MM/yy HH:mm'}" Width="140" Foreground="{StaticResource TextSecondary}"/>
 
                             <DataGridTemplateColumn Header="Cliente" Width="2*">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding ClienteNombre}" FontWeight="SemiBold"/>
-                                            <TextBlock Text="{Binding RFC}" FontSize="11" Foreground="Gray"/>
+                                            <TextBlock Text="{Binding ClienteNombre}" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
+                                            <TextBlock Text="{Binding RFC}" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=C}" Width="120" FontWeight="Bold" Foreground="#28A745"/>
+                            <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=C}" Width="120" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
 
                             <DataGridTemplateColumn Header="Acción" Width="110">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Content="Facturar" 
-                                                Command="{Binding DataContext.FacturarTicketCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                CommandParameter="{Binding}"
-                                                Background="#007ACC" Foreground="White" Padding="10,4" BorderThickness="0" FontSize="12" Cursor="Hand">
-                                            <Button.Resources>
-                                                <Style TargetType="Border">
-                                                    <Setter Property="CornerRadius" Value="4"/>
-                                                </Style>
-                                            </Button.Resources>
-                                        </Button>
+                                            Command="{Binding DataContext.FacturarTicketCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Padding="10,4"
+                                            FontSize="12"
+                                            HorizontalAlignment="Center"
+                                            ToolTip="Generar factura para este ticket"/>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
                         </DataGrid.Columns>
-
                     </DataGrid>
-
                 </Grid>
             </TabItem>
 
@@ -208,110 +171,90 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
-                        <Border.Effect>
-                            <DropShadowEffect Color="#B0BEC5" Opacity="0.1" BlurRadius="10" ShadowDepth="2"/>
-                        </Border.Effect>
-                        <WrapPanel VerticalAlignment="Center">
+                    <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" 
+                            CornerRadius="8" Padding="20" Margin="0,0,0,15"
+                            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
 
-                            <StackPanel Orientation="Horizontal" Margin="0,0,25,0">
-                                <TextBlock Text="Mes:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
-                                <ComboBox Width="120" Padding="4"
-                                          ItemsSource="{Binding ListaMeses}"
-                                          SelectedItem="{Binding MesSeleccionadoHistorial}"/>
+                        <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,20,10" VerticalAlignment="Center">
+                                <TextBlock Text="Mes:" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}"/>
+                                <ComboBox Width="130" ItemsSource="{Binding ListaMeses}" SelectedItem="{Binding MesSeleccionadoHistorial}"/>
                             </StackPanel>
 
-                            <StackPanel Orientation="Horizontal" Margin="0,0,25,0">
-                                <TextBlock Text="Estado:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
-                                <ComboBox Width="120" Padding="4"
-                                          ItemsSource="{Binding ListaEstados}"
-                                          SelectedItem="{Binding EstadoSeleccionadoHistorial}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,20,10" VerticalAlignment="Center">
+                                <TextBlock Text="Estado:" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}"/>
+                                <ComboBox Width="120" ItemsSource="{Binding ListaEstados}" SelectedItem="{Binding EstadoSeleccionadoHistorial}"/>
                             </StackPanel>
 
-                            <StackPanel Orientation="Horizontal" Margin="0,0,25,0">
-                                <TextBlock Text="Cliente:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
-                                <ComboBox Width="150" Padding="4"
-                                          ItemsSource="{Binding ListaClientes}"
-                                          SelectedItem="{Binding ClienteFiltroHistorial}"
-                                          DisplayMemberPath="RazonSocial"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,20,10" VerticalAlignment="Center">
+                                <TextBlock Text="Cliente:" Margin="0,0,8,0" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}"/>
+                                <ComboBox Width="180" ItemsSource="{Binding ListaClientes}" SelectedItem="{Binding ClienteFiltroHistorial}" DisplayMemberPath="RazonSocial"/>
                             </StackPanel>
 
                             <Button Content="Buscar" 
                                     Command="{Binding BuscarHistorialCommand}"
-                                    Background="#007ACC" Foreground="White" Padding="25,5" BorderThickness="0" FontWeight="Bold" Cursor="Hand">
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="4"/>
-                                    </Style>
-                                </Button.Resources>
-                            </Button>
+                                    Style="{StaticResource BtnSuccess}"
+                                    Height="38" Margin="0,0,10,10"/>
 
-                            <Button Content="📥 Exportar Excel" 
-        Click="BtnExportarHistorial_Click"
-        Margin="15,0,0,0"
-        Background="#28A745" Foreground="White" Padding="20,5" BorderThickness="0" FontWeight="Bold" Cursor="Hand"
-        ToolTip="Descargar esta lista en formato Excel (CSV)">
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="4"/>
-                                    </Style>
-                                </Button.Resources>
-                            </Button>
+                            <Button Content="📥 Excel" 
+                                    Click="BtnExportarHistorial_Click"
+                                    Style="{StaticResource BtnSecondary}"
+                                    Height="38" Margin="10,0,0,10"/>
 
-                            <Button Content="🖨️ Imprimir / PDF" 
-        Click="BtnImprimirHistorial_Click"
-        Margin="15,0,0,0"
-        Background="#6c757d" Foreground="White" Padding="20,5" BorderThickness="0" FontWeight="Bold" Cursor="Hand"
-        ToolTip="Generar reporte visual para imprimir o guardar como PDF">
-                                <Button.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="4"/>
-                                    </Style>
-                                </Button.Resources>
-                            </Button>
+                            <Button Content="🖨️ Reporte PDF" 
+                                    Click="BtnImprimirHistorial_Click"
+                                    Style="{StaticResource BtnSecondary}"
+                                    Height="38" Margin="10,0,0,10"/>
                         </WrapPanel>
                     </Border>
 
                     <DataGrid Grid.Row="1" 
-                              AutoGenerateColumns="False" 
-                              CanUserAddRows="False" 
-                              IsReadOnly="True"
-                              ItemsSource="{Binding ListaHistorial}" 
-                              Background="White" 
-                              BorderThickness="0" 
-                              RowHeaderWidth="0"
-                              GridLinesVisibility="Horizontal" 
-                              HorizontalGridLinesBrush="#EEE"
-                              RowHeight="45" 
-                              VerticalGridLinesBrush="Transparent">
-                        <DataGrid.Effect>
-                            <DropShadowEffect Color="#B0BEC5" Opacity="0.1" BlurRadius="10" ShadowDepth="2"/>
-                        </DataGrid.Effect>
+                              ItemsSource="{Binding ListaHistorial}">
+
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Serie/Folio" Binding="{Binding SerieFolio}" Width="100" FontWeight="Bold"/>
-                            <DataGridTextColumn Header="UUID (Fiscal)" Binding="{Binding UUID}" Width="2*" Foreground="Gray"/>
-
+                            <DataGridTextColumn Header="Folio" Binding="{Binding SerieFolio}" Width="100" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="UUID (Fiscal)" Binding="{Binding UUID}" Width="2*" Foreground="{StaticResource TextSecondary}"/>
                             <DataGridTextColumn Header="Receptor" Binding="{Binding Receptor}" Width="2*"/>
-
-                            <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=C}" Width="100" FontWeight="Bold"/>
+                            <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=C}" Width="120" FontWeight="Bold"/>
 
                             <DataGridTemplateColumn Header="Estado" Width="120">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Border Background="#D4EDDA" CornerRadius="10" Padding="8,2" HorizontalAlignment="Center" Width="80">
-                                            <TextBlock Text="{Binding Estado}" Foreground="#155724" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        <Border CornerRadius="4" Padding="8,2" HorizontalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="#D4EDDA"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Estado}" Value="Cancelada">
+                                                            <Setter Property="Background" Value="#F8D7DA"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding Estado}" FontWeight="Bold" FontSize="11">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#155724"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Estado}" Value="Cancelada">
+                                                                <Setter Property="Foreground" Value="#721C24"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Header="Archivos" Width="150">
+                            <DataGridTemplateColumn Header="Archivos" Width="180">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                            <Button Content="XML" Margin="2,0" Background="Transparent" BorderBrush="#CCC" BorderThickness="1" Padding="6,2" Cursor="Hand" FontSize="11"/>
-                                            <Button Content="PDF" Margin="2,0" Background="Transparent" BorderBrush="#CCC" BorderThickness="1" Padding="6,2" Cursor="Hand" FontSize="11"/>
-                                            <Button Content="✉" ToolTip="Reenviar" Margin="2,0" Background="Transparent" BorderBrush="#CCC" BorderThickness="1" Padding="6,2" Cursor="Hand"/>
+                                            <Button Content="XML" Margin="2" Padding="8,2" FontSize="11" Style="{StaticResource BtnSecondary}"/>
+                                            <Button Content="PDF" Margin="2" Padding="8,2" FontSize="11" Style="{StaticResource BtnSecondary}"/>
+                                            <Button Content="✉" Margin="2" Padding="8,2" FontSize="11" Style="{StaticResource BtnSecondary}" ToolTip="Reenviar"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

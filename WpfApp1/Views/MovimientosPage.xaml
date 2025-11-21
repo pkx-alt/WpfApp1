@@ -4,18 +4,18 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:WpfApp1.Views"
-      
       xmlns:converters="clr-namespace:WpfApp1.Converters"  
-      
       mc:Ignorable="d" 
       d:DesignHeight="600" d:DesignWidth="900"
-      Title="MovimientosPage" Background="White" FontFamily="Segoe UI">
+      Title="MovimientosPage" 
+      Background="{StaticResource PageBackground}" 
+      FontFamily="Segoe UI">
 
     <Page.Resources>
         <converters:StringContainsConverter x:Key="StringContainsConverter"/>
     </Page.Resources>
 
-    <Grid Margin="25">
+    <Grid Margin="30">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -29,108 +29,43 @@
 
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                 <TextBlock Text="{Binding TituloPagina}" 
-                           FontSize="28" FontWeight="Bold" Foreground="#333"/>
+                           FontSize="28" FontWeight="Bold" 
+                           Foreground="{StaticResource TextPrimary}"/>
                 <TextBlock Text="Historial detallado de entradas, salidas y ajustes."
-                           FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+                           FontSize="14" 
+                           Foreground="{StaticResource TextSecondary}" 
+                           Margin="0,5,0,0"/>
             </StackPanel>
 
             <Button Grid.Column="1" 
                     Content="⬅ Volver al Inventario"
                     Click="BtnVolver_Click"
-                    Height="40"
-                    Padding="15,0"
-                    Background="White"
-                    BorderBrush="#DDD"
-                    BorderThickness="1"
-                    Foreground="#555"
-                    FontWeight="SemiBold"
-                    Cursor="Hand">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="5"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
+                    Style="{StaticResource BtnSecondary}"/>
         </Grid>
 
         <DataGrid Grid.Row="1" 
-                  ItemsSource="{Binding ListaMovimientos}"
-                  AutoGenerateColumns="False" 
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  GridLinesVisibility="Horizontal"
-                  HorizontalGridLinesBrush="#EEE"
-                  BorderThickness="1" BorderBrush="#EEE"
-                  RowHeight="35">
-
-            <DataGrid.Resources>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="#F8F9FA"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="Padding" Value="10"/>
-                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                    <Setter Property="BorderBrush" Value="#DDD"/>
-                </Style>
-
-                <Style TargetType="DataGridRow">
-                    <Setter Property="Background" Value="White"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="VerticalContentAlignment" Value="Center"/>
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#FAFAFA"/>
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="#E3F2FD"/>
-                            <Setter Property="Foreground" Value="#333"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-
-                <Style TargetType="DataGridCell">
-                    <Setter Property="Padding" Value="10,0"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="DataGridCell">
-                                <Border Background="Transparent" BorderThickness="0">
-                                    <ContentPresenter VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                    <Style.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Foreground" Value="#333"/>
-                            <Setter Property="Background" Value="Transparent"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.Resources>
+                  ItemsSource="{Binding ListaMovimientos}">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat='dd/MM/yyyy HH:mm'}" Width="140"/>
 
                 <DataGridTextColumn Header="Producto" Binding="{Binding Producto.Descripcion}" Width="2*"/>
 
-                <DataGridTemplateColumn Header="Movimiento" Width="180">
+                <DataGridTemplateColumn Header="Movimiento" Width="150">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding TipoMovimiento}" FontWeight="SemiBold">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="#333"/>
+                                        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
 
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding TipoMovimiento, Converter={StaticResource StringContainsConverter}, ConverterParameter='Entrada'}" Value="True">
-                                                <Setter Property="Foreground" Value="#28A745"/>
+                                                <Setter Property="Foreground" Value="{StaticResource SuccessColor}"/>
                                             </DataTrigger>
 
                                             <DataTrigger Binding="{Binding TipoMovimiento, Converter={StaticResource StringContainsConverter}, ConverterParameter='Salida'}" Value="True">
-                                                <Setter Property="Foreground" Value="#DC3545"/>
-                                            </DataTrigger>
-
-                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=IsSelected}" Value="True">
-                                                <Setter Property="Foreground" Value="Black"/>
+                                                <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -142,11 +77,11 @@
 
                 <DataGridTextColumn Header="Cant." Binding="{Binding Cantidad}" Width="80" FontWeight="Bold"/>
 
-                <DataGridTextColumn Header="Antes" Binding="{Binding StockAnterior}" Width="80" Foreground="Gray"/>
+                <DataGridTextColumn Header="Antes" Binding="{Binding StockAnterior}" Width="80" Foreground="{StaticResource TextSecondary}"/>
                 <DataGridTextColumn Header="Después" Binding="{Binding StockNuevo}" Width="80" FontWeight="Bold"/>
 
                 <DataGridTextColumn Header="Motivo / Nota" Binding="{Binding Motivo}" Width="2*"/>
-                <DataGridTextColumn Header="Usuario" Binding="{Binding Usuario}" Width="100" Foreground="Gray"/>
+                <DataGridTextColumn Header="Usuario" Binding="{Binding Usuario}" Width="100" Foreground="{StaticResource TextSecondary}"/>
 
             </DataGrid.Columns>
         </DataGrid>

@@ -4,37 +4,48 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:WpfApp1.Views"
-      
       xmlns:vm="clr-namespace:WpfApp1.ViewModels"
-      
       xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-      
       mc:Ignorable="d" 
-      d:DesignHeight="600" d:DesignWidth="1000"
-      Title="VentaPage" FontFamily="Segoe UI">
+      d:DesignHeight="700" d:DesignWidth="1100"
+      Title="VentaPage" 
+      Background="{StaticResource PageBackground}">
 
     <Page.DataContext>
         <vm:VentaViewModel/>
     </Page.DataContext>
 
     <Page.Resources>
-        <Style x:Key="QuickActionButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="240"/>
-            <Setter Property="Height" Value="65"/>
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Background" Value="#FFF"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#EEE"/>
+        <Style x:Key="PosActionButton" TargetType="Button">
+            <Setter Property="Height" Value="70"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Padding" Value="15,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
-                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="15,0"/>
+                        <Border x:Name="bdr" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="10">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#B0BEC5" Opacity="0.25" BlurRadius="10" ShadowDepth="3" Direction="270"/>
+                            </Border.Effect>
+                            <ContentPresenter VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#F8F8F8"/>
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.85"/>
+                                <Setter Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform Y="-2"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.5"/>
+                                <Setter TargetName="bdr" Property="Background" Value="#E0E0E0"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -43,345 +54,314 @@
         </Style>
     </Page.Resources>
 
-    <Grid Background="#F5F5F5">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
+    <Grid Margin="20">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="320"/>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" Grid.Row="0" Margin="20">
+        <Grid Grid.Column="0" Margin="0,0,20,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="0,0,0,20">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Text="{Binding TituloPagina}" 
-               FontSize="28" FontWeight="SemiBold" 
-               VerticalAlignment="Center" HorizontalAlignment="Left" />
-
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-
-                    <CheckBox Content="Modo Cotización 📝"
-                  IsChecked="{Binding EsModoCotizacion}"
-                  FontSize="16" FontWeight="Bold"
-                  VerticalAlignment="Center" 
-                  Margin="0,0,20,0"
-                  Cursor="Hand">
-                        <CheckBox.LayoutTransform>
-                            <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
-                        </CheckBox.LayoutTransform>
-                    </CheckBox>
-
-                    
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding TituloPagina}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                    <TextBlock Text="🛒" FontSize="28" Margin="10,0,0,0"/>
                 </StackPanel>
+                <CheckBox Content="Modo Cotización 📝" IsChecked="{Binding EsModoCotizacion}" HorizontalAlignment="Right" VerticalAlignment="Center" FontWeight="SemiBold"/>
             </Grid>
 
-            <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid Grid.Row="1" Margin="0,0,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-
-                <TextBox Grid.Column="0" 
-             Padding="8" FontSize="14" x:Name="SearchTextBox" VerticalContentAlignment="Center"
-             GotFocus="SearchTextBox_GotFocus" LostFocus="SearchTextBox_LostFocus" 
-             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+                <TextBox Grid.Column="0" x:Name="SearchTextBox" 
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         GotFocus="SearchTextBox_GotFocus" LostFocus="SearchTextBox_LostFocus"
+                         FontSize="16" Padding="10,8">
                     <TextBox.InputBindings>
                         <KeyBinding Key="Enter" Command="{Binding SearchOnEnterCommand}" />
                     </TextBox.InputBindings>
                 </TextBox>
-
-                <Button Grid.Column="1" 
-            Command="{Binding CrearProductoRapidoCommand}"
-            Width="40" Height="40" Margin="10,0,0,0"
-            Background="#28A745" BorderThickness="0" Cursor="Hand"
-            ToolTip="Crear producto nuevo rápidamente">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="5"/>
-                        </Style>
-                    </Button.Resources>
-                    <TextBlock Text="+" FontSize="24" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                </Button>
+                <Button Grid.Column="1" Content="+" Command="{Binding CrearProductoRapidoCommand}" Style="{StaticResource BtnSuccess}" Width="50" Height="40" Margin="10,0,0,0" FontSize="20" Padding="0"/>
             </Grid>
 
-            <ListBox 
-                Grid.Row="2" 
-                MaxHeight="200" 
-                Margin="0,0,0,10"
-                BorderThickness="1"
-                BorderBrush="#EEE"
-                
-                ItemsSource="{Binding ResultadosBusqueda}">
+            <ListBox Grid.Row="2" 
+         ItemsSource="{Binding ResultadosBusqueda}"
+         MaxHeight="200" 
+         Margin="0,-5,0,0" 
+         BorderThickness="1" 
+         BorderBrush="{StaticResource PrimaryColor}"
+         Background="White"
+         Panel.ZIndex="99"
+         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+         Visibility="{Binding ResultadosBusqueda.Count, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                <ListBox.Effect>
+                    <DropShadowEffect Color="Gray" BlurRadius="10" Opacity="0.3" ShadowDepth="2"/>
+                </ListBox.Effect>
 
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="SelectionChanged">
-                        <i:InvokeCommandAction Command="{Binding AddItemFromSearchCommand}"
-                                               CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=SelectedItem}" />
+                        <i:InvokeCommandAction Command="{Binding AddItemFromSearchCommand}" 
+                                   CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=SelectedItem}" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
 
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="10"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E3F2FD"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Border Padding="10">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Descripcion}" FontWeight="Bold" Margin="0,0,15,0" />
-                                <TextBlock Text="{Binding Precio, StringFormat=C}" Foreground="Green" Margin="0,0,15,0" />
-                                <TextBlock Text="{Binding Stock, StringFormat='Stock: {0}'}" Foreground="Gray" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Descripcion}" FontWeight="Bold" Foreground="#333"/>
+                                <TextBlock Text="{Binding ID, StringFormat='SKU: {0}'}" FontSize="11" Foreground="Gray"/>
                             </StackPanel>
-                        </Border>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Precio, StringFormat=C}" FontWeight="Bold" Foreground="{StaticResource SuccessColor}" Margin="0,0,10,0"/>
+                                <Border Background="#EEE" CornerRadius="3" Padding="5,2">
+                                    <TextBlock Text="{Binding Stock, StringFormat='Stock: {0}'}" FontSize="11"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <Grid Grid.Row="3">
-                <DataGrid 
-                    ItemsSource="{Binding CarritoItems}"
-                    CanUserSortColumns="True"
-                    AutoGenerateColumns="False" CanUserAddRows="False" Background="White" BorderThickness="0" HeadersVisibility="Column"
-                    GridLinesVisibility="None" RowHeaderWidth="0" FontSize="14">
+            <DataGrid Grid.Row="3" ItemsSource="{Binding CarritoItems}" FontSize="15" RowHeight="50">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="80"/>
+                    <DataGridTextColumn Header="Descripción" Binding="{Binding Description}" Width="*"/>
+                    <DataGridTemplateColumn Header="UD" Width="140">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                    <DataGrid.Resources>
-                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                            <Setter Property="Background" Value="#FFE8D6"/>
-                            <Setter Property="FontWeight" Value="Bold"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Padding" Value="10,12"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                        </Style>
-                        <Style TargetType="DataGridCell">
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Padding" Value="10,8"/>
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="HorizontalAlignment" Value="Center"/>
-                        </Style>
-                    </DataGrid.Resources>
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="ID" Binding="{Binding ID}" SortMemberPath="ID" Width="*"/>
-                        <DataGridTextColumn Header="Descripción" Binding="{Binding Description}" SortMemberPath="Description" Width="2*"/>
+                                    <Button Content="-" Width="30" Height="30" Padding="0" Margin="0,0,5,0"
+                        Command="{Binding DataContext.DecreaseQuantityCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                        CommandParameter="{Binding}"
+                        Background="#F5F5F5" 
+                        BorderBrush="#CCCCCC" 
+                        BorderThickness="1" 
+                        Foreground="Black" 
+                        FontWeight="Bold"
+                        Cursor="Hand">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="4"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
 
-                        <DataGridTemplateColumn Header="UD" Width="120">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding Quantity}" 
+                           FontWeight="Bold" 
+                           FontSize="15" 
+                           VerticalAlignment="Center" 
+                           Width="30" 
+                           TextAlignment="Center"/>
 
-                                        <Button Name="DecreaseButton" 
-                                                Content="-" 
-                                                Width="25" Height="25" 
-                                                FontWeight="Bold"
-                                                Cursor="Hand"
-                                                
-                                                Command="{Binding DataContext.DecreaseQuantityCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                CommandParameter="{Binding}"
-                                                />
+                                    <Button Content="+" Width="30" Height="30" Padding="0" Margin="5,0,0,0"
+                        Command="{Binding DataContext.IncreaseQuantityCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                        CommandParameter="{Binding}"
+                        Background="#E3F2FD" 
+                        BorderBrush="#90CAF9" 
+                        BorderThickness="1" 
+                        Foreground="#007ACC" 
+                        FontWeight="Bold"
+                        Cursor="Hand">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="4"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
 
-                                        <TextBlock Text="{Binding Quantity}" 
-                                                   Width="30" 
-                                                   TextAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   FontWeight="SemiBold"
-                                                   Margin="5,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Precio" Binding="{Binding Price, StringFormat=C}" Width="100"/>
+                    <DataGridTextColumn Header="Subtotal" Binding="{Binding Subtotal, StringFormat=C}" Width="100" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
+                </DataGrid.Columns>
+            </DataGrid>
 
-                                        <Button Name="IncreaseButton" 
-                                                Content="+" 
-                                                Width="25" Height="25"
-                                                FontWeight="Bold"
-                                                Cursor="Hand"
-                                                
-                                                Command="{Binding DataContext.IncreaseQuantityCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                CommandParameter="{Binding}"
-                                                />
+            <StackPanel Grid.Row="4" HorizontalAlignment="Right" Margin="0,15,0,20">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="Subtotal:" Foreground="{StaticResource TextSecondary}" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding Subtotal, StringFormat=C}" FontWeight="SemiBold" Width="100" TextAlignment="Right"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5">
+                    <TextBlock Text="IVA:" Foreground="{StaticResource TextSecondary}" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding Iva, StringFormat=C}" FontWeight="SemiBold" Width="100" TextAlignment="Right"/>
+                </StackPanel>
 
-                                    </StackPanel>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                        <DataGridTextColumn Header="Precio" Binding="{Binding Price, StringFormat={}{0:C}}" SortMemberPath="Price" Width="*"/>
-                        <DataGridTextColumn Header="Subtotal" Binding="{Binding Subtotal, StringFormat={}{0:C}}" SortMemberPath="Subtotal" Width="*"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
-
-            <StackPanel Grid.Row="4" HorizontalAlignment="Right" Margin="0,20,10,10" TextBlock.FontSize="16">
-                <TextBlock Text="{Binding Subtotal, StringFormat='Subtotal: {0:C}'}" HorizontalAlignment="Right"/>
-                <TextBlock Text="{Binding Iva, StringFormat='IVA: {0:C}'}" HorizontalAlignment="Right"/>
-
-                <TextBlock HorizontalAlignment="Right" Foreground="#007ACC" Margin="0,2,0,2" FontSize="15">
-
-                    <TextBlock.Text>
-                        <MultiBinding StringFormat="{}{0}: -{1:C}">
-                            <Binding Path="TipoDescuento" />
-                            <Binding Path="MontoDescuento" />
-                        </MultiBinding>
-                    </TextBlock.Text>
-
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                            <Setter Property="Visibility" Value="Visible"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,5">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding MontoDescuento}" Value="0">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-                <TextBlock Text="{Binding Total, StringFormat='Total: {0:C}'}" HorizontalAlignment="Right" FontWeight="Bold" FontSize="20" Foreground="Red" Margin="0,5,0,0"/>
+                    </StackPanel.Style>
+                    <TextBlock Text="{Binding TipoDescuento, StringFormat='Desc. {0}:'}" Foreground="{StaticResource WarningColor}" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding MontoDescuento, StringFormat='-{0:C}'}" Foreground="{StaticResource WarningColor}" FontWeight="Bold" Width="100" TextAlignment="Right"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
+                    <TextBlock Text="Total:" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Bottom" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding Total, StringFormat=C}" FontSize="28" FontWeight="ExtraBold" Foreground="{StaticResource DangerColor}"/>
+                </StackPanel>
             </StackPanel>
 
+            <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancelar Venta (Del)" Command="{Binding CancelarVentaCommand}" Style="{StaticResource BtnDanger}" Height="45" Margin="0,0,15,0"/>
+                <Button Content="{Binding TextoBotonFinalizar}" Command="{Binding FinalizarVentaCommand}" Style="{StaticResource BtnSuccess}" Height="45" Padding="30,0" FontSize="16"/>
+            </StackPanel>
         </Grid>
 
-        <Border Grid.Column="1" Grid.Row="0" Background="White" Padding="10">
+        <Border Grid.Column="1" Background="White" CornerRadius="10" Padding="20">
+
+            <Border.Effect>
+                <DropShadowEffect Color="#B0BEC5" Opacity="0.25" BlurRadius="15" ShadowDepth="3" Direction="270"/>
+            </Border.Effect>
+
             <StackPanel>
-                <TextBlock Text="Acciones rápidas" FontWeight="Bold" FontSize="16" Margin="5,5,5,10" HorizontalAlignment="Center"/>
+                <TextBlock Text="Acciones Rápidas" FontSize="18" FontWeight="Bold" Margin="0,0,0,20" HorizontalAlignment="Center" Foreground="{StaticResource TextPrimary}"/>
 
-                <Button Style="{StaticResource QuickActionButtonStyle}" Background="#E3F2FD" 
-                        Command="{Binding CambiarClienteCommand}">
+                <Button Style="{StaticResource PosActionButton}" Background="#E3F2FD" Command="{Binding CambiarClienteCommand}">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="45"/>
+                            <ColumnDefinition Width="50"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="👥" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Text="👥" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Cambiar cliente" FontWeight="SemiBold"/>
-                            <TextBlock Text="Alt + F2" Foreground="Gray" FontSize="10"/>
+                            <TextBlock Text="Cambiar Cliente" FontWeight="Bold" Foreground="#1565C0"/>
+                            <TextBlock Text="Alt + F2" FontSize="11" Foreground="#546E7A"/>
                         </StackPanel>
                     </Grid>
                 </Button>
 
-                <Button Style="{StaticResource QuickActionButtonStyle}" Background="#FFF9C4"
-                        Command="{Binding ResumirVentaCommand}">
+                <Button Style="{StaticResource PosActionButton}" Background="#FFF9C4" Command="{Binding ResumirVentaCommand}">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="45"/>
+                            <ColumnDefinition Width="50"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="📑" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Text="📑" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Resumir venta" FontWeight="SemiBold"/>
-                            <TextBlock Text="Ver ventas en espera" Foreground="Gray" FontSize="10"/>
+                            <TextBlock Text="Resumir Venta" FontWeight="Bold" Foreground="#F57F17"/>
+                            <TextBlock Text="Ver en espera" FontSize="11" Foreground="#8D6E63"/>
                         </StackPanel>
                     </Grid>
                 </Button>
 
-                <Grid>
-                    <Button Background="#FCE4EC"
-            Command="{Binding RealizarDescuentoCommand}">
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="45"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="%" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="Realizar descuento" FontWeight="SemiBold"/>
-                                <TextBlock Text="Alt + F4" Foreground="Gray" FontSize="10"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource QuickActionButtonStyle}">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding MontoDescuento}" Value="0">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-
-                    <Button Background="#FCDCDC"
-            Command="{Binding CancelarDescuentoCommand}">
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="45"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="❌" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock Text="Cancelar descuento" FontWeight="SemiBold"/>
-                                <TextBlock Text="Quitar descuento aplicado" Foreground="Gray" FontSize="10"/>
-                            </StackPanel>
-                        </Grid>
-
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource QuickActionButtonStyle}">
-                                <Setter Property="Visibility" Value="Visible"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding MontoDescuento}" Value="0">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                </Grid>
-
-                <Button Style="{StaticResource QuickActionButtonStyle}">
+                <Button Background="#FCE4EC" Command="{Binding RealizarDescuentoCommand}">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="45"/>
+                            <ColumnDefinition Width="50"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="🖨️" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Text="%" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Reimprimir ticket" FontWeight="SemiBold"/>
-                            <TextBlock Text="Alt + F3" Foreground="Gray" FontSize="10"/>
+                            <TextBlock Text="Realizar Descuento" FontWeight="Bold" Foreground="#C2185B"/>
+                            <TextBlock Text="Alt + F4" FontSize="11" Foreground="#880E4F"/>
+                        </StackPanel>
+                    </Grid>
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource PosActionButton}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding MontoDescuento}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button Background="#FFEBEE" Command="{Binding CancelarDescuentoCommand}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="❌" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Quitar Descuento" FontWeight="Bold" Foreground="#D32F2F"/>
+                            <TextBlock Text="Restaurar precio" FontSize="11" Foreground="#B71C1C"/>
+                        </StackPanel>
+                    </Grid>
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource PosActionButton}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding MontoDescuento}" Value="0">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding MontoDescuento}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <Button Style="{StaticResource PosActionButton}" Background="White" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="🖨️" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="Reimprimir Ticket" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                            <TextBlock Text="Última venta" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                         </StackPanel>
                     </Grid>
                 </Button>
 
-                <Button Style="{StaticResource QuickActionButtonStyle}">
+                <Button Style="{StaticResource PosActionButton}" Background="White" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="45"/>
+                            <ColumnDefinition Width="50"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="📄" FontSize="28" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Text="📄" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Realizar factura" FontWeight="SemiBold"/>
-                            <TextBlock Text="Alt + F5" Foreground="Gray" FontSize="10"/>
+                            <TextBlock Text="Realizar Factura" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                            <TextBlock Text="Alt + F5" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                         </StackPanel>
                     </Grid>
                 </Button>
+
             </StackPanel>
         </Border>
-
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" 
-                    Orientation="Horizontal" HorizontalAlignment="Right" 
-                    Margin="0,10,20,10">
-
-            <Button x:Name="FinVentaBtn" 
-        Command="{Binding FinalizarVentaCommand}" 
-        
-        Content="{Binding TextoBotonFinalizar}" 
-        Background="{Binding ColorBotonFinalizar}"
-        
-        Padding="25,12" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand"/>
-
-            <Button 
-                    Command="{Binding CancelarVentaCommand}" 
-                    Content="Cancelar venta (Ctrl + Supr)" Padding="25,12" Background="#DC3545" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand"/>
-
-        </StackPanel>
     </Grid>
 </Page>

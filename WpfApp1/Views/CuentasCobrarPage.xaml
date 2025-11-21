@@ -1,4 +1,4 @@
-﻿<Page x:Class="WpfApp1.Views.EmpleadosPage"
+﻿<Page x:Class="WpfApp1.Views.CuentasCobrarPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,60 +6,86 @@
       mc:Ignorable="d" 
       d:DesignHeight="600" d:DesignWidth="900"
       Title="Cuentas Por Cobrar"
-      FontFamily="Segoe UI">
+      Background="{StaticResource PageBackground}">
 
-    <Grid Background="#F5F5F5">
+    <Grid Margin="30">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Margin="20">
+        <Grid Grid.Row="0" Margin="0,0,0,20">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <StackPanel>
-                <TextBlock Text="Cuentas por Cobrar" FontSize="28" FontWeight="Bold" Foreground="#333"/>
-                <TextBlock Text="Gestión de créditos y abonos" FontSize="14" Foreground="Gray"/>
+                <TextBlock Text="Cuentas por Cobrar" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                <TextBlock Text="Gestión de créditos y abonos de clientes." FontSize="14" Foreground="{StaticResource TextSecondary}" Margin="0,5,0,0"/>
             </StackPanel>
 
-            <Button Grid.Column="1" Command="{Binding RefrescarCommand}" Content="🔄 Actualizar Lista" Padding="10,5" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" 
+                    Command="{Binding RefrescarCommand}" 
+                    Content="🔄 Actualizar" 
+                    Style="{StaticResource BtnSecondary}"
+                    Height="38"/>
         </Grid>
 
-        <Grid Grid.Row="1" Margin="20,0,20,20">
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.3*"/>
-                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="350"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Background="White" CornerRadius="5" Padding="10" Margin="0,0,10,0">
+            <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" 
+                    CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="Clientes con Deuda" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="15">
+                        <TextBlock Text="Clientes con Deuda" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
+                    </Border>
 
                     <DataGrid Grid.Row="1" 
                               ItemsSource="{Binding ListaDeudores}" 
                               SelectedItem="{Binding DeudorSeleccionado, Mode=TwoWay}"
-                              AutoGenerateColumns="False" 
-                              CanUserAddRows="False" IsReadOnly="True"
-                              SelectionMode="Single"
-                              HeadersVisibility="Column" GridLinesVisibility="Horizontal">
+                              BorderThickness="0">
+
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Cliente" Width="*" Binding="{Binding NombreCompleto}"/>
-                            <DataGridTextColumn Header="Tickets" Width="Auto" Binding="{Binding NumeroDeVentasPendientes}"/>
-                            <DataGridTextColumn Header="Total" Width="Auto" Binding="{Binding TotalDeuda, StringFormat=C}" FontWeight="Bold" Foreground="Red"/>
+                            <DataGridTextColumn Header="Cliente" Binding="{Binding NombreCompleto}" Width="*" FontWeight="SemiBold"/>
+
+                            <DataGridTextColumn Header="Tickets" Binding="{Binding NumeroDeVentasPendientes}" Width="70">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Total" Binding="{Binding TotalDeuda, StringFormat=C}" Width="90">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Margin" Value="0,0,10,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
             </Border>
 
-            <Border Grid.Column="1" Background="White" CornerRadius="5" Padding="20">
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -67,46 +93,102 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Margin="0,0,0,15">
-                        <TextBlock Text="Detalle de Adeudos" FontSize="18" FontWeight="Bold" Foreground="#007ACC"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                            <TextBlock Text="Cliente: " FontWeight="Bold"/>
-                            <TextBlock Text="{Binding DeudorSeleccionado.NombreCompleto, TargetNullValue='Seleccione un cliente...'}" Foreground="Gray"/>
+                    <Border Grid.Row="0" Background="#F8F9FA" CornerRadius="10,10,0,0" Padding="20" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                        <StackPanel>
+                            <TextBlock Text="Detalle de Adeudos" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                <TextBlock Text="Cliente seleccionado:" Foreground="{StaticResource TextSecondary}"/>
+                                <TextBlock Text="{Binding DeudorSeleccionado.NombreCompleto, TargetNullValue='(Ninguno)'}" 
+                                           FontWeight="Bold" Margin="5,0,0,0" Foreground="{StaticResource TextPrimary}"/>
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
+                    </Border>
 
                     <DataGrid Grid.Row="1" 
-                              ItemsSource="{Binding MovimientosCliente}"
-                              SelectedItem="{Binding MovimientoSeleccionado}"  AutoGenerateColumns="False" 
-                              CanUserAddRows="False" IsReadOnly="True"
-                              HeadersVisibility="Column" Background="WhiteSmoke">
+          ItemsSource="{Binding MovimientosCliente}"
+          SelectedItem="{Binding MovimientoSeleccionado}"
+          BorderThickness="0" Margin="10"
+          AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+          HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+          HorizontalGridLinesBrush="#EEE" VerticalGridLinesBrush="Transparent"
+          RowHeight="40">
+
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat=dd/MM/yyyy}"/>
-                            <DataGridTextColumn Header="Folio" Binding="{Binding Folio}"/>
-                            <DataGridTextColumn Header="Total Venta" Binding="{Binding MontoOriginal, StringFormat=C}"/>
-                            <DataGridTextColumn Header="Pagado" Binding="{Binding PagadoHastaAhora, StringFormat=C}"/>
-                            <DataGridTextColumn Header="Saldo Restante" Binding="{Binding SaldoPendiente, StringFormat=C}" FontWeight="Bold" Foreground="#D9534F"/>
+                            <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat=dd/MM/yyyy}" Width="100" Foreground="{StaticResource TextSecondary}"/>
+
+                            <DataGridTextColumn Header="Folio" Binding="{Binding Folio}" Width="*" FontWeight="SemiBold"/>
+
+                            <DataGridTextColumn Header="Importe" Binding="{Binding MontoOriginal, StringFormat=C}" Width="120">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="0,0,10,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Abonado" Binding="{Binding PagadoHastaAhora, StringFormat=C}" Width="120" Foreground="{StaticResource SuccessColor}">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="0,0,10,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Pendiente" Binding="{Binding SaldoPendiente, StringFormat=C}" Width="120" FontWeight="Bold" Foreground="{StaticResource DangerColor}">
+                                <DataGridTextColumn.HeaderStyle>
+                                    <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                                    </Style>
+                                </DataGridTextColumn.HeaderStyle>
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Margin" Value="0,0,10,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
 
-                    <Grid Grid.Row="2" Margin="0,20,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
+                    <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="20">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="Total Deuda Cliente: " FontSize="16"/>
-                            <TextBlock Text="{Binding TotalSeleccionado, StringFormat=C}" FontSize="20" FontWeight="Bold" Foreground="Red" Margin="5,0,0,0"/>
-                        </StackPanel>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="TOTAL A PAGAR" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"/>
+                                <TextBlock Text="{Binding TotalSeleccionado, StringFormat=C}" 
+                                           FontSize="32" FontWeight="ExtraBold" Foreground="{StaticResource DangerColor}"/>
+                            </StackPanel>
 
-                        <StackPanel Grid.Column="1" Orientation="Horizontal">
-                            <Button Command="{Binding RealizarAbonoCommand}" 
-                                    Content="REALIZAR ABONO" 
-                                    Padding="20,10" 
-                                    Background="#007ACC" Foreground="White" FontWeight="Bold" Cursor="Hand"/>
-                        </StackPanel>
-                    </Grid>
+                            <Button Grid.Column="1" 
+                                    Command="{Binding RealizarAbonoCommand}" 
+                                    Content="Realizar Abono ($)" 
+                                    Style="{StaticResource BtnSuccess}"
+                                    Height="50" Padding="30,0" FontSize="16">
+                                <Button.Effect>
+                                    <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3" ShadowDepth="3"/>
+                                </Button.Effect>
+                            </Button>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
 

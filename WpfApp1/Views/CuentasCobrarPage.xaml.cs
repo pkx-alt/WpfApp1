@@ -3,13 +3,12 @@ using WpfApp1.ViewModels;
 
 namespace WpfApp1.Views
 {
-    public partial class EmpleadosPage : Page
+    public partial class CuentasCobrarPage : Page // <--- CAMBIADO DE EmpleadosPage
     {
-        public EmpleadosPage()
+        public CuentasCobrarPage() // <--- CAMBIADO EL CONSTRUCTOR
         {
             InitializeComponent();
-            // Conectamos el ViewModel
-            this.DataContext = new CuentasPorCobrarViewModel();
+            this.DataContext = new WpfApp1.ViewModels.CuentasPorCobrarViewModel();
         }
     }
 }

@@ -4,202 +4,203 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:WpfApp1.Views"
-      xmlns:system="clr-namespace:System;assembly=mscorlib"
+      xmlns:vm="clr-namespace:WpfApp1.ViewModels"
       mc:Ignorable="d" 
       d:DesignHeight="500" d:DesignWidth="800"
-      d:DataContext="{d:DesignInstance Type=vm:DepartamentosViewModel, IsDesignTimeCreatable=False}"
       Title="DepartamentosPage"
-      xmlns:vm="clr-namespace:WpfApp1.ViewModels"
-      >
+      Background="{StaticResource PageBackground}"
+      d:DataContext="{d:DesignInstance Type=vm:DepartamentosViewModel, IsDesignTimeCreatable=False}">
 
     <Page.Resources>
-
-        <SolidColorBrush x:Key="RojoPeligroBrush" Color="#dc3545"/>
-
         <Style x:Key="IconButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Width" Value="28"/>
-            <Setter Property="Height" Value="28"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="2,0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
             <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E3F2FD"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style x:Key="DeleteIconButtonStyle" TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
-            <Setter Property="Foreground" Value="{StaticResource RojoPeligroBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FEE2E2"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
+        <Style x:Key="CleanListBoxItem" TargetType="ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#E3F2FD"/>
+                    <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F8F9FA"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Page.Resources>
 
-    <Grid Background="White">
+    <Grid Margin="30">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="30"/>
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Column="0" Margin="20">
-
-            <TextBlock Text="Categorías" 
-                       FontSize="20" 
-                       FontWeight="SemiBold" 
-                       Margin="0,0,0,10"/>
+        <StackPanel Grid.Column="0">
+            <TextBlock Text="Categorías" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,15"/>
 
             <Button Content="+ Nueva categoría" 
                     Command="{Binding CrearCategoriaCommand}"
                     HorizontalAlignment="Left" 
-                    Background="#007bff" 
-                    Foreground="White"
-                    BorderThickness="0"
-                    Padding="10,5"
-                    FontWeight="Bold"
-                    Margin="0,0,0,10"
-                    Cursor="Hand"/>
+                    Style="{StaticResource {x:Type Button}}" 
+                    Margin="0,0,0,15"/>
 
-            <ListBox x:Name="CategoriasListBox"
-                     BorderBrush="#DDDDDD"
-                     BorderThickness="1"
-                     MinHeight="300"
-                     AlternationCount="2"
-                     ItemsSource="{Binding Categorias}"
-                     SelectedItem="{Binding CategoriaSeleccionada, Mode=TwoWay}">
+            <Border Background="{StaticResource SurfaceBrush}" 
+                    BorderBrush="{StaticResource BorderBrush}" 
+                    BorderThickness="1" 
+                    CornerRadius="6">
 
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Margin="5">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                <ListBox x:Name="CategoriasListBox"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         MinHeight="300"
+                         ItemsSource="{Binding Categorias}"
+                         SelectedItem="{Binding CategoriaSeleccionada, Mode=TwoWay}"
+                         ItemContainerStyle="{StaticResource CleanListBoxItem}">
 
-                            <TextBlock Text="{Binding Nombre}" Grid.Column="0" VerticalAlignment="Center" FontSize="14"/>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Style="{StaticResource IconButtonStyle}" ToolTip="Ver detalles"
-                                        Command="{Binding DataContext.VerDetallesCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-                                        CommandParameter="{Binding}">
-                                    <Path Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-                                          Fill="#007ACC" 
-                                          Stretch="Uniform" 
-                                          Width="18" Height="18"/>
-                                </Button>
+                                <TextBlock Text="{Binding Nombre}" Grid.Column="0" VerticalAlignment="Center" FontSize="14"/>
 
-                                <Button Content="&#xE70F;" Style="{StaticResource IconButtonStyle}" ToolTip="Editar"
-                                        Command="{Binding DataContext.EditarCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-                                        CommandParameter="{Binding}"/>
-                                <Button Content="&#xE711;" Style="{StaticResource DeleteIconButtonStyle}" ToolTip="Eliminar"
-                                        Command="{Binding DataContext.EliminarCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-                                        CommandParameter="{Binding}"/>
-                            </StackPanel>
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Style="{StaticResource IconButtonStyle}" ToolTip="Ver detalles"
+                                            Command="{Binding DataContext.VerDetallesCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                            CommandParameter="{Binding}">
+                                        <Path Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                                              Fill="{StaticResource PrimaryColor}" 
+                                              Stretch="Uniform" 
+                                              Width="18" Height="18"/>
+                                    </Button>
 
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                        <Setter Property="Padding" Value="5"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#E0E0E0"/>
-                                <Setter Property="FontWeight" Value="Bold"/>
-                            </Trigger>
-                            <Trigger Property="ItemsControl.AlternationIndex" Value="0">
-                                <Setter Property="Background" Value="White"/>
-                            </Trigger>
-                            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                <Setter Property="Background" Value="#F9F9F9"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-            </ListBox>
+                                    <Button Content="&#xE70F;" 
+                                            Style="{StaticResource IconButtonStyle}" ToolTip="Editar"
+                                            Command="{Binding DataContext.EditarCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                            CommandParameter="{Binding}"/>
 
+                                    <Button Content="&#xE711;" 
+                                            Style="{StaticResource DeleteIconButtonStyle}" ToolTip="Eliminar"
+                                            Command="{Binding DataContext.EliminarCategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                            CommandParameter="{Binding}"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
         </StackPanel>
 
-        <StackPanel Grid.Column="1" Margin="20">
+        <StackPanel Grid.Column="2">
+            <TextBlock Text="Subcategorías" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,15"/>
 
-            <TextBlock Text="Subcategorías" 
-                       FontSize="20" 
-                       FontWeight="SemiBold" 
-                       Margin="0,0,0,10"/>
-
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
                 <Button Content="+ Nueva subcategoría"
                         Command="{Binding CrearSubcategoriaCommand}"
-                        Background="#007bff" 
-                        Foreground="White"
-                        BorderThickness="0"
-                        Padding="10,5"
-                        FontWeight="Bold"
-                        Margin="0,0,10,0"
-                        Cursor="Hand"/>
+                        Style="{StaticResource {x:Type Button}}" 
+                        Margin="0,0,10,0"/>
+
                 <Button Content="Mover" 
-                        Background="#6c757d" 
                         Command="{Binding MoverSubcategoriasCommand}"
-                        Foreground="White"
-                        BorderThickness="0"
-                        Padding="10,5"
-                        FontWeight="Bold"
-                        Cursor="Hand"/>
+                        Style="{StaticResource BtnSecondary}"/>
             </StackPanel>
 
-            <ListBox x:Name="SubcategoriasListBox"
-                     BorderBrush="#DDDDDD"
-                     BorderThickness="1"
-                     MinHeight="300"
-                     SelectionMode="Multiple"
-                     ItemsSource="{Binding Subcategorias}">
+            <Border Background="{StaticResource SurfaceBrush}" 
+                    BorderBrush="{StaticResource BorderBrush}" 
+                    BorderThickness="1" 
+                    CornerRadius="6">
 
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Margin="5">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                <ListBox x:Name="SubcategoriasListBox"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         MinHeight="300"
+                         SelectionMode="Multiple"
+                         ItemsSource="{Binding Subcategorias}"
+                         ItemContainerStyle="{StaticResource CleanListBoxItem}">
 
-                            <CheckBox Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
-                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                            <TextBlock Text="{Binding Nombre}" Grid.Column="1" VerticalAlignment="Center" FontSize="14"/>
+                                <CheckBox Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0"
+                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
 
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Nombre}" Grid.Column="1" VerticalAlignment="Center" FontSize="14"/>
 
-                                <Button Style="{StaticResource IconButtonStyle}" ToolTip="Info"
-                                        Command="{Binding DataContext.VerDetallesSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-                                        CommandParameter="{Binding}">
-                                    <Path Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
-                                          Fill="#007ACC" 
-                                          Stretch="Uniform" 
-                                          Width="18" Height="18"/>
-                                </Button>
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
 
-                                <Button Content="&#xE70F;" Style="{StaticResource IconButtonStyle}" ToolTip="Editar"
-                                        Command="{Binding DataContext.EditarSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-                                        CommandParameter="{Binding}"/>
-                                <Button Content="&#xE711;" Style="{StaticResource DeleteIconButtonStyle}" ToolTip="Eliminar"
-                                        Command="{Binding DataContext.EliminarSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
-                                        CommandParameter="{Binding}"/>
-                            </StackPanel>
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
+                                    <Button Style="{StaticResource IconButtonStyle}" ToolTip="Info"
+                                            Command="{Binding DataContext.VerDetallesSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                            CommandParameter="{Binding}">
+                                        <Path Data="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                                              Fill="{StaticResource PrimaryColor}" 
+                                              Stretch="Uniform" 
+                                              Width="18" Height="18"/>
+                                    </Button>
 
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                        <Setter Property="Padding" Value="0"/>
-                        <Setter Property="Focusable" Value="False"/>
-                    </Style>
-                </ListBox.ItemContainerStyle>
+                                    <Button Content="&#xE70F;" 
+                                            Style="{StaticResource IconButtonStyle}" ToolTip="Editar"
+                                            Command="{Binding DataContext.EditarSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                            CommandParameter="{Binding}"/>
 
-            </ListBox>
-
+                                    <Button Content="&#xE711;" 
+                                            Style="{StaticResource DeleteIconButtonStyle}" ToolTip="Eliminar"
+                                            Command="{Binding DataContext.EliminarSubcategoriaCommand, RelativeSource={RelativeSource AncestorType={x:Type Page}}}"
+                                            CommandParameter="{Binding}"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
         </StackPanel>
-
     </Grid>
 </Page>

@@ -18,5 +18,18 @@
 
     <SolidColorBrush x:Key="PrimaryTextBrush" Color="{StaticResource PrimaryTextColor}" />
     <SolidColorBrush x:Key="SecondaryTextBrush" Color="{StaticResource SecondaryTextColor}" />
-    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <!--<SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />-->
+
+    
+    <SolidColorBrush x:Key="PrimaryColor" Color="#007ACC"/>
+    <SolidColorBrush x:Key="PrimaryDarkColor" Color="#005A9E"/>
+    <SolidColorBrush x:Key="SecondaryColor" Color="#6c757d"/>
+    <SolidColorBrush x:Key="SuccessColor" Color="#28A745"/>
+    <SolidColorBrush x:Key="DangerColor" Color="#D32F2F"/>
+    <SolidColorBrush x:Key="WarningColor" Color="#FF5722"/>
+    <SolidColorBrush x:Key="PageBackground" Color="#F4F7F9"/>
+    <SolidColorBrush x:Key="SurfaceBrush" Color="White"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#333333"/>
+    <SolidColorBrush x:Key="TextSecondary" Color="#6c757d"/>
 </ResourceDictionary>
