@@ -1,58 +1,101 @@
 ﻿<Window x:Class="WpfApp1.Views.Dialogs.NuevoClienteWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        Title="Nuevo Cliente" Height="450" Width="450"
-        WindowStartupLocation="CenterScreen"
+        Title="Nuevo Cliente" 
+        Height="Auto" Width="550"
+        SizeToContent="Height"
         ResizeMode="NoResize"
-        FontFamily="Segoe UI">
-    <Grid Margin="15">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown">
 
-        <StackPanel Grid.Row="0">
-            <TextBlock Text="Razón Social: (Obligatorio)" FontWeight="SemiBold"/>
-            <TextBox x:Name="txtRazonSocial" Margin="0,5,0,10" Padding="3"/>
-        </StackPanel>
+    <Border Background="{StaticResource PageBackground}" 
+            CornerRadius="15" 
+            BorderBrush="{StaticResource BorderBrush}" 
+            BorderThickness="1" 
+            Margin="10">
 
-        <StackPanel Grid.Row="1">
-            <TextBlock Text="RFC: (Obligatorio)" FontWeight="SemiBold"/>
-            <TextBox x:Name="txtRfc" MaxLength="13" Margin="0,5,0,10" Padding="3"/>
-        </StackPanel>
+        <Border.Effect>
+            <DropShadowEffect Color="#B0BEC5" BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+        </Border.Effect>
 
-        <StackPanel Grid.Row="2">
-            <TextBlock Text="Teléfono:" FontWeight="SemiBold"/>
-            <TextBox x:Name="txtTelefono" Margin="0,5,0,10" Padding="3"/>
-        </StackPanel>
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="3">
-            <TextBlock Text="Código Postal (Domicilio Fiscal):" FontWeight="SemiBold"/>
-            <TextBox x:Name="txtCodigoPostal" MaxLength="5" Margin="0,5,0,10" Padding="3"
-                     ToolTip="5 dígitos (Ej. 64000)"/>
-        </StackPanel>
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="Nuevo Cliente 👥" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+                <TextBlock Text="Registrar datos fiscales y de contacto" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+            </StackPanel>
 
-        <StackPanel Grid.Row="4">
-            <TextBlock Text="Régimen Fiscal (Clave):" FontWeight="SemiBold"/>
-            <TextBox x:Name="txtRegimenFiscal" MaxLength="3" Margin="0,5,0,10" Padding="3"
-                     ToolTip="Ej: 612 Personas Físicas, 601 Personas Morales"/>
-        </StackPanel>
+            <Grid Grid.Row="1" Margin="0,0,0,25">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="5">
-            <TextBlock Text="Uso CFDI (Clave):" FontWeight="SemiBold"/>
-            <TextBox x:Name="txtUsoCFDI" MaxLength="3" Margin="0,5,0,10" Padding="3"
-                     ToolTip="Ej: G03 Gastos en general, P01 Por definir"/>
-        </StackPanel>
-        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button x:Name="btnGuardar" Content="Guardar" Padding="15,5" Margin="0,0,10,0" Click="btnGuardar_Click" FontWeight="Bold"/>
-            <Button x:Name="btnCancelar" Content="Cancelar" Padding="15,5" IsCancel="True"/>
-        </StackPanel>
-    </Grid>
+                <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Margin="0,0,0,15">
+                    <TextBlock Text="Razón Social / Nombre:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtRazonSocial" Height="35" FontSize="14"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,15">
+                    <TextBlock Text="RFC:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtRfc" Height="35" MaxLength="13" CharacterCasing="Upper" FontSize="14" FontWeight="Bold"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,15">
+                    <TextBlock Text="Teléfono:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtTelefono" Height="35" FontSize="14"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,15">
+                    <TextBlock Text="Código Postal (Fiscal):" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtCodigoPostal" Height="35" MaxLength="5" FontSize="14"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,15">
+                    <TextBlock Text="Régimen Fiscal (Clave):" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtRegimenFiscal" Height="35" MaxLength="3" ToolTip="Ej: 601, 612, 626" FontSize="14"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="3" Grid.ColumnSpan="3">
+                    <TextBlock Text="Uso de CFDI (Clave):" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtUsoCFDI" Height="35" MaxLength="3" ToolTip="Ej: G03, P01" FontSize="14"/>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="btnCancelar" 
+                        Content="Cancelar" 
+                        Style="{StaticResource BtnSecondary}" 
+                        Click="btnCancelar_Click" 
+                        IsCancel="True"
+                        Width="100" Margin="0,0,10,0"/>
+
+                <Button x:Name="btnGuardar" 
+                        Content="Guardar Cliente" 
+                        Style="{StaticResource BtnSuccess}" 
+                        Click="btnGuardar_Click" 
+                        IsDefault="True"
+                        Width="140">
+                    <Button.Effect>
+                        <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
+                    </Button.Effect>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

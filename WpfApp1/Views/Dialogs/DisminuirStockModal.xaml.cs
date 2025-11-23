@@ -36,7 +36,11 @@ namespace WpfApp1.Views.Dialogs
         }
 
         // --- MÉTODOS DE LOS BOTONES PRINCIPALES ---
-
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
         private void FinalizarButton_Click(object sender, RoutedEventArgs e)
         {
             if (!int.TryParse(CantidadTextBox.Text, out int cantidad) || cantidad <= 0)

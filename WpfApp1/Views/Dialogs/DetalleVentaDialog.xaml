@@ -3,127 +3,173 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WpfApp1.Views.Dialogs"
         mc:Ignorable="d"
-        
-        Title="Detalle de venta" 
-        WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize"
-        WindowStyle="ToolWindow"
-        FontFamily="Segoe UI"
-        Background="White"
+        Title="Detalle de Venta" 
+        Height="Auto" Width="750"
         SizeToContent="Height"
-        Width="650">
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown">
 
-    <Grid Margin="25">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Border Background="{StaticResource PageBackground}" 
+            CornerRadius="15" 
+            BorderBrush="{StaticResource BorderBrush}" 
+            BorderThickness="1" 
+            Margin="10">
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock FontSize="24" FontWeight="Bold" Margin="0,0,0,5">
-                <Run Text="Detalle de venta - Folio "/>
-                <Run Text="{Binding Folio}" FontWeight="Bold"/>
-            </TextBlock>
-            <TextBlock FontSize="15">
-                <Run Text="Cliente: " FontWeight="SemiBold"/>
-                <Run Text="{Binding NombreCliente}"/>
-            </TextBlock>
-            <TextBlock FontSize="15">
-                <Run Text="Fecha y hora: " FontWeight="SemiBold"/>
-                <Run Text="{Binding FechaHora, StringFormat='dd/MM/yyyy HH:mm'}"/>
-            </TextBlock>
-        </StackPanel>
+        <Border.Effect>
+            <DropShadowEffect Color="#B0BEC5" BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+        </Border.Effect>
 
-        <DataGrid Grid.Row="1" 
-                  ItemsSource="{Binding DetallesVenta}"
-                  AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
-                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEE"
-                  HeadersVisibility="Column" Background="White" BorderThickness="0"
-                  FontSize="14">
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="#FFE8D6"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="Padding" Value="10,12"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <DataGrid.CellStyle>
-                <Style TargetType="DataGridCell">
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="Padding" Value="10,8"/>
-                    <Setter Property="VerticalAlignment" Value="Center"/>
-                </Style>
-            </DataGrid.CellStyle>
+                <StackPanel>
+                    <TextBlock Text="TICKET DE VENTA" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextSecondary}"/>
+                    <TextBlock FontSize="28" FontWeight="Black" Foreground="{StaticResource TextPrimary}">
+                        <Run Text="Folio #"/>
+                        <Run Text="{Binding Folio}"/>
+                    </TextBlock>
+                    <TextBlock Text="{Binding NombreCliente}" FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource PrimaryColor}" Margin="0,5,0,0"/>
+                </StackPanel>
 
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="Auto"/>
-                <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="*"/>
-                <DataGridTextColumn Header="UD" Binding="{Binding UD}" Width="Auto"/>
-                <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=C}" Width="Auto"/>
-                <DataGridTextColumn Header="Subtotal" Binding="{Binding Subtotal, StringFormat=C}" Width="Auto"/>
-            </DataGrid.Columns>
-        </DataGrid>
+                <StackPanel Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right">
+                    <TextBlock Text="{Binding FechaHora, StringFormat='dd MMMM yyyy'}" 
+                               FontSize="14" 
+                               FontWeight="Bold" 
+                               Foreground="{StaticResource TextPrimary}" 
+                               HorizontalAlignment="Right"/>
 
-        <Grid Grid.Row="2" Margin="0,20,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+                    <TextBlock HorizontalAlignment="Right">
+                        <Run Text="Hora: " Foreground="{StaticResource TextSecondary}" FontSize="11"/>
+                        <Run Text="{Binding FechaHora, StringFormat='hh:mm tt'}" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
 
-            <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
-                <TextBlock FontSize="16" Margin="0,2">
-                    <Run Text="Recibido: " FontWeight="SemiBold"/>
-                    <Run Text="{Binding Recibido, StringFormat=C}"/>
-                </TextBlock>
-                <TextBlock FontSize="16" Margin="0,2">
-                    <Run Text="Cambio: " FontWeight="SemiBold"/>
-                    <Run Text="{Binding Cambio, StringFormat=C}"/>
-                </TextBlock>
-                <TextBlock FontSize="16" Margin="0,2" Foreground="Green" FontWeight="Bold">
-                    <Run Text="Ganancia: "/>
-                    <Run Text="{Binding Ganancia, StringFormat=C}"/>
-                </TextBlock>
-            </StackPanel>
+            <Border Grid.Row="1" Background="White" CornerRadius="10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="0,0,0,20">
+                <DataGrid ItemsSource="{Binding DetallesVenta}"
+                          AutoGenerateColumns="False" 
+                          CanUserAddRows="False" 
+                          IsReadOnly="True"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal"
+                          HorizontalGridLinesBrush="#F0F0F0"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          RowHeight="45"
+                          MaxHeight="250">
 
-            <StackPanel Grid.Column="1" HorizontalAlignment="Right" TextBlock.FontSize="16">
-                <TextBlock Margin="0,2" HorizontalAlignment="Right">
-                    <Run Text="Subtotal: "/>
-                    <Run Text="{Binding Subtotal, StringFormat=C}" FontWeight="SemiBold"/>
-                </TextBlock>
-                <TextBlock Margin="0,2" HorizontalAlignment="Right">
-                    <Run Text="IVA: "/>
-                    <Run Text="{Binding IVA, StringFormat=C}" FontWeight="SemiBold"/>
-                </TextBlock>
-                <TextBlock Margin="0,8,0,0" FontSize="20" Foreground="Red" HorizontalAlignment="Right">
-                    <Run Text="Total: "/>
-                    <Run Text="{Binding Total, StringFormat=C}" FontWeight="Bold"/>
-                </TextBlock>
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Padding" Value="15,10"/>
+                            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                            <Setter Property="BorderBrush" Value="#EEE"/>
+                        </Style>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Padding" Value="15,0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridCell">
+                                        <Border Background="Transparent" BorderThickness="0">
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.Resources>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Cant." Binding="{Binding UD}" Width="60" FontWeight="Bold"/>
+                        <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="*"/>
+                        <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=C}" Width="100"/>
+                        <DataGridTextColumn Header="Importe" Binding="{Binding Subtotal, StringFormat=C}" Width="100" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <Grid Grid.Row="2" Margin="0,0,0,25">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="#F1F8E9" CornerRadius="8" Padding="15">
+                    <StackPanel>
+                        <TextBlock Text="INFORMACIÓN DE PAGO" FontSize="10" FontWeight="Bold" Foreground="{StaticResource SuccessColor}" Margin="0,0,0,10"/>
+
+                        <Grid Margin="0,0,0,5">
+                            <TextBlock Text="Recibido:" Foreground="#555"/>
+                            <TextBlock Text="{Binding Recibido, StringFormat=C}" FontWeight="Bold" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,5">
+                            <TextBlock Text="Cambio:" Foreground="#555"/>
+                            <TextBlock Text="{Binding Cambio, StringFormat=C}" FontWeight="Bold" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Border Height="1" Background="#CCDDC1" Margin="0,5"/>
+
+                        <Grid>
+                            <TextBlock Text="Ganancia:" Foreground="{StaticResource SuccessColor}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding Ganancia, StringFormat=C}" FontWeight="Bold" Foreground="{StaticResource SuccessColor}" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
+                    <Grid Margin="0,0,0,5">
+                        <TextBlock Text="Subtotal:" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left"/>
+                        <TextBlock Text="{Binding Subtotal, StringFormat=C}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Grid Margin="0,0,0,10">
+                        <TextBlock Text="IVA:" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Left"/>
+                        <TextBlock Text="{Binding IVA, StringFormat=C}" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                    </Grid>
+
+                    <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,0,0,10"/>
+
+                    <Grid>
+                        <TextBlock Text="TOTAL:" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Total, StringFormat=C}" FontSize="24" FontWeight="Black" Foreground="{StaticResource PrimaryColor}" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <TextBlock Text="{Binding TotalEnLetra}" FontSize="11" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Right" FontStyle="Italic" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cerrar" 
+                        Command="{Binding CerrarDialogoCommand}"
+                        Style="{StaticResource BtnSecondary}" 
+                        Width="100" Margin="0,0,10,0"/>
+
+                <Button Content="🖨️ Reimprimir" 
+                        Style="{StaticResource BtnSuccess}" 
+                        Padding="20,10"
+                        FontWeight="Bold">
+                    <Button.Effect>
+                        <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
+                    </Button.Effect>
+                </Button>
             </StackPanel>
         </Grid>
-
-        <TextBlock Grid.Row="3" Text="{Binding TotalEnLetra}"
-           FontSize="10" HorizontalAlignment="Center" Margin="0,20,0,0"
-           Foreground="Gray" FontStyle="Italic"/>
-
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Imprimir ticket" Padding="20,10" 
-                    Background="#4F6A7F" Foreground="White" FontWeight="Bold"
-                    BorderThickness="0" Margin="0,0,10,0"/>
-
-            <Button Content="Cancelar" Padding="20,10" 
-                    Background="#6c757d" Foreground="White" FontWeight="Bold"
-                    BorderThickness="0"
-                    Command="{Binding CerrarDialogoCommand}"/>
-        </StackPanel>
-
-    </Grid>
+    </Border>
 </Window>

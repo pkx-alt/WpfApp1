@@ -165,6 +165,15 @@ namespace WpfApp1.Views.Dialogs
             }
         }
 
+        // --- AGREGA ESTE MÉTODO PARA MOVER LA VENTANA ---
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+
+
+
         private void TipoAjuste_Checked(object sender, RoutedEventArgs e)
         {
             // Cada vez que cambie el RadioButton, actualizamos el total

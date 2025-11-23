@@ -4,61 +4,30 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Disminuir existencias" Height="450" Width="600"
+        
+        Title="Disminuir existencias" 
+        Width="650"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
-        Background="White"
+        
+        WindowStyle="None" 
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown"
         Loaded="Window_Loaded">
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Disminuir existencias" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+    <Border Background="{StaticResource PageBackground}" 
+            CornerRadius="15" 
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1"
+            Margin="10">
 
-        <Grid Grid.Row="1" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <Border.Effect>
+            <DropShadowEffect Color="#B0BEC5" BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+        </Border.Effect>
 
-            <Border BorderBrush="#EEEEEE" BorderThickness="1" Width="100" Height="100" Margin="0,0,15,0">
-                <Image x:Name="ProductImage" Source="{Binding ImagenUrl}" Stretch="Uniform"/>
-            </Border>
-
-            <StackPanel Grid.Column="1">
-                <TextBlock Text="Producto:" FontWeight="Bold"/>
-                <TextBlock x:Name="ProductDescriptionTextBlock" TextWrapping="Wrap" Margin="0,2,0,5"
-                           Text="{Binding Descripcion}"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Existencias: "/>
-                    <TextBlock x:Name="ProductStockTextBlock" FontWeight="Bold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="Black"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Stock}" Value="10">
-                                        <Setter Property="Foreground" Value="Orange"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Stock}" Value="5">
-                                        <Setter Property="Foreground" Value="Red"/>
-                                    </DataTrigger>
-                                    </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                    <TextBlock x:Name="BajoStockAlertTextBlock" Text=" (Bajo stock)" Foreground="Red" Visibility="Collapsed"/>
-                </StackPanel>
-            </StackPanel>
-        </Grid>
-
-        <Grid Grid.Row="2" Margin="0,0,0,20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <Grid Margin="30">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -66,68 +35,202 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,20,15">
-                <TextBlock Text="Cantidad a disminuir:" Margin="0,0,0,5"/>
+            <StackPanel Grid.Row="0" Margin="0,0,0,25">
+                <TextBlock Text="Salida de Inventario 📉" 
+                           FontSize="24" 
+                           FontWeight="Bold" 
+                           Foreground="{StaticResource TextPrimary}"/>
+                <TextBlock Text="Registra mermas, devoluciones o ajustes negativos." 
+                           FontSize="14" 
+                           Foreground="{StaticResource TextSecondary}" 
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+
+            <Border Grid.Row="1" 
+                    Background="White" 
+                    BorderBrush="{StaticResource BorderBrush}" 
+                    BorderThickness="1" 
+                    CornerRadius="10" 
+                    Padding="15" 
+                    Margin="0,0,0,25">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" 
+                            BorderBrush="{StaticResource BorderBrush}" 
+                            BorderThickness="1" 
+                            CornerRadius="6"
+                            Background="White"
+                            Width="80" Height="80" 
+                            Margin="0,0,20,0">
+                        <Image x:Name="ProductImage" Source="{Binding ImagenUrl}" Stretch="Uniform" Margin="5"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="PRODUCTO SELECCIONADO" 
+                                   FontSize="11" 
+                                   FontWeight="Bold" 
+                                   Foreground="{StaticResource TextSecondary}"/>
+
+                        <TextBlock x:Name="ProductDescriptionTextBlock" 
+                                   Text="{Binding Descripcion}" 
+                                   FontSize="18" 
+                                   FontWeight="Bold" 
+                                   Foreground="{StaticResource TextPrimary}" 
+                                   TextWrapping="Wrap" 
+                                   Margin="0,2,0,8"/>
+
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Stock Actual: " FontSize="14" Foreground="{StaticResource TextSecondary}"/>
+
+                            <TextBlock x:Name="ProductStockTextBlock" FontSize="14" FontWeight="Bold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Stock}" Value="10">
+                                                <Setter Property="Foreground" Value="{StaticResource WarningColor}"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Stock}" Value="5">
+                                                <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                                <Run Text="{Binding Stock}"/>
+                                <Run Text=" unidades"/>
+                            </TextBlock>
+
+                            <Border x:Name="BajoStockAlertTextBlock" 
+                                    Background="#FFEBEE" CornerRadius="4" Margin="10,0,0,0" Padding="8,2" Visibility="Collapsed">
+                                <TextBlock Text="⚠️ Bajo Stock" Foreground="{StaticResource DangerColor}" FontSize="11" FontWeight="Bold"/>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,0,20">
+                    <TextBlock Text="Cantidad a retirar:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="CantidadTextBox" Text="1" 
+                                 PreviewTextInput="CantidadTextBox_PreviewTextInput"
+                                 TextChanged="CantidadTextBox_TextChanged"
+                                 FontSize="16" FontWeight="Bold" 
+                                 Padding="5"
+                                 HorizontalContentAlignment="Center"/>
+
+                        <Button Grid.Column="1" Content="+" Width="40" Margin="5,0,0,0" Click="AumentarCantidad_Click" Style="{StaticResource BtnSecondary}"/>
+                        <Button Grid.Column="2" Content="-" Width="40" Margin="5,0,0,0" Click="DisminuirCantidad_Click" Style="{StaticResource BtnSecondary}"/>
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Grid.Column="0" Grid.Row="1" Margin="0,0,0,20">
+                    <TextBlock Text="Tipo de Movimiento:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="RadioAgregar" Content="Agregar (+)" Checked="TipoAjuste_Checked" Margin="0,0,20,0" FontSize="14"/>
+                        <RadioButton x:Name="RadioDisminuir" Content="Disminuir (-)" IsChecked="True" Checked="TipoAjuste_Checked" FontSize="14"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="0" Grid.Row="2">
+                    <TextBlock Text="Costo unitario (Referencia):" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
+                    <TextBox x:Name="NuevoCostoTextBox" 
+                             Text="{Binding Costo, StringFormat=C, Mode=OneWay}" 
+                             IsReadOnly="True" 
+                             Background="{StaticResource SurfaceBrush}" 
+                             BorderThickness="0" FontWeight="Bold"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Grid.Row="0" Margin="0,0,0,20">
+                    <TextBlock Text="Motivo de la salida:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
+                    <ComboBox x:Name="MotivoComboBox" SelectedIndex="0">
+                        <ComboBoxItem Content="Ajuste por conteo físico (faltante)"/>
+                        <ComboBoxItem Content="Producto dañado"/>
+                        <ComboBoxItem Content="Devolución a proveedor"/>
+                        <ComboBoxItem Content="Descontinuado"/>
+                        <ComboBoxItem Content="Otros"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Grid.Row="1" Grid.RowSpan="2">
+                    <TextBlock Text="Notas / Observaciones:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
+                    <TextBox x:Name="NotasTextBox" 
+                             Height="100" 
+                             TextWrapping="Wrap" 
+                             AcceptsReturn="True" 
+                             VerticalContentAlignment="Top"
+                             Padding="8"/>
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="3" 
+                    BorderBrush="{StaticResource BorderBrush}" 
+                    BorderThickness="0,1,0,0" 
+                    Padding="0,20,0,0" Margin="0,10,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="CantidadTextBox" Text="1" Padding="5" TextAlignment="Center"
-                             PreviewTextInput="CantidadTextBox_PreviewTextInput"
-                             TextChanged="CantidadTextBox_TextChanged"/>
-                    <Button Grid.Column="1" Content="+" Width="30" Margin="5,0,0,0" Click="AumentarCantidad_Click"/>
-                    <Button Grid.Column="2" Content="-" Width="30" Margin="5,0,0,0" Click="DisminuirCantidad_Click"/>
+
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="STOCK FINAL ESTIMADO" 
+                                   FontSize="11" 
+                                   FontWeight="Bold" 
+                                   Foreground="{StaticResource TextSecondary}"/>
+
+                        <TextBlock x:Name="NuevaExistenciaTextBlock" 
+                                   Text="0 unidades" 
+                                   FontSize="22" 
+                                   FontWeight="ExtraBold" 
+                                   Foreground="{StaticResource DangerColor}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Content="Cancelar" 
+                                Style="{StaticResource BtnSecondary}"
+                                Width="100" Height="45"
+                                Click="CerrarButton_Click" 
+                                IsCancel="True"
+                                Margin="0,0,10,0"/>
+
+                        <Button Content="Confirmar" 
+                                Style="{StaticResource BtnSuccess}" 
+                                Width="140" Height="45"
+                                FontSize="15"
+                                Click="FinalizarButton_Click" 
+                                IsDefault="True">
+                            <Button.Effect>
+                                <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3" ShadowDepth="2"/>
+                            </Button.Effect>
+                        </Button>
+                    </StackPanel>
                 </Grid>
-            </StackPanel>
+            </Border>
 
-            <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,15">
-                <TextBlock Text="Motivo del Ajuste:" Margin="0,0,0,5"/>
-                <ComboBox x:Name="MotivoComboBox" SelectedIndex="0">
-                    <ComboBoxItem Content="Ajuste por conteo físico (faltante)"/>
-                    <ComboBoxItem Content="Producto dañado"/>
-                    <ComboBoxItem Content="Devolución a proveedor"/>
-                    <ComboBoxItem Content="Descontinuado"/>
-                    <ComboBoxItem Content="Otros"/>
-                </ComboBox>
-            </StackPanel>
-
-            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,20,15">
-                <TextBlock Text="Tipo de Ajuste:" Margin="0,0,0,5"/>
-                <RadioButton x:Name="RadioAgregar" Content="Agregar inventario" Checked="TipoAjuste_Checked"/>
-                <RadioButton x:Name="RadioDisminuir" Content="Disminuir inventario" IsChecked="True" Margin="0,5,0,0" Checked="TipoAjuste_Checked"/>
-            </StackPanel>
-
-            <StackPanel Grid.Row="1" Grid.Column="1" Grid.RowSpan="2" Margin="0,0,0,15">
-                <TextBlock Text="Notas adicionales:" Margin="0,0,0,5"/>
-                <TextBox x:Name="NotasTextBox" MinHeight="60" TextWrapping="Wrap" AcceptsReturn="True"/>
-            </StackPanel>
-
-            <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,20,15">
-                <TextBlock Text="Costo por unidad" Margin="0,0,0,5"/>
-                <TextBox x:Name="NuevoCostoTextBox" Text="{Binding Costo, StringFormat=C, Mode=OneWay}" Padding="5" IsReadOnly="True" Background="#EEE"/>
-            </StackPanel>
         </Grid>
-
-        <Border Grid.Row="3" BorderThickness="0,1,0,0" BorderBrush="#EEE" Padding="0,15,0,0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Nueva existencia total: " FontSize="16"/>
-                    <TextBlock x:Name="NuevaExistenciaTextBlock" FontWeight="Bold" FontSize="16" Text="0 unidades"/>
-                </StackPanel>
-
-                <Button Grid.Column="1" Content="Finalizar" Background="#4CAF50" Foreground="White" Padding="20,10"
-                        Margin="0,0,10,0" Click="FinalizarButton_Click"/>
-                <Button Grid.Column="2" Content="Cerrar" Background="#D32F2F" Foreground="White" Padding="20,10"
-                        Click="CerrarButton_Click"/>
-            </Grid>
-        </Border>
-    </Grid>
+    </Border>
 </Window>

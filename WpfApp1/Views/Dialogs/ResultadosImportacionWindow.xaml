@@ -4,109 +4,126 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Resultados de Importación" Height="500" Width="900"
+        Title="Resultados de Importación" 
+        Height="600" Width="950"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        FontFamily="Segoe UI"
-        Background="#F5F5F5">
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Border Background="{StaticResource PageBackground}" 
+            CornerRadius="15" 
+            BorderBrush="{StaticResource BorderBrush}" 
+            BorderThickness="1" 
+            Margin="10">
 
-        <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="25,20">
-            <StackPanel>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="📥" FontSize="28" Margin="0,0,15,0" VerticalAlignment="Center"/>
-                    <StackPanel>
-                        <TextBlock Text="Resultados de Importación" FontSize="22" FontWeight="Bold" Foreground="#333"/>
-                        <TextBlock x:Name="TxtResumen" Text="Se procesaron 5 correos y se cargaron 20 productos." 
-                                   FontSize="14" Foreground="#666" Margin="0,5,0,0"/>
-                    </StackPanel>
-                </StackPanel>
+        <Border.Effect>
+            <DropShadowEffect Color="#B0BEC5" BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+        </Border.Effect>
+
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10" HorizontalAlignment="Center">
+                <TextBlock Text="📥" FontSize="28" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                <TextBlock Text="Resultados de Importación" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
             </StackPanel>
-        </Border>
 
-        <DataGrid x:Name="GridDetalles" Grid.Row="1" Margin="20"
-                  AutoGenerateColumns="False" 
-                  CanUserAddRows="False" 
-                  IsReadOnly="True"
-                  HeadersVisibility="Column"
-                  GridLinesVisibility="Horizontal" 
-                  HorizontalGridLinesBrush="#EEEEEE" 
-                  VerticalGridLinesBrush="Transparent"
-                  Background="White"
-                  BorderThickness="0"
-                  RowHeight="40">
+            <Border Grid.Row="1" Background="#E3F2FD" CornerRadius="8" Padding="15" Margin="0,0,0,20" BorderBrush="#90CAF9" BorderThickness="1">
+                <TextBlock x:Name="TxtResumen" 
+                           Text="Resumen del proceso..." 
+                           FontSize="14" 
+                           Foreground="#1565C0" 
+                           TextWrapping="Wrap" 
+                           TextAlignment="Center"/>
+            </Border>
 
-            <DataGrid.Resources>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="#F9F9F9"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="Padding" Value="10"/>
-                    <Setter Property="Foreground" Value="#555"/>
-                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                    <Setter Property="BorderBrush" Value="#DDD"/>
-                </Style>
-                <Style TargetType="DataGridCell">
-                    <Setter Property="Padding" Value="10,0"/>
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="DataGridCell">
-                                <Border Background="Transparent" BorderThickness="0">
-                                    <ContentPresenter VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </DataGrid.Resources>
+            <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="0,0,0,20">
+                <DataGrid x:Name="GridDetalles" 
+                          AutoGenerateColumns="False" 
+                          CanUserAddRows="False" 
+                          IsReadOnly="True"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal" 
+                          HorizontalGridLinesBrush="#F0F0F0" 
+                          VerticalGridLinesBrush="Transparent"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          RowHeight="45">
 
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha}" Width="120" Foreground="Gray"/>
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#F9F9F9"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Padding" Value="10"/>
+                            <Setter Property="Foreground" Value="#6c757d"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                            <Setter Property="BorderBrush" Value="#EEE"/>
+                        </Style>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Padding" Value="10,0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridCell">
+                                        <Border Background="Transparent" BorderThickness="0">
+                                            <ContentPresenter VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.Resources>
 
-                <DataGridTextColumn Header="Remitente" Binding="{Binding Remitente}" Width="180" FontWeight="SemiBold"/>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha}" Width="130" Foreground="{StaticResource TextSecondary}"/>
 
-                <DataGridTextColumn Header="Asunto" Binding="{Binding Asunto}" Width="2*"/>
+                        <DataGridTextColumn Header="Remitente" Binding="{Binding Remitente}" Width="200" FontWeight="SemiBold"/>
 
-                <DataGridTemplateColumn Header="Archivo XML" Width="150">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="📄" Margin="0,0,5,0"/>
-                                <TextBlock Text="{Binding Archivo}" TextTrimming="CharacterEllipsis"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Asunto" Binding="{Binding Asunto}" Width="*"/>
 
-                <DataGridTemplateColumn Header="Estado" Width="140">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <Border Background="{Binding ColorFondo}" CornerRadius="10" Padding="10,4" HorizontalAlignment="Center">
-                                <TextBlock Text="{Binding ResultadoTexto}" Foreground="{Binding ColorTexto}" FontWeight="Bold" FontSize="11"/>
-                            </Border>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+                        <DataGridTemplateColumn Header="Archivo XML" Width="200">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📄" Margin="0,0,5,0" Foreground="{StaticResource TextSecondary}"/>
+                                        <TextBlock Text="{Binding Archivo}" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-        <Border Grid.Row="2" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="15">
-            <Button Content="Cerrar Ventana" 
+                        <DataGridTemplateColumn Header="Estado" Width="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding ColorFondo}" CornerRadius="12" Padding="10,4" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding ResultadoTexto}" Foreground="{Binding ColorTexto}" FontWeight="Bold" FontSize="11"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <Button Grid.Row="3" 
+                    Content="Aceptar y Cerrar" 
                     Click="BtnCerrar_Click"
+                    Style="{StaticResource BtnSuccess}"
+                    Width="160" 
+                    Height="45"
                     HorizontalAlignment="Right"
-                    Background="#007ACC" Foreground="White" FontWeight="Bold"
-                    Padding="25,8" BorderThickness="0" Cursor="Hand">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="5"/>
-                    </Style>
-                </Button.Resources>
+                    IsDefault="True">
+                <Button.Effect>
+                    <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
+                </Button.Effect>
             </Button>
-        </Border>
-    </Grid>
+        </Grid>
+    </Border>
 </Window>

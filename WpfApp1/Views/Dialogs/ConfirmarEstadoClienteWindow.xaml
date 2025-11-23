@@ -3,38 +3,66 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WpfApp1.Views.Dialogs"
         mc:Ignorable="d"
-        Title="Confirmar Cambio de Estado" 
-        Height="180" Width="350"
+        Title="Confirmar Cambio" 
+        Height="Auto" Width="400"
+        SizeToContent="Height"
         ResizeMode="NoResize"
-        WindowStartupLocation="CenterOwner">
-    <Grid Margin="15">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown">
 
-        <TextBlock x:Name="lblMensaje"
-                   Grid.Row="0"
-                   TextWrapping="Wrap"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Center"
-                   FontSize="14"
-                   Text="¿Estás seguro de que deseas...?"/>
+    <Border Background="{StaticResource PageBackground}" 
+            CornerRadius="15" 
+            BorderBrush="{StaticResource BorderBrush}" 
+            BorderThickness="1" 
+            Margin="10">
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button x:Name="btnConfirmar" 
-                    Content="Sí, cambiar estado" 
-                    FontWeight="Bold" 
-                    Padding="10,5"
-                    Click="btnConfirmar_Click"/>
+        <Border.Effect>
+            <DropShadowEffect Color="#B0BEC5" BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+        </Border.Effect>
 
-            <Button x:Name="btnCancelar" 
-                    Content="Cancelar" 
-                    Padding="10,5" 
-                    Margin="10,0,0,0"
-                    IsCancel="True"/>
-        </StackPanel>
-    </Grid>
+        <Grid Margin="25">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
+                <TextBlock x:Name="IconoEstado" Text="⚠️" FontSize="24" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TxtTitulo" Text="Confirmar Acción" FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <TextBlock x:Name="TxtMensaje" 
+                       Grid.Row="1"
+                       Text="¿Estás seguro?" 
+                       FontSize="15" 
+                       Foreground="{StaticResource TextSecondary}" 
+                       TextAlignment="Center" 
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,25"/>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button x:Name="btnCancelar" 
+                        Content="No, cancelar" 
+                        Click="btnCancelar_Click"
+                        Style="{StaticResource BtnSecondary}" 
+                        Width="120" 
+                        Margin="0,0,15,0"/>
+
+                <Button x:Name="btnConfirmar" 
+                        Content="Sí, confirmar" 
+                        Click="btnConfirmar_Click"
+                        Style="{StaticResource BtnSuccess}" 
+                        Width="130">
+                    <Button.Effect>
+                        <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
+                    </Button.Effect>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

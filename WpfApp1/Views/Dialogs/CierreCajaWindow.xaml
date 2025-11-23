@@ -3,171 +3,255 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WpfApp1.Views.Dialogs"
         mc:Ignorable="d"
-        Title="Confirmación de Cierre de Caja" Height="600" Width="700"
+        Title="Cierre de Caja" 
+        Height="Auto" Width="850"
+        SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="WhiteSmoke">
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown">
 
-        <TextBlock Text="Confirmación de cierre de caja"
-                   FontSize="24" FontWeight="Bold" Foreground="#333"
-                   HorizontalAlignment="Center" Grid.Row="0"/>
+    <Window.Resources>
+        <Style x:Key="ConteoItemStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
 
-        <TextBlock Text="Ingresa el monto total final en la caja:"
-                   FontSize="16" Foreground="#555"
-                   HorizontalAlignment="Left" Grid.Row="1" Margin="10,15,0,10"/>
+        <Style x:Key="MiniBtnStyle" TargetType="Button" BasedOn="{StaticResource BtnSecondary}">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Width" Value="25"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+    </Window.Resources>
 
-        <UniformGrid Grid.Row="2" Columns="4" Margin="10">
+    <Border Background="{StaticResource PageBackground}" 
+            CornerRadius="15" 
+            BorderBrush="{StaticResource BorderBrush}" 
+            BorderThickness="1" 
+            Margin="10">
+        <Border.Effect>
+            <DropShadowEffect Color="#B0BEC5" BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+        </Border.Effect>
 
-            <UniformGrid.Resources>
-                <Style TargetType="Button" x:Key="SpinnerButton">
-                    <Setter Property="Width" Value="25"/>
-                    <Setter Property="Height" Value="25"/>
-                    <Setter Property="FontSize" Value="14"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="Cursor" Value="Hand"/>
-                </Style>
-                <Style TargetType="TextBox" x:Key="SpinnerTextBox">
-                    <Setter Property="Width" Value="50"/>
-                    <Setter Property="Height" Value="30"/>
-                    <Setter Property="FontSize" Value="16"/>
-                    <Setter Property="Text" Value="0"/>
-                    <Setter Property="TextAlignment" Value="Center"/>
-                </Style>
-                <Style TargetType="StackPanel" x:Key="DenominacionPanel">
-                    <Setter Property="HorizontalAlignment" Value="Center"/>
-                    <Setter Property="Margin" Value="0,10"/>
-                </Style>
-            </UniformGrid.Resources>
+        <Grid Margin="25">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <StackPanel Style="{StaticResource DenominacionPanel}">
-                <Image Height="50" Source="/Assets/billete.jpg" Margin="5"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="Txt20" Style="{StaticResource SpinnerTextBox}" TextChanged="Denominacion_TextChanged"/>
-                    <StackPanel>
-                        <Button x:Name="Btn20Mas" Content="+" Style="{StaticResource SpinnerButton}" Tag="Txt20" Click="PlusButton_Click"/>
-                        <Button x:Name="Btn20Menos" Content="-" Style="{StaticResource SpinnerButton}" Tag="Txt20" Click="MinusButton_Click"/>
-                    </StackPanel>
+            <Grid Grid.Row="0" Margin="0,0,0,20">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🔒 Corte de Caja" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
                 </StackPanel>
-            </StackPanel>
-
-            <StackPanel Style="{StaticResource DenominacionPanel}">
-                <Image Height="50" Source="/Assets/billete.jpg" Margin="5"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="Txt50" Style="{StaticResource SpinnerTextBox}" TextChanged="Denominacion_TextChanged"/>
-                    <StackPanel>
-                        <Button x:Name="Btn50Mas" Content="+" Style="{StaticResource SpinnerButton}" Tag="Txt50" Click="PlusButton_Click"/>
-                        <Button x:Name="Btn50Menos" Content="-" Style="{StaticResource SpinnerButton}" Tag="Txt50" Click="MinusButton_Click"/>
-                    </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="Esperado: " FontSize="14" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="EfectivoEsperadoTextBlock" Text="$0.00" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center"/>
                 </StackPanel>
-            </StackPanel>
+            </Grid>
 
-            <StackPanel Style="{StaticResource DenominacionPanel}">
-                <Image Height="50" Source="/Assets/billete.jpg" Margin="5"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="Txt100" Style="{StaticResource SpinnerTextBox}" TextChanged="Denominacion_TextChanged"/>
-                    <StackPanel>
-                        <Button x:Name="Btn100Mas" Content="+" Style="{StaticResource SpinnerButton}" Tag="Txt100" Click="PlusButton_Click"/>
-                        <Button x:Name="Btn100Menos" Content="-" Style="{StaticResource SpinnerButton}" Tag="Txt100" Click="MinusButton_Click"/>
-                    </StackPanel>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="1.2*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <TextBlock Text="CONTEO DE EFECTIVO" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="5,0,0,10"/>
+
+                    <UniformGrid Columns="2">
+                        <Border Style="{StaticResource ConteoItemStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="$20 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                        <TextBox x:Name="Txt20" Text="0" Width="60" Padding="2" TextAlignment="Center" TextChanged="Denominacion_TextChanged"/>
+                                        <Button x:Name="Btn20Menos" Content="-" Style="{StaticResource MiniBtnStyle}" Margin="5,0,2,0" Tag="Txt20" Click="MinusButton_Click"/>
+                                        <Button x:Name="Btn20Mas" Content="+" Style="{StaticResource MiniBtnStyle}" Tag="Txt20" Click="PlusButton_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource ConteoItemStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="$50 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                        <TextBox x:Name="Txt50" Text="0" Width="60" Padding="2" TextAlignment="Center" TextChanged="Denominacion_TextChanged"/>
+                                        <Button x:Name="Btn50Menos" Content="-" Style="{StaticResource MiniBtnStyle}" Margin="5,0,2,0" Tag="Txt50" Click="MinusButton_Click"/>
+                                        <Button x:Name="Btn50Mas" Content="+" Style="{StaticResource MiniBtnStyle}" Tag="Txt50" Click="PlusButton_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource ConteoItemStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="$100 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                        <TextBox x:Name="Txt100" Text="0" Width="60" Padding="2" TextAlignment="Center" TextChanged="Denominacion_TextChanged"/>
+                                        <Button x:Name="Btn100Menos" Content="-" Style="{StaticResource MiniBtnStyle}" Margin="5,0,2,0" Tag="Txt100" Click="MinusButton_Click"/>
+                                        <Button x:Name="Btn100Mas" Content="+" Style="{StaticResource MiniBtnStyle}" Tag="Txt100" Click="PlusButton_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource ConteoItemStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="$200 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                        <TextBox x:Name="Txt200" Text="0" Width="60" Padding="2" TextAlignment="Center" TextChanged="Denominacion_TextChanged"/>
+                                        <Button x:Name="Btn200Menos" Content="-" Style="{StaticResource MiniBtnStyle}" Margin="5,0,2,0" Tag="Txt200" Click="MinusButton_Click"/>
+                                        <Button x:Name="Btn200Mas" Content="+" Style="{StaticResource MiniBtnStyle}" Tag="Txt200" Click="PlusButton_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource ConteoItemStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="$500 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                        <TextBox x:Name="Txt500" Text="0" Width="60" Padding="2" TextAlignment="Center" TextChanged="Denominacion_TextChanged"/>
+                                        <Button x:Name="Btn500Menos" Content="-" Style="{StaticResource MiniBtnStyle}" Margin="5,0,2,0" Tag="Txt500" Click="MinusButton_Click"/>
+                                        <Button x:Name="Btn500Mas" Content="+" Style="{StaticResource MiniBtnStyle}" Tag="Txt500" Click="PlusButton_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource ConteoItemStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="$1000 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                        <TextBox x:Name="Txt1000" Text="0" Width="60" Padding="2" TextAlignment="Center" TextChanged="Denominacion_TextChanged"/>
+                                        <Button x:Name="Btn1000Menos" Content="-" Style="{StaticResource MiniBtnStyle}" Margin="5,0,2,0" Tag="Txt1000" Click="MinusButton_Click"/>
+                                        <Button x:Name="Btn1000Mas" Content="+" Style="{StaticResource MiniBtnStyle}" Tag="Txt1000" Click="PlusButton_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{StaticResource ConteoItemStyle}" Grid.ColumnSpan="2" Background="#FFF8E1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="🪙" FontSize="30" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="Total en Monedas (Suma manual)" FontSize="12" FontWeight="SemiBold" Foreground="#F57F17"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                        <TextBox x:Name="TxtMonedas" Text="0" Width="100" Padding="4" TextAlignment="Center" FontSize="16" FontWeight="Bold" TextChanged="Denominacion_TextChanged"/>
+                                        <TextBlock Text=" MXN" VerticalAlignment="Center" Margin="5,0,0,0" Foreground="{StaticResource TextSecondary}"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </UniformGrid>
                 </StackPanel>
-            </StackPanel>
 
-            <StackPanel Style="{StaticResource DenominacionPanel}">
-                <Image Height="50" Source="/Assets/billete.jpg" Margin="5"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="Txt200" Style="{StaticResource SpinnerTextBox}" TextChanged="Denominacion_TextChanged"/>
-                    <StackPanel>
-                        <Button x:Name="Btn200Mas" Content="+" Style="{StaticResource SpinnerButton}" Tag="Txt200" Click="PlusButton_Click"/>
-                        <Button x:Name="Btn200Menos" Content="-" Style="{StaticResource SpinnerButton}" Tag="Txt200" Click="MinusButton_Click"/>
-                    </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="RESUMEN DEL CIERRE" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,10"/>
+
+                    <Border Background="White" CornerRadius="10" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="15">
+                        <StackPanel>
+                            <TextBlock Text="Total Contado (Automático o Manual)" Foreground="{StaticResource TextSecondary}" FontSize="12"/>
+
+                            <TextBox x:Name="TotalContadoTextBlock" 
+                                     Text="$0.00" 
+                                     FontSize="26" 
+                                     FontWeight="Bold" 
+                                     Foreground="{StaticResource PrimaryColor}" 
+                                     Background="#FAFAFA" 
+                                     BorderThickness="0,0,0,1"
+                                     BorderBrush="#EEE"
+                                     IsReadOnly="False" 
+                                     TextChanged="TotalContado_TextChanged"
+                                     PreviewTextInput="TotalContado_PreviewTextInput"/>
+
+                            <Separator Margin="0,10"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Diferencia:" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                <TextBox x:Name="DiferenciaTextBlock" Grid.Column="1" Text="$0.00" FontWeight="Bold" FontSize="16" Background="Transparent" BorderThickness="0" IsReadOnly="True" HorizontalContentAlignment="Right"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Notas / Observaciones" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="0,20,0,5"/>
+                    <TextBox x:Name="NotasTextBox" 
+                             Height="100" 
+                             TextWrapping="Wrap" 
+                             AcceptsReturn="True" 
+                             VerticalContentAlignment="Top"
+                             Padding="8"/>
                 </StackPanel>
-            </StackPanel>
+            </Grid>
 
-            <StackPanel Style="{StaticResource DenominacionPanel}">
-                <Image Height="50" Source="/Assets/billete.jpg" Margin="5"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="Txt500" Style="{StaticResource SpinnerTextBox}" TextChanged="Denominacion_TextChanged"/>
-                    <StackPanel>
-                        <Button x:Name="Btn500Mas" Content="+" Style="{StaticResource SpinnerButton}" Tag="Txt500" Click="PlusButton_Click"/>
-                        <Button x:Name="Btn500Menos" Content="-" Style="{StaticResource SpinnerButton}" Tag="Txt500" Click="MinusButton_Click"/>
-                    </StackPanel>
+            <Grid Grid.Row="2" Margin="0,25,0,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Button x:Name="ImprimirButton" Content="🖨️ Imprimir Pre-Corte" Click="ImprimirButton_Click" Style="{StaticResource BtnSecondary}"/>
                 </StackPanel>
-            </StackPanel>
 
-            <StackPanel Style="{StaticResource DenominacionPanel}">
-                <Image Height="50" Source="/Assets/billete.jpg" Margin="5"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="Txt1000" Style="{StaticResource SpinnerTextBox}" TextChanged="Denominacion_TextChanged"/>
-                    <StackPanel>
-                        <Button x:Name="Btn1000Mas" Content="+" Style="{StaticResource SpinnerButton}" Tag="Txt1000" Click="PlusButton_Click"/>
-                        <Button x:Name="Btn1000Menos" Content="-" Style="{StaticResource SpinnerButton}" Tag="Txt1000" Click="MinusButton_Click"/>
-                    </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="CancelarButton" Content="Cancelar" Click="CancelarButton_Click" Style="{StaticResource BtnSecondary}" Margin="0,0,10,0" Width="100"/>
+                    <Button x:Name="FinalizarButton" Content="Cerrar Turno" Click="FinalizarButton_Click" Style="{StaticResource BtnSuccess}" Width="140">
+                        <Button.Effect>
+                            <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
+                        </Button.Effect>
+                    </Button>
                 </StackPanel>
-            </StackPanel>
-
-            <StackPanel Style="{StaticResource DenominacionPanel}">
-                <Image Height="50" Source="/Assets/billete.jpg" Margin="5"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBox x:Name="TxtMonedas" Style="{StaticResource SpinnerTextBox}" TextChanged="Denominacion_TextChanged"/>
-                    <StackPanel>
-                        <Button x:Name="BtnMonedasMas" Content="+" Style="{StaticResource SpinnerButton}" Tag="TxtMonedas" Click="PlusButton_Click"/>
-                        <Button x:Name="BtnMonedasMenos" Content="-" Style="{StaticResource SpinnerButton}" Tag="TxtMonedas" Click="MinusButton_Click"/>
-                    </StackPanel>
-                </StackPanel>
-            </StackPanel>
-
-        </UniformGrid>
-
-        <Grid Grid.Row="3" Margin="10,20,10,10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <StackPanel Grid.Column="0" Margin="0,0,20,0">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="150"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Text="Total:" Grid.Row="0" Grid.Column="0" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                    <TextBox x:Name="TotalContadoTextBlock" Grid.Row="0" Grid.Column="1" Text="$0.00" FontSize="16" IsReadOnly="True" Background="#EEE" Margin="5"/>
-
-                    <TextBlock Text="Efectivo esperado:" Grid.Row="1" Grid.Column="0" FontSize="16" VerticalAlignment="Center"/>
-                    <TextBox x:Name="EfectivoEsperadoTextBlock" Grid.Row="1" Grid.Column="1" Text="$2750.00" FontSize="16" IsReadOnly="True" Background="#EEE" Margin="5"/>
-
-                    <TextBlock Text="Diferencia:" Grid.Row="2" Grid.Column="0" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-                    <TextBox x:Name="DiferenciaTextBlock" Grid.Row="2" Grid.Column="1" Text="$0.00" FontSize="16" FontWeight="Bold" IsReadOnly="True" Background="#EEE" Margin="5"/>
-                </Grid>
-            </StackPanel>
-
-            <StackPanel Grid.Column="1">
-                <TextBlock Text="Notas del cierre:" FontSize="14" Margin="0,0,0,5"/>
-                <TextBox x:Name="NotasTextBox" Height="100" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
-            </StackPanel>
+            </Grid>
         </Grid>
-
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button x:Name="FinalizarButton" Content="Finalizar" Background="#5C946E" Foreground="White" FontWeight="Bold" Padding="20,8" BorderThickness="0" Margin="10,0" Click="FinalizarButton_Click"/>
-            <Button x:Name="ImprimirButton" Content="Imprimir" Background="#4A5A6A" Foreground="White" FontWeight="Bold" Padding="20,8" BorderThickness="0" Margin="10,0" Click="ImprimirButton_Click"/>
-            <Button x:Name="CancelarButton" Content="Cancelar" Background="#6C757D" Foreground="White" FontWeight="Bold" Padding="20,8" BorderThickness="0" Margin="10,0" Click="CancelarButton_Click"/>
-        </StackPanel>
-
-    </Grid>
+    </Border>
 </Window>

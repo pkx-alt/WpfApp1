@@ -1,69 +1,53 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions; // Necesario para Regex
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using System.Windows.Media; // Necesario para los colores
 
 namespace WpfApp1.Views.Dialogs
 {
     public partial class CierreCajaWindow : Window
     {
-        // Propiedades públicas para devolver los datos
         public decimal TotalContado { get; private set; }
         public string Notas { get; private set; }
 
-        // Variables privadas para los cálculos
         private decimal _efectivoEsperado;
-        private CultureInfo _culturaMoneda = new CultureInfo("es-MX"); // Para formato de moneda
-
-        // ¡AQUÍ ESTÁ LA BANDERA!
+        private CultureInfo _culturaMoneda = new CultureInfo("es-MX");
         private bool _isWindowLoaded = false;
+
+        // Bandera para evitar conflictos entre lo manual y lo automático
+        private bool _ignorarCambiosManuales = false;
 
         public CierreCajaWindow(decimal efectivoEsperado)
         {
             InitializeComponent();
-
-            // ¡SUBIMOS LA BANDERA!
-            // Ahora que SÍ terminó InitializeComponent, es seguro trabajar.
             _isWindowLoaded = true;
-
             _efectivoEsperado = efectivoEsperado;
 
-            // Asignamos los valores iniciales
             EfectivoEsperadoTextBlock.Text = _efectivoEsperado.ToString("C", _culturaMoneda);
-            ActualizarTotales();
+
+            // Iniciamos en cero
+            ActualizarTotalesDesdeBilletes();
         }
 
-        #region "Lógica de Conteo"
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
 
-        /// <summary>
-        /// Este método se dispara cada vez que un TextBox cambia.
-        /// </summary>
+        #region Lógica de Billetes (Automática)
+
         private void Denominacion_TextChanged(object sender, TextChangedEventArgs e)
         {
-            ActualizarTotales();
+            if (!_isWindowLoaded) return;
+            ActualizarTotalesDesdeBilletes();
         }
 
-        /// <summary>
-        /// El cerebro: Lee todos los TextBoxes, calcula el total y la diferencia.
-        /// </summary>
-        private void ActualizarTotales()
+        private void ActualizarTotalesDesdeBilletes()
         {
-            // ¡EL GUARDIÁN!
-            // Si la ventana no está lista, no hagas absolutamente nada.
-            if (!_isWindowLoaded)
-            {
-                return;
-            }
             decimal total = 0;
             total += LeerValor(Txt20) * 20;
             total += LeerValor(Txt50) * 50;
@@ -71,84 +55,105 @@ namespace WpfApp1.Views.Dialogs
             total += LeerValor(Txt200) * 200;
             total += LeerValor(Txt500) * 500;
             total += LeerValor(Txt1000) * 1000;
-            total += LeerValor(TxtMonedas); // Asumimos que "Monedas" es el monto total, no la cantidad.
+            total += LeerValor(TxtMonedas);
+
+            // ACTIVAMOS LA BANDERA: "Oye, estoy actualizando el texto por código, no es el usuario escribiendo"
+            _ignorarCambiosManuales = true;
+
+            TotalContadoTextBlock.Text = total.ToString("N2", _culturaMoneda); // Usamos N2 para que sea número limpio, o C si prefieres con signo
+
+            // DESACTIVAMOS LA BANDERA
+            _ignorarCambiosManuales = false;
 
             // Calculamos la diferencia
-            decimal diferencia = total - _efectivoEsperado;
-
-            // Actualizamos la UI
-            TotalContadoTextBlock.Text = total.ToString("C", _culturaMoneda);
-            DiferenciaTextBlock.Text = diferencia.ToString("C", _culturaMoneda);
-
-            // Guardamos el total para devolverlo
-            this.TotalContado = total;
+            RecalcularDiferencia(total);
         }
 
-        /// <summary>
-        /// Método ayudante para leer de forma segura un TextBox.
-        /// </summary>
         private int LeerValor(TextBox txt)
         {
-            // int.TryParse es la forma profesional de convertir texto a número
-            if (int.TryParse(txt.Text, out int valor) && valor >= 0)
-            {
-                return valor;
-            }
-            return 0; // Si no es un número válido, devuelve 0
+            if (int.TryParse(txt.Text, out int valor) && valor >= 0) return valor;
+            return 0;
         }
-
-        #endregion
-
-        #region "Botones +/-"
-
-        // Usamos el 'Tag' del botón para saber a qué TextBox afectar
 
         private void PlusButton_Click(object sender, RoutedEventArgs e)
         {
             Button btn = (Button)sender;
             TextBox txt = (TextBox)this.FindName(btn.Tag.ToString());
-
-            int valor = LeerValor(txt);
-            txt.Text = (valor + 1).ToString();
-            // El evento TextChanged se disparará y llamará a ActualizarTotales()
+            txt.Text = (LeerValor(txt) + 1).ToString();
         }
 
         private void MinusButton_Click(object sender, RoutedEventArgs e)
         {
             Button btn = (Button)sender;
             TextBox txt = (TextBox)this.FindName(btn.Tag.ToString());
-
             int valor = LeerValor(txt);
-            if (valor > 0) // No permitimos negativos
-            {
-                txt.Text = (valor - 1).ToString();
-            }
+            if (valor > 0) txt.Text = (valor - 1).ToString();
         }
 
         #endregion
 
-        #region "Botones de Acción"
+        #region Lógica Manual (Cuando escribes el total directo)
+
+        private void TotalContado_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Si la bandera está activa, significa que el cambio vino de los billetes, así que no hacemos nada aquí
+            if (_ignorarCambiosManuales || !_isWindowLoaded) return;
+
+            // Si llegamos aquí, es porque el usuario está escribiendo manualmente
+            // Limpiamos el texto de signos de pesos o letras para obtener el número
+            string textoLimpio = TotalContadoTextBlock.Text.Replace("$", "").Replace(",", "").Trim();
+
+            if (decimal.TryParse(textoLimpio, out decimal totalManual))
+            {
+                RecalcularDiferencia(totalManual);
+            }
+            else
+            {
+                // Si borra todo o escribe letras, asumimos 0
+                RecalcularDiferencia(0);
+            }
+        }
+
+        // Validación para que solo deje escribir números y puntos en el Total
+        private void TotalContado_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9.]+");
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
+        #endregion
+
+        #region Lógica Común
+
+        private void RecalcularDiferencia(decimal totalFinal)
+        {
+            this.TotalContado = totalFinal;
+            decimal diferencia = totalFinal - _efectivoEsperado;
+
+            DiferenciaTextBlock.Text = diferencia.ToString("C", _culturaMoneda);
+
+            if (diferencia < 0)
+                DiferenciaTextBlock.Foreground = (Brush)Application.Current.Resources["DangerColor"];
+            else if (diferencia > 0)
+                DiferenciaTextBlock.Foreground = (Brush)Application.Current.Resources["SuccessColor"];
+            else
+                DiferenciaTextBlock.Foreground = (Brush)Application.Current.Resources["TextSecondary"];
+        }
 
         private void FinalizarButton_Click(object sender, RoutedEventArgs e)
         {
-            // Guardamos las notas
             this.Notas = NotasTextBox.Text;
-
-            // Devolvemos "OK"
             this.DialogResult = true;
-        }
-
-        private void ImprimirButton_Click(object sender, RoutedEventArgs e)
-        {
-            // La lógica de impresión es un tema completo.
-            // Por ahora, solo mostramos un aviso.
-            MessageBox.Show("Lógica de impresión pendiente de implementar.", "Imprimir");
         }
 
         private void CancelarButton_Click(object sender, RoutedEventArgs e)
         {
-            // Devolvemos "Cancelar"
             this.DialogResult = false;
+        }
+
+        private void ImprimirButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Imprimiendo pre-corte...");
         }
 
         #endregion

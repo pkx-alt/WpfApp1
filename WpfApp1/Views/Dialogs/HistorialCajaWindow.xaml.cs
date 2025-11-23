@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Windows;
-using WpfApp1.Data; // Para acceder a la DB
+using System.Windows.Input; // <--- NECESARIO PARA ARRASTRAR
+using WpfApp1.Data;
 
 namespace WpfApp1.Views.Dialogs
 {
@@ -11,6 +12,14 @@ namespace WpfApp1.Views.Dialogs
             InitializeComponent();
             CargarDatos();
         }
+
+        // --- AGREGA ESTO ---
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+        // -------------------
 
         private void CargarDatos()
         {

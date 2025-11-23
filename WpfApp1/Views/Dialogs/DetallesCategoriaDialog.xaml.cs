@@ -1,33 +1,44 @@
 ﻿using System.Windows;
-using WpfApp1.Models; // Necesitamos esto
+using System.Windows.Input; // <--- NECESARIO
+using WpfApp1.Models;
 
 namespace WpfApp1.Views.Dialogs
 {
     public partial class DetallesCategoriaDialog : Window
     {
-        // Un constructor que "acepta" los datos que le manda el ViewModel
         public DetallesCategoriaDialog(string nombre, string descripcion, int subCount, int prodCount)
         {
             InitializeComponent();
 
-            // Llenamos los campos del XAML
             NombreTextBlock.Text = nombre;
-            DescripcionTextBlock.Text = descripcion; // (Lo dejaremos vacío por ahora)
+            DescripcionTextBlock.Text = descripcion;
             SubCountTextBlock.Text = subCount.ToString();
             ProdCountTextBlock.Text = prodCount.ToString();
 
-            // Lógica de la descripción (por si no tenemos una)
             if (string.IsNullOrWhiteSpace(descripcion))
             {
                 DescripcionTextBlock.Text = "(Sin descripción)";
                 DescripcionTextBlock.FontStyle = FontStyles.Italic;
+                DescripcionTextBlock.Foreground = System.Windows.Media.Brushes.Gray;
             }
         }
 
-        // Este botón le "avisará" al ViewModel que queremos editar
+        // --- AGREGA ESTO ---
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+        // -------------------
+
         private void EditarButton_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = true; // Cierra la ventana y dice "¡Quiero Editar!"
+            this.DialogResult = true;
+        }
+
+        private void CerrarButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false;
         }
     }
 }

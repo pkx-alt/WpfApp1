@@ -8,11 +8,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using WpfApp1.Data;
-using WpfApp1.Models; // Asumo que aquí están Producto, Venta, etc.
+using WpfApp1.Models;
 using WpfApp1.Views;
-using WpfApp1.Views.Dialogs; // Para tu FormaPagoModal
+using WpfApp1.Views.Dialogs;
 
-// ¡Importante! Usamos la clase base que ya tenías
 namespace WpfApp1.ViewModels
 {
     public class VentaViewModel : ViewModelBase
@@ -385,6 +384,39 @@ namespace WpfApp1.ViewModels
                 return;
             }
 
+            // --- 1. NUEVA VALIDACIÓN DE STOCK ---
+            // Antes de abrir el modal de pago, revisamos si alcanza el stock.
+            // Solo validamos esto si ES VENTA (no cotización)
+            if (!this.EsModoCotizacion)
+            {
+                string productosSinStock = "";
+                using (var db = new InventarioDbContext())
+                {
+                    foreach (var item in CarritoItems)
+                    {
+                        int id = int.Parse(item.ID);
+                        var prod = db.Productos.AsNoTracking().FirstOrDefault(p => p.ID == id); // AsNoTracking es más rápido para leer
+                        if (prod != null && prod.Stock < item.Quantity)
+                        {
+                            productosSinStock += $"- {prod.Descripcion} (Tienes: {prod.Stock}, Vendes: {item.Quantity})\n";
+                        }
+                    }
+                }
+
+                // Si encontramos problemas, preguntamos al jefe (tú)
+                if (!string.IsNullOrEmpty(productosSinStock))
+                {
+                    var respuesta = MessageBox.Show(
+                        $"⚠️ ADVERTENCIA DE INVENTARIO ⚠️\n\n" +
+                        $"Los siguientes productos no tienen stock suficiente en el sistema:\n{productosSinStock}\n" +
+                        $"¿Deseas continuar y dejar el inventario en NEGATIVO?",
+                        "Confirmar venta sin stock",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+                    if (respuesta == MessageBoxResult.No) return; // Cancelamos si dices que no
+                }
+            }
             // 1. Preparamos el modal
             var modalPago = new FormaPagoModal();
             modalPago.Owner = Application.Current.MainWindow;
@@ -551,20 +583,15 @@ namespace WpfApp1.ViewModels
                     var productoId = int.Parse(item.ID);
                     var productoEnDb = db.Productos.FirstOrDefault(p => p.ID == productoId);
 
-                    if (productoEnDb == null)
-                    {
-                        throw new Exception($"El producto '{item.Description}' (ID: {item.ID}) ya no existe.");
-                    }
-                    if (!productoEnDb.Activo)
-                    {
-                        throw new Exception($"El producto '{item.Description}' está desactivado y no se puede vender.");
-                    }
-                    if (productoEnDb.Stock < item.Quantity)
-                    {
-                        throw new Exception($"Stock insuficiente para '{item.Description}'. Solo quedan {productoEnDb.Stock} en inventario.");
-                    }
-                    productoEnDb.Stock -= item.Quantity;
+                    if (productoEnDb == null) throw new Exception($"El producto '{item.Description}' ya no existe.");
 
+                    if (!productoEnDb.Activo) throw new Exception($"El producto '{item.Description}' está desactivado.");
+
+                    // --- CAMBIO IMPORTANTE AQUÍ ---
+                    // Eliminamos el 'throw Exception' de stock insuficiente.
+                    // Permitimos que la resta ocurra, incluso si da negativo.
+                    productoEnDb.Stock -= item.Quantity;
+                    // ------------------------------
                     var detalle = new VentaDetalle
                     {
                         ProductoId = productoId,

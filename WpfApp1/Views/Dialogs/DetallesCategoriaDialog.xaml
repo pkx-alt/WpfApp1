@@ -1,47 +1,92 @@
 ﻿<Window x:Class="WpfApp1.Views.Dialogs.DetallesCategoriaDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Detalles de categoría"
-        SizeToContent="WidthAndHeight"
+        Title="Detalles de Categoría"
+        Height="Auto" Width="400"
+        SizeToContent="Height"
         ResizeMode="NoResize"
-        WindowStartupLocation="CenterScreen">
-    <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="8" Margin="10">
-        <StackPanel Margin="20" MinWidth="300">
-            <TextBlock Text="Detalles de categoría" FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown">
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+    <Border Background="{StaticResource PageBackground}" 
+            CornerRadius="15" 
+            BorderBrush="{StaticResource BorderBrush}" 
+            BorderThickness="1" 
+            Margin="10">
+
+        <Border.Effect>
+            <DropShadowEffect Color="#B0BEC5" BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+        </Border.Effect>
+
+        <Grid Margin="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="{StaticResource PrimaryColor}" CornerRadius="14,14,0,0" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="📂 DETALLES" Foreground="White" FontSize="10" FontWeight="Bold" Opacity="0.8"/>
+                    <TextBlock x:Name="NombreTextBlock" Text="[Nombre]" Foreground="White" FontSize="22" FontWeight="Bold" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+            </Border>
+
+            <Grid Grid.Row="1" Margin="25">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Categoría:" FontWeight="Bold" Margin="0,0,10,10"/>
-                <TextBlock x:Name="NombreTextBlock" Grid.Row="0" Grid.Column="1" Text="[Nombre]" Margin="0,0,0,10"/>
+                <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                    <TextBlock Text="Descripción" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" FontSize="12" Margin="0,0,0,5"/>
+                    <TextBlock x:Name="DescripcionTextBlock" Text="[Descripción]" TextWrapping="Wrap" Foreground="{StaticResource TextPrimary}"/>
+                </StackPanel>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Descripción:" FontWeight="Bold" Margin="0,0,10,10"/>
-                <TextBlock x:Name="DescripcionTextBlock" Grid.Row="1" Grid.Column="1" Text="[Descripción]" TextWrapping="Wrap" MaxWidth="250"/>
+                <UniformGrid Grid.Row="1" Columns="2" Rows="1">
+                    <Border Background="White" CornerRadius="8" Padding="10" Margin="0,0,5,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Subcategorías" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                <TextBlock Text="🏷️" Margin="0,0,5,0"/>
+                                <TextBlock x:Name="SubCountTextBlock" Text="0" FontWeight="Bold" FontSize="18" Foreground="{StaticResource PrimaryColor}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Subcategorías asociadas:" FontWeight="Bold" Margin="0,10,10,10"/>
-                <TextBlock x:Name="SubCountTextBlock" Grid.Row="2" Grid.Column="1" Text="0" Foreground="Blue" Margin="0,10,0,10"/>
-
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Productos asociados:" FontWeight="Bold" Margin="0,0,10,10"/>
-                <TextBlock x:Name="ProdCountTextBlock" Grid.Row="3" Grid.Column="1" Text="0" Foreground="Blue" Margin="0,0,0,10"/>
-
+                    <Border Background="White" CornerRadius="8" Padding="10" Margin="5,0,0,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Productos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                                <TextBlock Text="📦" Margin="0,0,5,0"/>
+                                <TextBlock x:Name="ProdCountTextBlock" Text="0" FontWeight="Bold" FontSize="18" Foreground="{StaticResource SuccessColor}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
             </Grid>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                <Button x:Name="EditarButton" Content="Editar" MinWidth="80" Margin="0,0,10,0" 
-                        Background="#5cb85c" Foreground="White" FontWeight="Bold"
-                        Click="EditarButton_Click"/>
-                <Button x:Name="CerrarButton" Content="Cerrar" IsCancel="True" MinWidth="80" Background="#888888" Foreground="White"/>
-            </StackPanel>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,25,25">
+                <Button x:Name="CerrarButton" 
+                        Content="Cerrar" 
+                        Style="{StaticResource BtnSecondary}" 
+                        Click="CerrarButton_Click" 
+                        IsCancel="True"
+                        Width="90" Margin="0,0,10,0"/>
 
-        </StackPanel>
+                <Button x:Name="EditarButton" 
+                        Content="Editar" 
+                        Style="{StaticResource BtnSuccess}" 
+                        Click="EditarButton_Click"
+                        Width="100">
+                    <Button.Effect>
+                        <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
+                    </Button.Effect>
+                </Button>
+            </StackPanel>
+        </Grid>
     </Border>
 </Window>

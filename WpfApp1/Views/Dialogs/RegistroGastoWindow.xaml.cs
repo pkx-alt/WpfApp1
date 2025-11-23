@@ -1,16 +1,22 @@
-﻿// RegistroGastoWindow.xaml.cs (CÓDIGO LIMPIO)
-using System.Windows;
+﻿using System.Windows;
+using System.Windows.Input; // <--- NECESARIO
 
-namespace WpfApp1.Dialogs
+namespace WpfApp1.Dialogs // Asegúrate de que el namespace coincida con donde está tu archivo
 {
     public partial class RegistroGastoWindow : Window
     {
         public RegistroGastoWindow()
         {
             InitializeComponent();
-            // BORRAMOS TODO EL IF DEL DATACONTEXT AQUÍ
-            // Dejamos que GastosPage se encargue de eso.
         }
+
+        // --- AGREGA ESTO ---
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+        // -------------------
 
         private void btnCancelar_Click(object sender, RoutedEventArgs e)
         {

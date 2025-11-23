@@ -1,11 +1,11 @@
 ﻿using System.Windows;
+using System.Windows.Input; // <--- NECESARIO
 using WpfApp1.ViewModels;
 
 namespace WpfApp1.Views.Dialogs
 {
     public partial class DetalleCotizacionDialog : Window
     {
-        // Propiedad pública para saber si el usuario quiso convertir
         public bool DeseaConvertir { get; private set; } = false;
 
         public DetalleCotizacionDialog(int cotizacionId)
@@ -14,15 +14,12 @@ namespace WpfApp1.Views.Dialogs
 
             var vm = new DetalleCotizacionViewModel(cotizacionId);
 
-            // Configurar cierre normal
             vm.CloseAction = (bool result) => {
                 this.DialogResult = result;
                 this.Close();
             };
 
-            // Configurar acción de convertir
             vm.ConvertirAction = () => {
-                // Marcamos la bandera y cerramos con True (Éxito)
                 this.DeseaConvertir = true;
                 this.DialogResult = true;
                 this.Close();
@@ -30,5 +27,13 @@ namespace WpfApp1.Views.Dialogs
 
             this.DataContext = vm;
         }
+
+        // --- AGREGA ESTO ---
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+        // -------------------
     }
 }

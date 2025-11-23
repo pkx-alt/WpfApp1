@@ -1,58 +1,119 @@
 ﻿<Window x:Class="WpfApp1.Views.Dialogs.RegistroIngresoWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d"
-        Title="Registrar Nuevo Ingreso" Height="450" Width="400"
-        WindowStartupLocation="CenterScreen"
+        Title="Nuevo Ingreso" 
+        Height="Auto" Width="450"
+        SizeToContent="Height"
         ResizeMode="NoResize"
-        FontFamily="Segoe UI">
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown">
 
-    <Window.Resources>
-        <SolidColorBrush x:Key="ColorIngreso" Color="#28A745"/>
-    </Window.Resources>
+    <Border Background="{StaticResource PageBackground}" 
+            CornerRadius="15" 
+            BorderBrush="{StaticResource BorderBrush}" 
+            BorderThickness="1" 
+            Margin="10">
 
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <Border.Effect>
+            <DropShadowEffect Color="#B0BEC5" BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+        </Border.Effect>
 
-        <StackPanel Grid.Row="0">
-            <TextBlock Text="REGISTRAR INGRESO" Foreground="{StaticResource ColorIngreso}" FontWeight="Bold" FontSize="16" Margin="0,0,0,15" HorizontalAlignment="Center"/>
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <TextBlock Text="Concepto / Descripción:" Margin="0,0,0,5" FontWeight="SemiBold"/>
-            <TextBox Text="{Binding NuevoIngreso.Concepto, UpdateSourceTrigger=PropertyChanged}" Height="30" Margin="0,0,0,15"/>
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="💰 Nuevo Ingreso" 
+                           FontSize="22" 
+                           FontWeight="Bold" 
+                           Foreground="{StaticResource SuccessColor}" 
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Registro de entrada de efectivo extra" 
+                           FontSize="12" 
+                           Foreground="{StaticResource TextSecondary}" 
+                           HorizontalAlignment="Center" Margin="0,5,0,0"/>
+            </StackPanel>
 
-            <TextBlock Text="Categoría:" Margin="0,0,0,5" FontWeight="SemiBold"/>
-            <ComboBox ItemsSource="{Binding CategoriasDisponibles}" 
-                      SelectedItem="{Binding NuevoIngreso.Categoria}"
-                      Height="30" Margin="0,0,0,15"/>
+            <Grid Grid.Row="1" Margin="0,0,0,25">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <TextBlock Text="Monto:" Margin="0,0,0,5" FontWeight="SemiBold"/>
-            <TextBox Text="{Binding NuevoIngreso.Monto, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" Height="30" Margin="0,0,0,15"/>
+                <StackPanel Margin="0,0,0,15">
+                    <TextBlock Text="Concepto / Descripción" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox Text="{Binding NuevoIngreso.Concepto, UpdateSourceTrigger=PropertyChanged}" Height="35" FontSize="14"/>
+                </StackPanel>
 
-            <TextBlock Text="Método de Entrada:" Margin="0,0,0,5" FontWeight="SemiBold"/>
-            <ComboBox ItemsSource="{Binding MetodosDisponibles}"
-                      SelectedItem="{Binding MetodosDisponibles[0]}"
-                      Text="{Binding NuevoIngreso.MetodoPago}"
-                      Height="30" Margin="0,0,0,15"/>
+                <Grid Grid.Row="1" Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-            <TextBlock Text="Registrado Por:" Margin="0,0,0,5" FontWeight="SemiBold"/>
-            <TextBox Text="{Binding NuevoIngreso.Usuario}" Height="30" Margin="0,0,0,15"/>
+                    <StackPanel>
+                        <TextBlock Text="Categoría" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                        <ComboBox ItemsSource="{Binding CategoriasDisponibles}" SelectedItem="{Binding NuevoIngreso.Categoria}" Height="35"/>
+                    </StackPanel>
 
-            <TextBlock Text="Fecha:" Margin="0,0,0,5" FontWeight="SemiBold"/>
-            <DatePicker SelectedDate="{Binding NuevoIngreso.Fecha}" Height="30" Margin="0,0,0,15"/>
-        </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Monto ($)" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NuevoIngreso.Monto, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" 
+                                 Height="35" FontSize="14" FontWeight="Bold" HorizontalContentAlignment="Right"/>
+                    </StackPanel>
+                </Grid>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button x:Name="btnCancelar" Click="btnCancelar_Click" Content="Cancelar" Width="90" Height="35" Margin="0,0,10,0" Background="Transparent" Foreground="Gray" BorderBrush="Gray" Cursor="Hand"/>
+                <Grid Grid.Row="2" Margin="0,0,0,15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-            <Button Content="Guardar Ingreso" Width="120" Height="35" 
-                    Background="{StaticResource ColorIngreso}" 
-                    Foreground="White" BorderThickness="0" Cursor="Hand"
-                    Command="{Binding GuardarIngresoCommand}"/>
-        </StackPanel>
-    </Grid>
+                    <StackPanel>
+                        <TextBlock Text="Método" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                        <ComboBox ItemsSource="{Binding MetodosDisponibles}" Text="{Binding NuevoIngreso.MetodoPago}" Height="35"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Usuario" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                        <TextBox Text="{Binding NuevoIngreso.Usuario}" Height="35" IsReadOnly="True" Background="#EEE"/>
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel Grid.Row="3">
+                    <TextBlock Text="Fecha de Registro" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                    <DatePicker SelectedDate="{Binding NuevoIngreso.Fecha}" Height="35"/>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="btnCancelar" 
+                        Content="Cancelar" 
+                        Click="btnCancelar_Click"
+                        Style="{StaticResource BtnSecondary}" 
+                        Width="100" 
+                        Margin="0,0,10,0"/>
+
+                <Button Content="Guardar" 
+                        Command="{Binding GuardarIngresoCommand}"
+                        Style="{StaticResource BtnSuccess}" 
+                        Width="120" 
+                        IsDefault="True">
+                    <Button.Effect>
+                        <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
+                    </Button.Effect>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

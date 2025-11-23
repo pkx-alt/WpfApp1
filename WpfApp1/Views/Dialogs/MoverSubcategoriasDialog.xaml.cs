@@ -1,40 +1,53 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
-using WpfApp1.Models; // ¡Necesitamos Categoria!
+using System.Windows.Input; // <--- NECESARIO
+using WpfApp1.Models;
 
 namespace WpfApp1.Views.Dialogs
 {
     public partial class MoverSubcategoriasDialog : Window
     {
-        // Propiedad pública para que el ViewModel "lea" la respuesta
         public Categoria CategoriaDestino { get; private set; }
 
         public MoverSubcategoriasDialog(int conteo, List<Categoria> categoriasDestino)
         {
             InitializeComponent();
 
-            // Llenamos el texto y el ComboBox
-            ConteoTextBlock.Text = $"Vas a mover {conteo} subcategoría(s)";
+            // Actualizamos el mensaje informativo
+            ConteoTextBlock.Text = $"Se moverán {conteo} subcategoría(s) seleccionada(s).";
+
             CategoriasComboBox.ItemsSource = categoriasDestino;
 
-            // Seleccionamos la primera por defecto
             if (categoriasDestino.Count > 0)
             {
                 CategoriasComboBox.SelectedIndex = 0;
             }
         }
 
+        // --- AGREGA ESTO ---
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+        // -------------------
+
         private void MoverButton_Click(object sender, RoutedEventArgs e)
         {
             if (CategoriasComboBox.SelectedItem is Categoria seleccionada)
             {
                 CategoriaDestino = seleccionada;
-                this.DialogResult = true; // Cierra y dice "OK"
+                this.DialogResult = true;
             }
             else
             {
-                MessageBox.Show("Debes seleccionar una categoría de destino.");
+                MessageBox.Show("Debes seleccionar una categoría de destino.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        private void CancelarButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false;
         }
     }
 }

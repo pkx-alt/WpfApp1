@@ -1,6 +1,5 @@
-﻿// WpfApp1/Views/Dialogs/NuevoClienteWindow.xaml.cs - MODIFICADO
-using System;
-using System.Windows;
+﻿using System.Windows;
+using System.Windows.Input; // <--- NECESARIO
 using WpfApp1.Data;
 using WpfApp1.Models;
 
@@ -12,49 +11,60 @@ namespace WpfApp1.Views.Dialogs
         {
             InitializeComponent();
         }
+
+        // --- AGREGA ESTO ---
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+        // -------------------
+
         private void btnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Validar (básico)
-            if (string.IsNullOrWhiteSpace(txtRfc.Text) ||
-                string.IsNullOrWhiteSpace(txtRazonSocial.Text))
+            // 1. Validar
+            if (string.IsNullOrWhiteSpace(txtRfc.Text) || string.IsNullOrWhiteSpace(txtRazonSocial.Text))
             {
-                MessageBox.Show("El RFC y la Razón Social son obligatorios.", "Error");
+                MessageBox.Show("RFC y Razón Social son obligatorios.", "Faltan datos", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // 2. Crear el objeto Cliente
+            // 2. Crear objeto
             var nuevoCliente = new Cliente
             {
                 RFC = txtRfc.Text.Trim(),
                 RazonSocial = txtRazonSocial.Text.Trim(),
                 Telefono = txtTelefono.Text.Trim(),
-
-                // ¡AÑADIDOS NUEVOS CAMPOS CFDI!
                 CodigoPostal = txtCodigoPostal.Text.Trim(),
                 RegimenFiscal = txtRegimenFiscal.Text.Trim(),
                 UsoCFDI = txtUsoCFDI.Text.Trim(),
-
-                Activo = true // Por defecto
+                Activo = true
             };
 
             try
             {
-                // 3. Guardar en la BD
+                // 3. Guardar
                 using (var db = new InventarioDbContext())
                 {
                     db.Clientes.Add(nuevoCliente);
                     db.SaveChanges();
                 }
 
-                // 4. Avisar y cerrar
-                MessageBox.Show("¡Cliente guardado con éxito!", "Éxito");
+                MessageBox.Show("¡Cliente registrado!", "Éxito");
                 this.DialogResult = true;
                 this.Close();
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
-                MessageBox.Show("Error al guardar el cliente: " + ex.Message, "Error");
+                MessageBox.Show("Error al guardar: " + ex.Message, "Error");
             }
+        }
+
+        // Agregamos evento para el botón Cancelar
+        private void btnCancelar_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false;
+            this.Close();
         }
     }
 }

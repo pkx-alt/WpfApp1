@@ -147,7 +147,7 @@
 
                 <Border Grid.Column="1" Style="{StaticResource MetricCardStyle}" Padding="25" Height="450">
                     <StackPanel>
-                        <TextBlock Text="Top 5 Productos Vendidos" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
+                        <TextBlock Text="Top Productos Vendidos" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,15"/>
 
                         <DataGrid AutoGenerateColumns="False" 
                                   IsReadOnly="True" 

@@ -27,19 +27,22 @@ namespace WpfApp1.Views.Dialogs
         public ConfirmarEstadoClienteWindow(Cliente cliente)
         {
             InitializeComponent();
-
             _cliente = cliente;
-
-            // Personalizamos el mensaje según el estado ACTUAL del cliente
-            if (_cliente.Activo)
-            {
-                lblMensaje.Text = $"¿Estás seguro de que deseas DESACTIVAR al cliente '{_cliente.RazonSocial}'?";
-            }
-            else
-            {
-                lblMensaje.Text = $"¿Estás seguro de que deseas ACTIVAR al cliente '{_cliente.RazonSocial}'?";
-            }
+            ConfigurarMensaje();
         }
+
+        private void btnCancelar_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false;
+            this.Close();
+        }
+        // --- NUEVO: PERMITIR ARRASTRAR VENTANA ---
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+        // -----------------------------------------
 
         private void btnConfirmar_Click(object sender, RoutedEventArgs e)
         {
@@ -47,28 +50,52 @@ namespace WpfApp1.Views.Dialogs
             {
                 using (var db = new InventarioDbContext())
                 {
-                    // 1. Buscamos al cliente en la BD
                     var clienteEnDb = db.Clientes.Find(_cliente.ID);
                     if (clienteEnDb != null)
                     {
-                        // 2. ¡Invertimos el estado!
                         clienteEnDb.Activo = !clienteEnDb.Activo;
-
-                        // 3. Guardamos los cambios
                         db.SaveChanges();
                     }
                 }
-
-                // 4. Avisamos a la página anterior que SÍ se hizo el cambio
                 this.DialogResult = true;
                 this.Close();
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
-                MessageBox.Show("Error al actualizar el estado: " + ex.Message);
+                MessageBox.Show("Error: " + ex.Message);
                 this.DialogResult = false;
                 this.Close();
             }
         }
+
+        private void ConfigurarMensaje()
+        {
+            // Usamos Run para formatear partes del texto en negrita dentro del mismo TextBlock
+            TxtMensaje.Inlines.Clear();
+            TxtMensaje.Inlines.Add("¿Estás seguro de que deseas ");
+
+            if (_cliente.Activo)
+            {
+                TxtTitulo.Text = "Desactivar Cliente";
+                IconoEstado.Text = "⚠️"; // Icono de alerta
+
+                var runAccion = new System.Windows.Documents.Run("DESACTIVAR") { FontWeight = FontWeights.Bold, Foreground = (System.Windows.Media.Brush)Application.Current.Resources["DangerColor"] };
+                TxtMensaje.Inlines.Add(runAccion);
+            }
+            else
+            {
+                TxtTitulo.Text = "Reactivar Cliente";
+                IconoEstado.Text = "✅"; // Icono de check
+
+                var runAccion = new System.Windows.Documents.Run("ACTIVAR") { FontWeight = FontWeights.Bold, Foreground = (System.Windows.Media.Brush)Application.Current.Resources["SuccessColor"] };
+                TxtMensaje.Inlines.Add(runAccion);
+            }
+
+            TxtMensaje.Inlines.Add($" al cliente ");
+            TxtMensaje.Inlines.Add(new System.Windows.Documents.Run($"'{_cliente.RazonSocial}'") { FontWeight = FontWeights.Bold });
+            TxtMensaje.Inlines.Add("?");
+        }
+
+
     }
 }

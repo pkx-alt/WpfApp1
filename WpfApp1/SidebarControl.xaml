@@ -8,7 +8,7 @@
              d:DesignHeight="800" d:DesignWidth="300"
              x:Name="SidebarRoot"
              Loaded="SidebarControl_Loaded"
-           IsVisibleChanged="SidebarControl_IsVisibleChanged">
+             IsVisibleChanged="SidebarControl_IsVisibleChanged">
 
     <UserControl.Resources>
         <local:ActivePageToBooleanConverter x:Key="ActivePageConverter"/>
@@ -25,10 +25,9 @@
         <Style x:Key="NavRadioButton" TargetType="RadioButton">
             <Setter Property="Foreground" Value="#343a40"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="Margin" Value="0,1,0,1"/>
-            <Setter Property="Padding" Value="30,8,10,8"/>
+            <Setter Property="Padding" Value="25,10,10,10"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="GroupName" Value="NavigationItems"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -36,115 +35,151 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Border x:Name="border" 
-                                Background="{TemplateBinding Background}" CornerRadius="0">
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="0"
+                                BorderThickness="3,0,0,0"
+                                BorderBrush="Transparent">
                             <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"
                                               Margin="{TemplateBinding Padding}"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Background" Value="#E9F3FF"/>
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#F8F9FA" />
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True" />
+                                    <Condition Property="IsChecked" Value="True" />
+                                </MultiTrigger.Conditions>
+                                <MultiTrigger.Setters>
+                                    <Setter Property="Background" Value="#DDEBFF" />
+                                </MultiTrigger.Setters>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsChecked" Value="True">
-                    <Setter Property="Background" Value="#E9F3FF"/>
-                    <Setter Property="Foreground" Value="#0056b3"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Trigger.Setters>
-                        <Setter Property="Background" Value="#F1F3F5" />
-                    </Trigger.Setters>
-                </Trigger>
-
-                <MultiTrigger>
-                    <MultiTrigger.Conditions>
-                        <Condition Property="IsMouseOver" Value="True" />
-                        <Condition Property="IsChecked" Value="True" />
-                    </MultiTrigger.Conditions>
-                    <MultiTrigger.Setters>
-                        <Setter Property="Background" Value="#DDEBFF" />
-                    </MultiTrigger.Setters>
-                </MultiTrigger>
-            </Style.Triggers>
         </Style>
     </UserControl.Resources>
 
-    <Border Background="{StaticResource SidebarColorBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="0,0,0,20">
-                <TextBlock x:Name="TxtNombreTienda"
-               Text="Cargando..." 
-               FontWeight="Bold"
-               FontSize="20"
-               Margin="20"
-               HorizontalAlignment="Center"
-               Cursor="Hand" 
-               MouseLeftButtonDown="Title_MouseLeftButtonDown" />
+    <Border Background="{StaticResource SidebarColorBrush}" 
+            BorderBrush="{StaticResource BorderBrush}" 
+            BorderThickness="0,0,1,0">
 
-                <Button Margin="20,0,20,10" Background="#007ACC" Foreground="White" Content="Nueva venta"
-                  Click="NuevaVenta_Click"
-                  FontWeight="Bold" Padding="12" BorderThickness="0">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,0,20">
+
+                <TextBlock x:Name="TxtNombreTienda"
+                           Text="Cargando..." 
+                           FontWeight="Black"
+                           FontSize="22"
+                           Margin="20,30,20,20"
+                           HorizontalAlignment="Left"
+                           Foreground="{StaticResource PrimaryColor}"
+                           Cursor="Hand" 
+                           MouseLeftButtonDown="Title_MouseLeftButtonDown" />
+
+                <Button Margin="15,0,15,15" 
+                        Background="{StaticResource PrimaryColor}" 
+                        Foreground="White" 
+                        Content="🛒  Nueva Venta"
+                        Click="NuevaVenta_Click"
+                        FontSize="16"
+                        FontWeight="Bold" 
+                        Padding="12" 
+                        BorderThickness="0">
                     <Button.Resources>
                         <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="5"/>
+                            <Setter Property="CornerRadius" Value="8"/>
                         </Style>
                     </Button.Resources>
+                    <Button.Effect>
+                        <DropShadowEffect Color="#007ACC" BlurRadius="10" Opacity="0.3" ShadowDepth="3"/>
+                    </Button.Effect>
                 </Button>
 
                 <TextBlock Text="OPERACIÓN" Style="{StaticResource NavSectionHeader}"/>
+
                 <Grid>
-                    <RadioButton Content="Caja" Style="{StaticResource NavRadioButton}"
+                    <RadioButton Content="🏪  Caja" Tag="Caja" Style="{StaticResource NavRadioButton}"
                                  Click="RadioButton_Click"
                                  IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Caja'}"/>
-                    <Border x:Name="CajaStatusBorder" Background="#28A745" CornerRadius="8" Padding="5,2" HorizontalAlignment="Right" Margin="0,0,10,0" VerticalAlignment="Center" IsHitTestVisible="False">
-                        <TextBlock x:Name="CajaStatusText" Text="Abierta" Foreground="White" FontSize="10" FontWeight="Bold"/>
+
+                    <Border x:Name="CajaStatusBorder" 
+                            Background="#28A745" 
+                            CornerRadius="4" 
+                            Padding="6,2" 
+                            HorizontalAlignment="Right" 
+                            VerticalAlignment="Center" 
+                            Margin="0,0,15,0" 
+                            IsHitTestVisible="False">
+                        <TextBlock x:Name="CajaStatusText" Text="ABIERTA" Foreground="White" FontSize="9" FontWeight="Bold"/>
                     </Border>
                 </Grid>
-                <RadioButton Content="Cotizaciones" Style="{StaticResource NavRadioButton}"
+
+                <RadioButton Content="📝  Cotizaciones" Tag="Cotizaciones" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Cotizaciones'}"/>
-                <RadioButton Content="Ventas realizadas" Style="{StaticResource NavRadioButton}"
+
+                <RadioButton Content="🧾  Ventas Realizadas" Tag="Ventas realizadas" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Ventas realizadas'}"/>
 
                 <TextBlock Text="GESTIÓN" Style="{StaticResource NavSectionHeader}"/>
-                <RadioButton Content="Inventario" Style="{StaticResource NavRadioButton}"
+
+                <RadioButton Content="📦  Inventario" Tag="Inventario" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Inventario'}"/>
-                <RadioButton Content="Movimientos" Style="{StaticResource NavRadioButton}"
-             Click="RadioButton_Click"
-             IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Movimientos'}"/>
-                <RadioButton Content="Clientes" Style="{StaticResource NavRadioButton}"
+
+                <RadioButton Content="🔁  Movimientos" Tag="Movimientos" Style="{StaticResource NavRadioButton}"
+                             Click="RadioButton_Click"
+                             IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Movimientos'}"/>
+
+                <RadioButton Content="👥  Clientes" Tag="Clientes" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Clientes'}"/>
-                <RadioButton Content="Departamentos" Style="{StaticResource NavRadioButton}"
-             Click="RadioButton_Click"
-             IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Departamentos'}"/>
+
+                <RadioButton Content="📂  Departamentos" Tag="Departamentos" Style="{StaticResource NavRadioButton}"
+                             Click="RadioButton_Click"
+                             IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Departamentos'}"/>
 
                 <TextBlock Text="ADMINISTRACIÓN" Style="{StaticResource NavSectionHeader}"/>
-                <RadioButton Content="Facturación" Style="{StaticResource NavRadioButton}"
+
+                <RadioButton Content="📜  Facturación" Tag="Facturación" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Facturación'}"/>
-                <RadioButton Content="Ingresos" Style="{StaticResource NavRadioButton}"
-             Click="RadioButton_Click"
-             IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Ingresos'}"/>
-                <RadioButton Content="Gastos" Style="{StaticResource NavRadioButton}"
+
+                <RadioButton Content="💰  Ingresos" Tag="Ingresos" Style="{StaticResource NavRadioButton}"
+                             Click="RadioButton_Click"
+                             IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Ingresos'}"/>
+
+                <RadioButton Content="💸  Gastos" Tag="Gastos" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Gastos'}"/>
-                <RadioButton Content="Cuentas por cobrar" Style="{StaticResource NavRadioButton}"
+
+                <RadioButton Content="💳  Cuentas por Cobrar" Tag="Cuentas por cobrar" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Cuentas por cobrar'}"/>
 
                 <TextBlock Text="ANALÍTICAS" Style="{StaticResource NavSectionHeader}"/>
-                <RadioButton Content="Reportes" Style="{StaticResource NavRadioButton}"
+
+                <RadioButton Content="📊  Reportes" Tag="Reportes" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Reportes'}"/>
-                <RadioButton Content="Estadísticas"
-                             Style="{StaticResource NavRadioButton}"
+
+                <RadioButton Content="📈  Estadísticas" Tag="Estadísticas" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Estadísticas'}"/>
 
                 <TextBlock Text="SISTEMA" Style="{StaticResource NavSectionHeader}"/>
-                <RadioButton Content="Ajustes" Style="{StaticResource NavRadioButton}"
+
+                <RadioButton Content="⚙️  Ajustes" Tag="Ajustes" Style="{StaticResource NavRadioButton}"
                              Click="RadioButton_Click"
                              IsChecked="{Binding ActivePage, ElementName=SidebarRoot, Converter={StaticResource ActivePageConverter}, ConverterParameter='Ajustes'}"/>
             </StackPanel>

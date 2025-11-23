@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Input; // <--- NECESARIO
 
 namespace WpfApp1.Views.Dialogs
 {
@@ -9,7 +10,20 @@ namespace WpfApp1.Views.Dialogs
         {
             InitializeComponent();
             TxtTitulo.Text = titulo;
-            GridDatos.ItemsSource = datos; // ¡Aquí ocurre la magia automática!
+            GridDatos.ItemsSource = datos;
+        }
+
+        // --- AGREGA ESTO ---
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+        // -------------------
+
+        private void BtnCerrar_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }

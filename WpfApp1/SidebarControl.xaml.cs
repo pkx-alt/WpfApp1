@@ -58,12 +58,19 @@ namespace WpfApp1
             set { SetValue(ActivePageProperty, value); }
         }
 
-        // 3. Método para levantar el evento (ya lo tenías)
+        // Método para levantar el evento
         private void RadioButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is RadioButton clickedButton)
             {
-                RaiseEvent(new RoutedEventArgs(NavigationRequestedEvent, clickedButton.Content.ToString()));
+                // CAMBIO CLAVE: Usamos .Tag en lugar de .Content
+                // .Content trae "🏪  Caja" (Error)
+                // .Tag trae "Caja" (Correcto)
+
+                if (clickedButton.Tag != null)
+                {
+                    RaiseEvent(new RoutedEventArgs(NavigationRequestedEvent, clickedButton.Tag.ToString()));
+                }
             }
         }
 

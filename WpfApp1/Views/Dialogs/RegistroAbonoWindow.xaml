@@ -1,32 +1,83 @@
 ﻿<Window x:Class="WpfApp1.Views.Dialogs.RegistroAbonoWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Registrar Abono" SizeToContent="Height" Width="350"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
-        WindowStyle="ToolWindow">
+        Title="Registrar Abono" 
+        Height="Auto" Width="400"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown">
 
-    <Grid Margin="20">
-        <StackPanel>
-            <TextBlock Text="Registrar Abono" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+    <Border Background="{StaticResource PageBackground}" 
+            CornerRadius="15" 
+            BorderBrush="{StaticResource BorderBrush}" 
+            BorderThickness="1" 
+            Margin="10">
 
-            <TextBlock Text="Monto pendiente:" Foreground="Gray"/>
-            <TextBlock Text="{Binding DeudaTotal, StringFormat=C}" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+        <Border.Effect>
+            <DropShadowEffect Color="#B0BEC5" BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+        </Border.Effect>
 
-            <TextBlock Text="Cantidad a abonar:" FontWeight="SemiBold"/>
-            <TextBox Text="{Binding MontoAbono, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" 
-                     FontSize="16" Padding="5" Margin="0,5,0,15"/>
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <TextBlock Text="Método de pago:" FontWeight="SemiBold"/>
-            <ComboBox ItemsSource="{Binding MetodosDisponibles}" 
-                      SelectedItem="{Binding MetodoPago}"
-                      Padding="5" Margin="0,5,0,20"/>
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Aceptar" Command="{Binding ConfirmarCommand}" 
-                        Background="#28A745" Foreground="White" FontWeight="Bold"
-                        Padding="15,5" Margin="0,0,10,0"/>
-                <Button Content="Cancelar" IsCancel="True" Padding="15,5"/>
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="💳 Registrar Abono" 
+                           FontSize="22" 
+                           FontWeight="Bold" 
+                           Foreground="{StaticResource TextPrimary}" 
+                           HorizontalAlignment="Center"/>
             </StackPanel>
-        </StackPanel>
-    </Grid>
+
+            <Border Grid.Row="1" Background="#FFF3E0" CornerRadius="8" Padding="15" Margin="0,0,0,20" BorderBrush="#FFE0B2" BorderThickness="1">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="Monto Pendiente" FontSize="12" Foreground="#E65100" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{Binding DeudaTotal, StringFormat=C}" 
+                               FontSize="26" 
+                               FontWeight="Black" 
+                               Foreground="#E65100" 
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Grid.Row="2" Margin="0,0,0,25">
+
+                <TextBlock Text="Cantidad a abonar:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                <TextBox Text="{Binding MontoAbono, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" 
+                         FontSize="18" FontWeight="Bold" Height="40" 
+                         VerticalContentAlignment="Center" Padding="5"/>
+
+                <TextBlock Text="Método de pago:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,15,0,5"/>
+                <ComboBox ItemsSource="{Binding MetodosDisponibles}" 
+                          SelectedItem="{Binding MetodoPago}"
+                          Height="40" FontSize="14" VerticalContentAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancelar" 
+                        Style="{StaticResource BtnSecondary}" 
+                        Width="100" 
+                        IsCancel="True"
+                        Margin="0,0,10,0"/>
+
+                <Button Content="Confirmar" 
+                        Style="{StaticResource BtnSuccess}" 
+                        Command="{Binding ConfirmarCommand}"
+                        Width="120" 
+                        IsDefault="True">
+                    <Button.Effect>
+                        <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
+                    </Button.Effect>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

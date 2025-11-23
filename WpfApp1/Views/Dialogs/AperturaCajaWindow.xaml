@@ -3,72 +3,102 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WpfApp1.Views.Dialogs"
         mc:Ignorable="d"
-        Title="Confirmar Apertura" Height="360" Width="400"
+        Title="Apertura de Caja" 
+        Height="Auto" Width="400"
+        SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="WhiteSmoke">
-    <StackPanel Margin="25">
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        MouseDown="Window_MouseDown">
 
-        <TextBlock Text="Confirmación de apertura de caja"
-                   FontSize="20"
-                   FontWeight="Bold"
-                   HorizontalAlignment="Center"
-                   Foreground="#333"/>
+    <Border Background="{StaticResource PageBackground}" 
+            CornerRadius="15" 
+            BorderBrush="{StaticResource BorderBrush}" 
+            BorderThickness="1" 
+            Margin="10">
 
-        <TextBlock Text="Información de turno:"
-                   FontSize="14"
-                   FontWeight="SemiBold"
-                   Margin="0,20,0,5"/>
+        <Border.Effect>
+            <DropShadowEffect Color="#B0BEC5" BlurRadius="20" ShadowDepth="5" Opacity="0.4"/>
+        </Border.Effect>
 
-        <TextBlock x:Name="FechaHoraTextBlock" Text="Fecha y hora: ..."
-                   FontSize="13"
-                   Foreground="#555"/>
-        <TextBlock Text="Punto de venta: Caja principal"
-                   FontSize="13"
-                   Foreground="#555"
-                   Margin="0,2,0,0"/>
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <Separator Margin="0,15,0,15" BorderBrush="#AAA" BorderThickness="0.5" >
-            <Separator.Template>
-                <ControlTemplate TargetType="Separator">
-                    <Rectangle StrokeDashArray="2 2" Stroke="{TemplateBinding BorderBrush}" Height="1"/>
-                </ControlTemplate>
-            </Separator.Template>
-        </Separator>
+            <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,25">
+                <Border Background="#E8F5E9" CornerRadius="50" Width="70" Height="70" Margin="0,0,0,15">
+                    <TextBlock Text="🔓" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Apertura de Turno" FontSize="22" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" HorizontalAlignment="Center"/>
+                <TextBlock x:Name="FechaHoraTextBlock" Text="Cargando fecha..." FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+            </StackPanel>
 
-        <TextBlock Text="Fondo inicial en efectivo:"
-                   FontSize="14"
-                   FontWeight="SemiBold"
-                   Margin="0,10,0,5"/>
+            <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="25" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Fondo Inicial en Efectivo" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,10"/>
 
-        <TextBox x:Name="MontoInicialTextBox"
-                 FontSize="16"
-                 Padding="8"/>
+                    <Border BorderBrush="{StaticResource PrimaryColor}" BorderThickness="1.5" CornerRadius="8" Background="#FAFAFA" Height="60">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,25,0,0">
-            <Button x:Name="FinalizarButton" 
-                    Content="Finalizar" 
-                    Background="#5C946E" 
-                    Foreground="White"
-                    FontWeight="Bold"
-                    Padding="20,8"
-                    BorderThickness="0"
-                    Margin="0,0,10,0"
-                    Cursor="Hand"
-                    Click="FinalizarButton_Click"/>
+                            <TextBlock Text="$" 
+                                       FontSize="26" 
+                                       FontWeight="Bold" 
+                                       Foreground="{StaticResource TextSecondary}" 
+                                       VerticalAlignment="Center" 
+                                       Margin="15,0,5,3"
+                                       Opacity="0.6"/>
 
-            <Button x:Name="CancelarButton" 
-                    Content="Cancelar" 
-                    Background="#6C757D" 
-                    Foreground="White"
-                    FontWeight="Bold"
-                    Padding="20,8"
-                    BorderThickness="0"
-                    Cursor="Hand"
-                    Click="CancelarButton_Click"/>
-        </StackPanel>
+                            <TextBox x:Name="MontoInicialTextBox" 
+                                     Grid.Column="1"
+                                     FontSize="32" 
+                                     FontWeight="Bold" 
+                                     Foreground="{StaticResource TextPrimary}"
+                                     Background="Transparent" 
+                                     BorderThickness="0" 
+                                     Padding="0"
+                                     VerticalAlignment="Center"
+                                     VerticalContentAlignment="Center"
+                                     Text="0.00">
+                                <TextBox.Template>
+                                    <ControlTemplate TargetType="TextBox">
+                                        <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center"/>
+                                    </ControlTemplate>
+                                </TextBox.Template>
+                            </TextBox>
+                        </Grid>
+                    </Border>
 
-    </StackPanel>
+                    <TextBlock Text="Ingresa el dinero base en caja para cambios." FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="2,8,0,0" FontStyle="Italic" Opacity="0.8"/>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,30,0,0">
+                <Button x:Name="CancelarButton" Content="Cancelar" 
+                        Style="{StaticResource BtnSecondary}" 
+                        Height="45" Width="110" 
+                        Click="CancelarButton_Click" 
+                        Margin="0,0,10,0"/>
+
+                <Button x:Name="FinalizarButton" Content="Abrir Caja" 
+                        Style="{StaticResource BtnSuccess}" 
+                        Height="45" Width="140" 
+                        FontSize="15"
+                        Click="FinalizarButton_Click">
+                    <Button.Effect>
+                        <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
+                    </Button.Effect>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>
