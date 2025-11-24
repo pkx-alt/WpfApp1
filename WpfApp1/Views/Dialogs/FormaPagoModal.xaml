@@ -169,12 +169,13 @@
                                    FontSize="36" FontWeight="Black" Foreground="{StaticResource PrimaryColor}" 
                                    HorizontalAlignment="Right" Margin="0,0,0,20"/>
 
-                        <TextBlock Text="Dinero Recibido" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                        <TextBlock Text="Dinero Recibido" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5" Visibility="{Binding VisibilidadPago}"/>
                         <TextBox x:Name="TxtCantidad"
                                  Text="{Binding PagoRecibido, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}"
                                  IsEnabled="{Binding IsPagoRecibidoEnabled}"
                                  FontSize="24" FontWeight="Bold" Padding="5"
-                                 HorizontalContentAlignment="Right" Height="45"/>
+                                 HorizontalContentAlignment="Right" Height="45"
+                                 Visibility="{Binding VisibilidadPago}"/>
 
                         <Grid Margin="0,20,0,0">
                             <Grid.ColumnDefinitions>
@@ -221,10 +222,9 @@
 
             <Grid Grid.Row="2" Margin="0,25,0,0">
                 <Button Content="{Binding TextoBotonAccion}" 
-                        Command="{Binding FinalizarVentaCommand}"
-                        Style="{StaticResource BtnSuccess}" 
-                        Height="50" FontSize="18" FontWeight="Bold"
-                        Visibility="{Binding VisibilidadPago}">
+        Command="{Binding FinalizarVentaCommand}"
+        Style="{StaticResource BtnSuccess}" 
+        Height="50" FontSize="18" FontWeight="Bold">
                     <Button.Effect>
                         <DropShadowEffect Color="#28A745" BlurRadius="15" Opacity="0.4" ShadowDepth="3"/>
                     </Button.Effect>

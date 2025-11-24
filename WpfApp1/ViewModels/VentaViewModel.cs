@@ -793,7 +793,8 @@ namespace WpfApp1.ViewModels
                     ClienteId = (clienteSeleccionado != null && clienteSeleccionado.ID != 0) ? (int?)clienteSeleccionado.ID : null,
                     Subtotal = this.Subtotal,
                     IVA = this.Iva,
-                    Total = this.Total
+                    Total = this.Total,
+                    Origen = "Local"
                 };
 
                 foreach (var item in CarritoItems)

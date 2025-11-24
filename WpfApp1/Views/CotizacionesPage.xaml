@@ -64,6 +64,13 @@
                               ItemsSource="{Binding ListaClientes}"
                               SelectedItem="{Binding ClienteSeleccionado}"/>
 
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,10">
+                        <TextBlock Text="Origen:" VerticalAlignment="Center" Margin="0,0,5,0" Foreground="{StaticResource TextSecondary}"/>
+                        <ComboBox Width="100" 
+              ItemsSource="{Binding ListaOrigenes}"
+              SelectedItem="{Binding OrigenSeleccionado}"/>
+                    </StackPanel>
+
                 </WrapPanel>
             </Border>
         </StackPanel>
@@ -84,6 +91,21 @@
                 <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=C}" Width="120" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
 
                 <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="100"/>
+
+                <DataGridTextColumn Header="Origen" Binding="{Binding Origen}" Width="80">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Origen}" Value="Web">
+                                    <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
 
                 <DataGridTemplateColumn Header="Acciones" Width="180">
                     <DataGridTemplateColumn.CellTemplate>

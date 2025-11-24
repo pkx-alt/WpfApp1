@@ -68,6 +68,20 @@ namespace WpfApp1.ViewModels
                 CargarCotizaciones();
             }
         }
+        // ... dentro de la clase CotizacionesViewModel ...
+
+        // Propiedad para guardar qué eligió el usuario en el ComboBox
+        private string _origenSeleccionado;
+        public string OrigenSeleccionado
+        {
+            get { return _origenSeleccionado; }
+            set
+            {
+                _origenSeleccionado = value;
+                OnPropertyChanged();
+                CargarCotizaciones(); // ¡Recargamos la lista al cambiar!
+            }
+        }
 
         // --- COMANDOS ---
         public ICommand VerDetalleCommand { get; }
@@ -79,7 +93,8 @@ namespace WpfApp1.ViewModels
             ListaCotizaciones = new ObservableCollection<CotizacionItemViewModel>();
             ListaClientes = new ObservableCollection<Cliente>();
             ListaOrigenes = new ObservableCollection<string> { "Todos", "Local", "Web" };
-
+            // --- ¡AGREGAR ESTO! ---
+            OrigenSeleccionado = "Todos"; // Seleccionamos "Todos" por defecto
             // Fechas por defecto: Mes actual
             FechaDesde = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             FechaHasta = DateTime.Now;
@@ -139,6 +154,12 @@ namespace WpfApp1.ViewModels
                     query = query.Where(c => c.ClienteId == ClienteSeleccionado.ID);
                 }
 
+                if (!string.IsNullOrEmpty(OrigenSeleccionado) && OrigenSeleccionado != "Todos")
+                {
+                    // Filtramos: Que el campo Origen de la BD coincida con lo seleccionado
+                    query = query.Where(c => c.Origen == OrigenSeleccionado);
+                }
+
                 // 3. Filtro de Texto (Buscador)
                 if (!string.IsNullOrWhiteSpace(TextoBusqueda) && TextoBusqueda != "Buscar por folio, cliente....")
                 {
@@ -183,7 +204,7 @@ namespace WpfApp1.ViewModels
         public DateTime FechaVencimiento => _cotizacion.FechaVencimiento;
 
         public string ClienteNombre => _cotizacion.Cliente != null ? _cotizacion.Cliente.RazonSocial : "Público General";
-
+        public string Origen => _cotizacion.Origen;
         public decimal Total => _cotizacion.Total;
 
         // Lógica simple de estado: Si ya pasó la fecha de vence, está "Vencida"

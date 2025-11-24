@@ -22,6 +22,8 @@ namespace WpfApp1.Models
         [ForeignKey("ClienteId")]
         public virtual Cliente Cliente { get; set; }
 
+        public string Origen { get; set; } = "Local";
+
         // Totales financieros
         public decimal Subtotal { get; set; }
         public decimal IVA { get; set; }
