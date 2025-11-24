@@ -50,16 +50,23 @@
                     <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Grid VerticalAlignment="Center" Margin="0,0,20,10">
                             <TextBox x:Name="txtBusqueda" Width="300"
-                                     Text="Buscar cliente por RFC o razón social"
-                                     Foreground="Gray"
-                                     TextChanged="txtBusqueda_TextChanged"
-                                     GotFocus="txtBusqueda_GotFocus"     
-                                     LostFocus="txtBusqueda_LostFocus"/>
+                 Text="Buscar cliente por RFC o razón social"
+                 Foreground="Gray"
+                 TextChanged="txtBusqueda_TextChanged"
+                 GotFocus="txtBusqueda_GotFocus"     
+                 LostFocus="txtBusqueda_LostFocus"/>
                         </Grid>
 
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,10">
-                            <CheckBox x:Name="chkActivos" Content="Activos" IsChecked="True" Margin="0,0,15,0" Click="chkStatus_Click"/>
+                            <TextBlock Text="Estatus:" VerticalAlignment="Center" Foreground="Gray" Margin="0,0,5,0" FontSize="11"/>
+                            <CheckBox x:Name="chkActivos" Content="Activos" IsChecked="True" Margin="0,0,10,0" Click="chkStatus_Click"/>
                             <CheckBox x:Name="chkInactivos" Content="Inactivos" Click="chkStatus_Click"/>
+
+                            <Border Width="1" Height="20" Background="#DDD" Margin="15,0"/>
+
+                            <TextBlock Text="Tipo:" VerticalAlignment="Center" Foreground="Gray" Margin="0,0,5,0" FontSize="11"/>
+                            <CheckBox x:Name="chkConFactura" Content="Facturados" IsChecked="True" Margin="0,0,10,0" Click="chkStatus_Click"/>
+                            <CheckBox x:Name="chkSinFactura" Content="Público Gral." IsChecked="True" Click="chkStatus_Click"/>
                         </StackPanel>
                     </WrapPanel>
 
@@ -119,7 +126,24 @@
 
                 <DataGridTextColumn Header="Venta Acum." Binding="{Binding Venta, StringFormat=C}" Width="120" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
                 <DataGridTextColumn Header="Registro" Binding="{Binding Creado, StringFormat='dd/MM/yyyy'}" Width="100" Foreground="{StaticResource TextSecondary}"/>
+                <DataGridTemplateColumn Header="Tipo" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Visibility="{Binding EsFactura, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Background="#E3F2FD" 
+                    CornerRadius="4" 
+                    Padding="5,2" 
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
 
+                                <TextBlock Text="📄 CFDI" 
+                           Foreground="{StaticResource PrimaryColor}" 
+                           FontWeight="Bold" 
+                           FontSize="10"/>
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Acciones" Width="220">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>

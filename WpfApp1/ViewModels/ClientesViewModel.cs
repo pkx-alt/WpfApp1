@@ -21,7 +21,10 @@ namespace WpfApp1.ViewModels
 
         // El método para cargar (o recargar) los clientes
         // En ClientesViewModel.cs, dentro de CargarClientes
-        public void CargarClientes(string busqueda = null, bool verActivos = true, bool verInactivos = false)
+        // En ClientesViewModel.cs
+
+        // Modifica la firma del método para aceptar los nuevos filtros (verFacturados, verNoFacturados)
+        public void CargarClientes(string busqueda = null, bool verActivos = true, bool verInactivos = false, bool verFacturados = true, bool verNoFacturados = true)
         {
             Clientes.Clear();
 
@@ -29,26 +32,30 @@ namespace WpfApp1.ViewModels
             {
                 var consulta = db.Clientes.AsQueryable();
 
-                // --- 1. Filtro de Búsqueda (¡MODIFICADO!) ---
+                // 1. Filtro de Búsqueda
                 if (!string.IsNullOrWhiteSpace(busqueda))
                 {
-                    // Convertimos el término de búsqueda a mayúsculas una sola vez
                     string busquedaUpper = busqueda.ToUpper();
-
                     consulta = consulta.Where(c =>
-                        // Y comparamos todo en mayúsculas
                         c.RazonSocial.ToUpper().Contains(busquedaUpper) ||
                         c.RFC.ToUpper().Contains(busquedaUpper)
                     );
                 }
 
-                // --- 2. Filtro de estado (sin cambios) ---
+                // 2. Filtro de Estado (Activo/Inactivo)
                 consulta = consulta.Where(c =>
                     (c.Activo && verActivos) ||
                     (!c.Activo && verInactivos)
                 );
 
-                // --- 3. Ejecución (sin cambios) ---
+                // 3. NUEVO: Filtro de Facturación
+                // "Traeme los que (Son Factura Y quiero ver facturados) O (No son Factura Y quiero ver no facturados)"
+                consulta = consulta.Where(c =>
+                    (c.EsFactura && verFacturados) ||
+                    (!c.EsFactura && verNoFacturados)
+                );
+
+                // Ejecución
                 var listaClientes = consulta
                                     .OrderByDescending(c => c.Creado)
                                     .ToList();

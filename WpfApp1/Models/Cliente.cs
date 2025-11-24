@@ -14,7 +14,7 @@ namespace WpfApp1.Models
         [Required] // Opcional, pero buena práctica
         [MaxLength(13)]
         public string RFC { get; set; }
-
+        public bool EsFactura { get; set; }
 
 
         public string CodigoPostal { get; set; } // Domicilio Fiscal Receptor (el CP de 5 dígitos)
