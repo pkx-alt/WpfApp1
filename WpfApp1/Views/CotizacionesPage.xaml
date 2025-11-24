@@ -27,10 +27,18 @@
                     <TextBlock Text="Historial y gestión de presupuestos" FontSize="14" Foreground="{StaticResource TextSecondary}"/>
                 </StackPanel>
 
-                <Button Grid.Column="1" 
-                        Content="+ Nueva cotización"
-                        Style="{StaticResource BtnSuccess}" 
-                        Click="BtnNuevaCotizacion_Click"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+
+                    <Button Content="☁️ Sincronizar" 
+            Command="{Binding SincronizarWebCommand}"
+            Style="{StaticResource BtnSecondary}" 
+            Margin="0,0,10,0"/>
+
+                    <Button Content="+ Nueva cotización"
+            Style="{StaticResource BtnSuccess}" 
+            Click="BtnNuevaCotizacion_Click"/>
+
+                </StackPanel>
             </Grid>
 
             <Border Background="{StaticResource SurfaceBrush}" 

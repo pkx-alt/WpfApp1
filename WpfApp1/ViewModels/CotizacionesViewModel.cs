@@ -6,6 +6,8 @@ using System.Windows.Input;
 using Microsoft.EntityFrameworkCore; // ¡Vital para .Include()!
 using WpfApp1.Data;
 using WpfApp1.Models;
+using System.Threading.Tasks; // Para las tareas asíncronas
+using WpfApp1.Services;       // Para encontrar tu SupabaseService
 
 namespace WpfApp1.ViewModels
 {
@@ -86,6 +88,8 @@ namespace WpfApp1.ViewModels
         // --- COMANDOS ---
         public ICommand VerDetalleCommand { get; }
         public ICommand ImprimirCommand { get; } // Para futura implementación
+                                                 // ... tus otras propiedades ...
+        public ICommand SincronizarWebCommand { get; }
 
         // --- CONSTRUCTOR ---
         public CotizacionesViewModel()
@@ -98,6 +102,9 @@ namespace WpfApp1.ViewModels
             // Fechas por defecto: Mes actual
             FechaDesde = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             FechaHasta = DateTime.Now;
+
+            // Agrega esta línea:
+            SincronizarWebCommand = new RelayCommand(async (p) => await SincronizarWeb());
 
             VerDetalleCommand = new RelayCommand(VerDetalle);
 
@@ -191,28 +198,69 @@ namespace WpfApp1.ViewModels
                                 "Próximamente");
             }
         }
-    }
 
-    // --- CLASE AUXILIAR (Wrapper) PARA MOSTRAR EN LA TABLA ---
-    // Usamos esto para dar formato fácil a los datos crudos de la BD
-    public class CotizacionItemViewModel
-    {
-        public Cotizacion _cotizacion;
-
-        public int Folio => _cotizacion.ID;
-        public DateTime FechaEmision => _cotizacion.FechaEmision;
-        public DateTime FechaVencimiento => _cotizacion.FechaVencimiento;
-
-        public string ClienteNombre => _cotizacion.Cliente != null ? _cotizacion.Cliente.RazonSocial : "Público General";
-        public string Origen => _cotizacion.Origen;
-        public decimal Total => _cotizacion.Total;
-
-        // Lógica simple de estado: Si ya pasó la fecha de vence, está "Vencida"
-        public string Estado => DateTime.Now > _cotizacion.FechaVencimiento ? "Vencida" : "Vigente";
-
-        public CotizacionItemViewModel(Cotizacion cot)
+        private async Task SincronizarWeb()
         {
-            _cotizacion = cot;
+            try
+            {
+                // Opcional: Mostrar un cursor de espera
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                var servicio = new SupabaseService();
+
+                // Llamamos al servicio que creamos antes
+                int cantidad = await servicio.SincronizarCotizaciones();
+
+                if (cantidad > 0)
+                {
+                    MessageBox.Show($"¡Éxito! Se descargaron {cantidad} cotizaciones de la nube.",
+                                    "Sincronización Completada",
+                                    MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // IMPORTANTE: Recargar la lista visual para ver los nuevos datos
+                    CargarCotizaciones();
+                }
+                else
+                {
+                    MessageBox.Show("Conexión exitosa, pero no hay cotizaciones nuevas con estado 'PENDIENTE'.",
+                                    "Sin novedades",
+                                    MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al conectar con la nube: {ex.Message}\n\nRevisa tu internet o las credenciales.",
+                                "Error de Conexión",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null; // Regresamos el cursor a la normalidad
+            }
+        }
+
+
+        // --- CLASE AUXILIAR (Wrapper) PARA MOSTRAR EN LA TABLA ---
+        // Usamos esto para dar formato fácil a los datos crudos de la BD
+        public class CotizacionItemViewModel
+        {
+            public Cotizacion _cotizacion;
+
+            public int Folio => _cotizacion.ID;
+            public DateTime FechaEmision => _cotizacion.FechaEmision;
+            public DateTime FechaVencimiento => _cotizacion.FechaVencimiento;
+
+            public string ClienteNombre => _cotizacion.Cliente != null ? _cotizacion.Cliente.RazonSocial : "Público General";
+            public string Origen => _cotizacion.Origen;
+            public decimal Total => _cotizacion.Total;
+
+            // Lógica simple de estado: Si ya pasó la fecha de vence, está "Vencida"
+            public string Estado => DateTime.Now > _cotizacion.FechaVencimiento ? "Vencida" : "Vigente";
+
+            public CotizacionItemViewModel(Cotizacion cot)
+            {
+                _cotizacion = cot;
+            }
         }
     }
 }
