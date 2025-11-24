@@ -70,31 +70,32 @@ namespace WpfApp1.Views
         // --- 3. ¡NUEVO MÉTODO "MAESTRO"! ---
         // En ClientesPage.xaml.cs
 
+        // En Views/ClientesPage.xaml.cs
+
         private void ActualizarFiltroClientes()
         {
             var viewModel = (ClientesViewModel)this.DataContext;
             if (viewModel == null) return;
 
-            // 1. Texto
+            // 1. Texto de búsqueda
             string textoParaBuscar = txtBusqueda.Text;
-            if (textoParaBuscar == "Buscar cliente por RFC o razón social" ||
-                string.IsNullOrWhiteSpace(textoParaBuscar))
+            if (textoParaBuscar == "Buscar cliente por RFC o razón social" || string.IsNullOrWhiteSpace(textoParaBuscar))
             {
                 textoParaBuscar = null;
             }
 
-            // 2. Estado
+            // 2. Estado (Activos/Inactivos)
             bool verActivos = chkActivos.IsChecked == true;
             bool verInactivos = chkInactivos.IsChecked == true;
 
-            // 3. NUEVO: Facturación
-            // (Nota: Si tus checkboxes se llaman diferente, ajusta los nombres aquí)
+            // 3. ¡NUEVO! Leemos tus nuevos checkboxes de tipo de cliente
             bool verFacturados = chkConFactura.IsChecked == true;
             bool verNoFacturados = chkSinFactura.IsChecked == true;
 
-            // 4. Llamamos al ViewModel con TODOS los parámetros
+            // 4. Enviamos TODO al ViewModel (fíjate que ahora pasamos 5 cosas)
             viewModel.CargarClientes(textoParaBuscar, verActivos, verInactivos, verFacturados, verNoFacturados);
 
+            // Actualizamos el conteo de selección si tienes esa función
             ActualizarConteoSeleccion();
         }
 

@@ -24,6 +24,9 @@ namespace WpfApp1.ViewModels
         // En ClientesViewModel.cs
 
         // Modifica la firma del método para aceptar los nuevos filtros (verFacturados, verNoFacturados)
+        // En ClientesViewModel.cs
+
+        // Nota cómo agregamos dos nuevos booleanos al final: verFacturados y verNoFacturados
         public void CargarClientes(string busqueda = null, bool verActivos = true, bool verInactivos = false, bool verFacturados = true, bool verNoFacturados = true)
         {
             Clientes.Clear();
@@ -32,7 +35,7 @@ namespace WpfApp1.ViewModels
             {
                 var consulta = db.Clientes.AsQueryable();
 
-                // 1. Filtro de Búsqueda
+                // 1. Filtro de Búsqueda (Esto ya lo tenías)
                 if (!string.IsNullOrWhiteSpace(busqueda))
                 {
                     string busquedaUpper = busqueda.ToUpper();
@@ -48,17 +51,15 @@ namespace WpfApp1.ViewModels
                     (!c.Activo && verInactivos)
                 );
 
-                // 3. NUEVO: Filtro de Facturación
-                // "Traeme los que (Son Factura Y quiero ver facturados) O (No son Factura Y quiero ver no facturados)"
+                // 3. ¡AQUÍ ESTÁ LA MAGIA NUEVA! Filtro de Facturación
+                // Le decimos: "Traeme al cliente SI (es factura Y queremos ver facturados) O (no es factura Y queremos ver público general)"
                 consulta = consulta.Where(c =>
                     (c.EsFactura && verFacturados) ||
                     (!c.EsFactura && verNoFacturados)
                 );
 
-                // Ejecución
-                var listaClientes = consulta
-                                    .OrderByDescending(c => c.Creado)
-                                    .ToList();
+                // Ejecución y llenado de la lista
+                var listaClientes = consulta.OrderByDescending(c => c.Creado).ToList();
 
                 foreach (var cliente in listaClientes)
                 {

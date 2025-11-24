@@ -98,7 +98,8 @@
                   ItemsSource="{Binding Clientes}">
 
             <DataGrid.Columns>
-                <DataGridTemplateColumn Width="50">
+
+                <DataGridTemplateColumn Width="40">
                     <DataGridTemplateColumn.Header>
                         <CheckBox x:Name="chkSeleccionarTodo" Click="chkSeleccionarTodo_Click" ToolTip="Seleccionar todo"/>
                     </DataGridTemplateColumn.Header>
@@ -111,52 +112,79 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="60" ElementStyle="{StaticResource {x:Type TextBlock}}">
-                    <DataGridTextColumn.CellStyle>
-                        <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
-                            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="50">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
                         </Style>
-                    </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
 
-                <DataGridTextColumn Header="RFC" Binding="{Binding RFC}" Width="120" FontWeight="SemiBold"/>
-                <DataGridTextColumn Header="Razón Social" Binding="{Binding RazonSocial}" Width="2*"/>
-                <DataGridTextColumn Header="Teléfono" Binding="{Binding Telefono}" Width="120"/>
+                <DataGridTextColumn Header="RFC" Binding="{Binding RFC}" Width="130" FontWeight="SemiBold"/>
 
-                <DataGridTextColumn Header="Venta Acum." Binding="{Binding Venta, StringFormat=C}" Width="120" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
-                <DataGridTextColumn Header="Registro" Binding="{Binding Creado, StringFormat='dd/MM/yyyy'}" Width="100" Foreground="{StaticResource TextSecondary}"/>
+                <DataGridTextColumn Header="Razón Social" Binding="{Binding RazonSocial}" Width="*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                            <Setter Property="Padding" Value="5,0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Teléfono" Binding="{Binding Telefono}" Width="110"/>
+
+                <DataGridTextColumn Header="Venta Acum." Binding="{Binding Venta, StringFormat=C}" Width="110" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="0,0,10,0"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Header="Registro" Binding="{Binding Creado, StringFormat='dd/MM/yy'}" Width="90" Foreground="{StaticResource TextSecondary}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
                 <DataGridTemplateColumn Header="Tipo" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Border Visibility="{Binding EsFactura, Converter={StaticResource BooleanToVisibilityConverter}}"
-                    Background="#E3F2FD" 
-                    CornerRadius="4" 
-                    Padding="5,2" 
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-
+                                    Background="#E3F2FD" 
+                                    CornerRadius="4" 
+                                    Padding="5,2" 
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
                                 <TextBlock Text="📄 CFDI" 
-                           Foreground="{StaticResource PrimaryColor}" 
-                           FontWeight="Bold" 
-                           FontSize="10"/>
+                                           Foreground="{StaticResource PrimaryColor}" 
+                                           FontWeight="Bold" 
+                                           FontSize="10"/>
                             </Border>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Acciones" Width="220">
+
+                <DataGridTemplateColumn Header="Acciones" Width="230">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Content="Info" Margin="2" Padding="8,4" FontSize="12" Style="{StaticResource BtnSecondary}"/>
-                                <Button Content="Editar" Margin="2" Padding="8,4" FontSize="12" Style="{StaticResource BtnSecondary}"/>
+                                <Button Content="Info" Margin="2" Padding="8,4" FontSize="11" Style="{StaticResource BtnSecondary}"/>
+                                <Button Content="Editar" Margin="2" Padding="8,4" FontSize="11" Style="{StaticResource BtnSecondary}"/>
 
-                                <Button x:Name="btnCambiarEstado" Margin="2" Padding="10,4" FontSize="12" Click="btnCambiarEstado_Click">
+                                <Button x:Name="btnCambiarEstado" Margin="2" Padding="8,4" FontSize="11" Click="btnCambiarEstado_Click">
                                     <Button.Style>
                                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                             <Setter Property="Content" Value="Desactivar"/>
                                             <Setter Property="Background" Value="{StaticResource DangerColor}"/>
-
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding Activo}" Value="False">
                                                     <Setter Property="Content" Value="Activar"/>

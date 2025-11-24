@@ -83,6 +83,9 @@ namespace WpfApp1.Views.Dialogs
                 Telefono = txtTelefono.Text.Trim(),
                 Activo = true,
 
+                // --- ¡AQUÍ ESTABA EL ERROR! FALTABA ESTA LÍNEA: ---
+                EsFactura = chkEsFactura.IsChecked == true,
+
                 // Nota: No necesitamos lógica especial aquí porque los TextBox 
                 // ya tienen el valor correcto (sea el genérico o el real) gracias al evento del checkbox.
                 RFC = txtRfc.Text.Trim().ToUpper(),
