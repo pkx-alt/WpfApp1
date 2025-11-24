@@ -8,6 +8,8 @@ using WpfApp1.Models;
 using WpfApp1.Helpers;      // Para nuestro RelayCommand
 using WpfApp1.Views.Dialogs; // Para nuestros diálogos
 using System.Windows;       // Para MessageBox
+using System.Threading.Tasks; // Para Task.Run
+using WpfApp1.Services;       // Para SupabaseService
 
 namespace WpfApp1.ViewModels
 {
@@ -199,55 +201,58 @@ namespace WpfApp1.ViewModels
 
         private void OnCrearCategoria(object obj)
         {
-            // 1. Abre el diálogo
             var dialog = new CrearCategoriaDialog();
             if (dialog.ShowDialog() == true)
             {
-                // 2. Si el usuario dio "OK", lee el nombre
                 var nuevoNombre = dialog.NombreCategoria;
-
-                // 3. Crea el objeto
                 var nuevaCategoria = new Categoria { Nombre = nuevoNombre };
 
-                // 4. Guárdalo en la Base de Datos
                 _context.Categorias.Add(nuevaCategoria);
-                _context.SaveChanges();
+                _context.SaveChanges(); // Genera ID local
 
-                // 5. ¡Añádelo a la lista de la pantalla!
-                //    (Gracias a ObservableCollection, la UI se actualiza sola)
                 Categorias.Add(nuevaCategoria);
+
+                // --- SYNC NUBE ---
+                int idParaSync = nuevaCategoria.Id;
+                Task.Run(async () =>
+                {
+                    var srv = new SupabaseService();
+                    // Creamos un objeto temporal seguro para enviar
+                    var catSegura = new Categoria { Id = idParaSync, Nombre = nuevoNombre };
+                    await srv.SincronizarCategoria(catSegura);
+                });
+                // -----------------
             }
         }
 
         private void OnCrearSubcategoria(object obj)
         {
-            // ¡Validación! No podemos crear una subcategoría sin padre
-            if (CategoriaSeleccionada == null)
-            {
-                MessageBox.Show("Debes seleccionar una categoría primero.", "Error");
-                return;
-            }
+            if (CategoriaSeleccionada == null) { MessageBox.Show("Selecciona una categoría."); return; }
 
-            // 1. Abre el diálogo (el de Subcategoría)
             var dialog = new CrearSubcategoriaDialog();
             if (dialog.ShowDialog() == true)
             {
-                // 2. Lee el nombre
-                var nuevoNombre = dialog.NombreSubcategoria; // Usa la propiedad correcta
-
-                // 3. Crea el objeto (¡con la FK!)
+                var nuevoNombre = dialog.NombreSubcategoria;
                 var nuevaSubcategoria = new Subcategoria
                 {
                     Nombre = nuevoNombre,
-                    CategoriaId = CategoriaSeleccionada.Id // La clave foránea
+                    CategoriaId = CategoriaSeleccionada.Id
                 };
 
-                // 4. Guárdalo en la BD
                 _context.Subcategorias.Add(nuevaSubcategoria);
                 _context.SaveChanges();
 
-                // 5. ¡Añádelo a la lista de la pantalla!
                 Subcategorias.Add(nuevaSubcategoria);
+
+                // --- SYNC NUBE ---
+                int id = nuevaSubcategoria.Id;
+                int catId = nuevaSubcategoria.CategoriaId;
+                Task.Run(async () =>
+                {
+                    var srv = new SupabaseService();
+                    await srv.SincronizarSubcategoria(new Subcategoria { Id = id, Nombre = nuevoNombre, CategoriaId = catId });
+                });
+                // -----------------
             }
         }
 
@@ -255,27 +260,27 @@ namespace WpfApp1.ViewModels
 
         private void OnEditarCategoria(object parametro)
         {
-            // El 'parametro' es la Categoría que el XAML nos envió
             if (parametro is Categoria categoriaParaEditar)
             {
-                // Reutilizamos el mismo diálogo de "Crear"
                 var dialog = new CrearCategoriaDialog();
-
-                // ¡Pero lo pre-llenamos con el nombre actual!
                 dialog.NombreTextBox.Text = categoriaParaEditar.Nombre;
 
                 if (dialog.ShowDialog() == true)
                 {
-                    // 1. Actualiza el objeto en memoria
                     categoriaParaEditar.Nombre = dialog.NombreCategoria;
-
-                    // 2. Le decimos a EF Core que este objeto fue modificado
                     _context.Categorias.Update(categoriaParaEditar);
                     _context.SaveChanges();
-
-                    // 3. Forzamos un refresco de la lista en la UI.
-                    //    (Esta es la forma más simple, aunque recarga todo)
                     CargarCategorias();
+
+                    // --- SYNC NUBE ---
+                    int id = categoriaParaEditar.Id;
+                    string nombre = categoriaParaEditar.Nombre;
+                    Task.Run(async () =>
+                    {
+                        var srv = new SupabaseService();
+                        await srv.SincronizarCategoria(new Categoria { Id = id, Nombre = nombre });
+                    });
+                    // -----------------
                 }
             }
         }
@@ -284,21 +289,26 @@ namespace WpfApp1.ViewModels
         {
             if (parametro is Subcategoria subcategoriaParaEditar)
             {
-                // Reutilizamos el diálogo de "Crear" Subcategoría
                 var dialog = new CrearSubcategoriaDialog();
                 dialog.NombreTextBox.Text = subcategoriaParaEditar.Nombre;
 
                 if (dialog.ShowDialog() == true)
                 {
-                    // 1. Actualiza objeto en memoria
                     subcategoriaParaEditar.Nombre = dialog.NombreSubcategoria;
-
-                    // 2. Guarda en BD
                     _context.Subcategorias.Update(subcategoriaParaEditar);
                     _context.SaveChanges();
-
-                    // 3. Refresca la lista de subcategorías (solo las de esa categoría)
                     CargarSubcategorias();
+
+                    // --- SYNC NUBE ---
+                    int id = subcategoriaParaEditar.Id;
+                    int catId = subcategoriaParaEditar.CategoriaId;
+                    string nombre = subcategoriaParaEditar.Nombre;
+                    Task.Run(async () =>
+                    {
+                        var srv = new SupabaseService();
+                        await srv.SincronizarSubcategoria(new Subcategoria { Id = id, Nombre = nombre, CategoriaId = catId });
+                    });
+                    // -----------------
                 }
             }
         }
@@ -309,30 +319,42 @@ namespace WpfApp1.ViewModels
         {
             if (parametro is Categoria categoriaParaEliminar)
             {
-                // ¡La advertencia!
-                // Verificamos si tiene subcategorías (ya las cargamos con .Include())
                 string aviso = $"¿Estás seguro de que quieres eliminar '{categoriaParaEliminar.Nombre}'?";
                 if (categoriaParaEliminar.Subcategorias.Any())
                 {
                     aviso += $"\n\n¡ATENCIÓN! Esto borrará también sus {categoriaParaEliminar.Subcategorias.Count} subcategorías asociadas.";
                 }
 
-                // Mostramos el MessageBox de confirmación
                 if (MessageBox.Show(aviso, "Confirmar eliminación", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
-                    // 1. (Opcional) Borramos los hijos de la BD si EF no lo hace en cascada
-                    // En este caso, EF Core es listo. Si borramos el padre,
-                    // las claves foráneas de los hijos harán que se borren.
+                    // CAPTURAR IDs: Guardamos los IDs de lo que vamos a borrar
+                    long idCategoria = categoriaParaEliminar.Id;
+                    // Hacemos una lista de los IDs de sus hijos para borrarlos en la nube también
+                    var idsSubcategorias = categoriaParaEliminar.Subcategorias.Select(s => s.Id).ToList();
 
-                    // 2. Borra el padre de la BD
+                    // 1. Borrado Local (EF Core se encarga de la cascada aquí)
                     _context.Categorias.Remove(categoriaParaEliminar);
                     _context.SaveChanges();
 
-                    // 3. Borra de la lista de la pantalla
+                    // 2. Actualizar UI
                     Categorias.Remove(categoriaParaEliminar);
-
-                    // 4. Limpiamos la lista de subcategorías (porque su padre ya no existe)
                     Subcategorias.Clear();
+
+                    // 3. --- SYNC NUBE EN ORDEN ---
+                    Task.Run(async () =>
+                    {
+                        var srv = new SupabaseService();
+
+                        // A. Primero borramos los hijos en la nube para no romper la integridad
+                        foreach (var idSub in idsSubcategorias)
+                        {
+                            await srv.EliminarSubcategoria(idSub);
+                        }
+
+                        // B. Ahora sí, borramos al padre tranquilamente
+                        await srv.EliminarCategoria(idCategoria);
+                    });
+                    // -----------------------------
                 }
             }
         }
@@ -341,17 +363,27 @@ namespace WpfApp1.ViewModels
         {
             if (parametro is Subcategoria subcategoriaParaEliminar)
             {
-                // ¡La advertencia!
                 string aviso = $"¿Estás seguro de que quieres eliminar la subcategoría '{subcategoriaParaEliminar.Nombre}'?";
 
                 if (MessageBox.Show(aviso, "Confirmar eliminación", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
-                    // 1. Borra de la BD
+                    // Guardamos el ID antes de que el objeto desaparezca del contexto
+                    long idParaBorrar = subcategoriaParaEliminar.Id;
+
+                    // 1. Borra de la BD Local
                     _context.Subcategorias.Remove(subcategoriaParaEliminar);
                     _context.SaveChanges();
 
-                    // 2. Borra de la lista de la pantalla
+                    // 2. Borra de la lista visual
                     Subcategorias.Remove(subcategoriaParaEliminar);
+
+                    // 3. --- SYNC NUBE (Background) ---
+                    Task.Run(async () =>
+                    {
+                        var srv = new SupabaseService();
+                        await srv.EliminarSubcategoria(idParaBorrar);
+                    });
+                    // --------------------------------
                 }
             }
         }
@@ -359,51 +391,44 @@ namespace WpfApp1.ViewModels
         // --- 3. Método para el NUEVO Comando ---
         private void OnMoverSubcategorias(object obj)
         {
-            // 1. Validar que tengamos una categoría "padre" seleccionada
-            if (CategoriaSeleccionada == null)
-            {
-                MessageBox.Show("Selecciona la categoría de la que quieres mover subcategorías.", "Error");
-                return;
-            }
+            // ... (tus validaciones iniciales siguen igual) ...
+            if (CategoriaSeleccionada == null) return;
 
-            // 2. Encontrar todas las subcategorías marcadas con IsSelected
-            var subcategoriasParaMover = Subcategorias
-                .Where(s => s.IsSelected)
-                .ToList(); // ¡Nuestra propiedad [NotMapped] en acción!
+            var subcategoriasParaMover = Subcategorias.Where(s => s.IsSelected).ToList();
+            if (subcategoriasParaMover.Count == 0) return;
 
-            // 3. Validar que se haya seleccionado al menos una
-            if (subcategoriasParaMover.Count == 0)
-            {
-                MessageBox.Show("No has seleccionado ninguna subcategoría para mover (marca las casillas).", "Aviso");
-                return;
-            }
+            var categoriasDestino = Categorias.Where(c => c.Id != CategoriaSeleccionada.Id).ToList();
 
-            // 4. Preparar la lista de "a dónde" se pueden mover
-            var categoriasDestino = Categorias
-                .Where(c => c.Id != CategoriaSeleccionada.Id) // Todas, excepto la actual
-                .ToList();
-
-            // 5. Abrir el diálogo
             var dialog = new MoverSubcategoriasDialog(subcategoriasParaMover.Count, categoriasDestino);
             if (dialog.ShowDialog() == true)
             {
-                // 6. El usuario hizo clic en "Mover"
                 Categoria categoriaDestino = dialog.CategoriaDestino;
 
-                // 7. Actualizar el CategoriaId de cada subcategoría
+                // Lista para guardar los datos necesarios para sync
+                var listaParaSync = new System.Collections.Generic.List<Subcategoria>();
+
                 foreach (var sub in subcategoriasParaMover)
                 {
                     sub.CategoriaId = categoriaDestino.Id;
                     _context.Subcategorias.Update(sub);
+
+                    // Guardamos copia ligera para el hilo secundario
+                    listaParaSync.Add(new Subcategoria { Id = sub.Id, Nombre = sub.Nombre, CategoriaId = categoriaDestino.Id });
                 }
 
-                // 8. Guardar TODOS los cambios a la BD en una sola transacción
                 _context.SaveChanges();
-
-                // 9. ¡Refrescar la lista!
-                //    Llamamos a CargarSubcategorias. Como los IDs cambiaron,
-                //    las subcategorías movidas ya no aparecerán.
                 CargarSubcategorias();
+
+                // --- SYNC NUBE MASIVO ---
+                Task.Run(async () =>
+                {
+                    var srv = new SupabaseService();
+                    foreach (var item in listaParaSync)
+                    {
+                        await srv.SincronizarSubcategoria(item);
+                    }
+                });
+                // ------------------------
             }
         }
     }

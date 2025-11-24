@@ -61,11 +61,10 @@ namespace WpfApp1.Views.Dialogs
 
         private void Guardar_Click(object sender, RoutedEventArgs e)
         {
-            // ... (Tu lógica de validación original se queda igual) ...
+            // --- TUS VALIDACIONES ORIGINALES ---
             if (string.IsNullOrWhiteSpace(txtDescripcion.Text)) { MessageBox.Show("Falta descripción"); return; }
             if (!decimal.TryParse(txtPrecio.Text, out decimal precio)) { MessageBox.Show("Precio inválido"); return; }
 
-            // Valores opcionales
             decimal.TryParse(txtCosto.Text, out decimal costo);
             int.TryParse(txtStock.Text, out int stock);
             string img = string.IsNullOrWhiteSpace(txtImagenUrl.Text) ? "https://via.placeholder.com/150" : txtImagenUrl.Text;
@@ -90,11 +89,47 @@ namespace WpfApp1.Views.Dialogs
 
             try
             {
+                int nuevoId = 0;
+
+                // 1. GUARDADO LOCAL (Rápido)
                 using (var db = new InventarioDbContext())
                 {
                     db.Productos.Add(ProductoRegistrado);
                     db.SaveChanges();
+                    nuevoId = ProductoRegistrado.ID; // Obtenemos el ID generado
                 }
+
+                // 2. SINCRONIZACIÓN EN SEGUNDO PLANO (Fire and Forget)
+                if (nuevoId > 0)
+                {
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            using (var dbSync = new InventarioDbContext())
+                            {
+                                // Volvemos a cargar el producto con sus relaciones (Categoría) para enviarlo completo
+                                var prodParaNube = await dbSync.Productos
+                                    .Include(p => p.Subcategoria)
+                                    .ThenInclude(s => s.Categoria)
+                                    .FirstOrDefaultAsync(p => p.ID == nuevoId);
+
+                                if (prodParaNube != null)
+                                {
+                                    var srv = new WpfApp1.Services.SupabaseService();
+                                    await srv.SincronizarProducto(prodParaNube);
+                                    System.Diagnostics.Debug.WriteLine($"Producto nuevo sincronizado: {prodParaNube.Descripcion}");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Error sync nuevo producto: " + ex.Message);
+                        }
+                    });
+                }
+
+                // 3. CERRAR DE INMEDIATO
                 this.DialogResult = true;
                 this.Close();
             }

@@ -48,19 +48,46 @@ namespace WpfApp1.Views.Dialogs
         {
             try
             {
+                int idCliente = _cliente.ID;
+                bool nuevoEstado = !_cliente.Activo;
+
+                // 1. CAMBIO LOCAL
                 using (var db = new InventarioDbContext())
                 {
-                    var clienteEnDb = db.Clientes.Find(_cliente.ID);
+                    var clienteEnDb = db.Clientes.Find(idCliente);
                     if (clienteEnDb != null)
                     {
-                        clienteEnDb.Activo = !clienteEnDb.Activo;
+                        clienteEnDb.Activo = nuevoEstado;
                         db.SaveChanges();
+
+                        // Actualizamos el objeto en memoria para la UI
+                        _cliente.Activo = nuevoEstado;
                     }
                 }
+
+                // 2. SYNC NUBE
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        // Obtenemos una copia fresca para enviar
+                        using (var dbSync = new InventarioDbContext())
+                        {
+                            var clienteParaNube = dbSync.Clientes.Find(idCliente);
+                            if (clienteParaNube != null)
+                            {
+                                var srv = new WpfApp1.Services.SupabaseService();
+                                await srv.SincronizarCliente(clienteParaNube);
+                            }
+                        }
+                    }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error sync estado cliente: " + ex.Message); }
+                });
+
                 this.DialogResult = true;
                 this.Close();
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error: " + ex.Message);
                 this.DialogResult = false;

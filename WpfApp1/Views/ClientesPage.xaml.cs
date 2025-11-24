@@ -196,54 +196,58 @@ namespace WpfApp1.Views
             var viewModel = (ClientesViewModel)this.DataContext;
             if (viewModel == null) return;
 
-            // Obtenemos la lista de clientes a deshabilitar
-            var clientesParaCambiar = viewModel.Clientes
-                .Where(c => c.IsSelected && c.Activo) // Solo seleccionados Y activos
-                .ToList();
+            var clientesParaCambiar = viewModel.Clientes.Where(c => c.IsSelected && c.Activo).ToList();
 
             if (clientesParaCambiar.Count == 0)
             {
-                MessageBox.Show("No hay clientes activos seleccionados para deshabilitar.", "Aviso");
+                MessageBox.Show("No hay clientes activos seleccionados.", "Aviso");
                 return;
             }
 
-            // Confirmación
-            var resultado = MessageBox.Show(
-                $"¿Estás seguro de que deseas deshabilitar {clientesParaCambiar.Count} cliente(s) seleccionado(s)?",
-                "Confirmar deshabilitación",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
+            if (MessageBox.Show($"¿Deshabilitar {clientesParaCambiar.Count} clientes?", "Confirmar", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+                return;
 
-            if (resultado != MessageBoxResult.Yes)
-            {
-                return; // El usuario canceló
-            }
-
-            // Hacemos el cambio en la BD
             try
             {
+                var idsAfectados = clientesParaCambiar.Select(c => c.ID).ToList();
+
+                // 1. CAMBIO LOCAL MASIVO
                 using (var db = new InventarioDbContext())
                 {
-                    // Obtenemos los IDs
-                    var ids = clientesParaCambiar.Select(c => c.ID).ToList();
-
-                    // Buscamos los clientes en la BD y los actualizamos
-                    var clientesEnDb = db.Clientes.Where(c => ids.Contains(c.ID)).ToList();
+                    var clientesEnDb = db.Clientes.Where(c => idsAfectados.Contains(c.ID)).ToList();
                     foreach (var clienteDb in clientesEnDb)
                     {
-                        clienteDb.Activo = false; // ¡Deshabilitados!
+                        clienteDb.Activo = false;
                     }
                     db.SaveChanges();
                 }
 
-                MessageBox.Show("¡Clientes deshabilitados con éxito!", "Éxito");
+                // 2. SYNC NUBE MASIVO
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        using (var dbSync = new InventarioDbContext())
+                        {
+                            // Recuperamos los clientes ya actualizados
+                            var listaParaNube = dbSync.Clientes.Where(c => idsAfectados.Contains(c.ID)).ToList();
 
-                // Refrescamos la lista entera para que los filtros se apliquen
+                            var srv = new WpfApp1.Services.SupabaseService();
+                            foreach (var c in listaParaNube)
+                            {
+                                await srv.SincronizarCliente(c);
+                            }
+                        }
+                    }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error sync masivo clientes: " + ex.Message); }
+                });
+
+                MessageBox.Show("¡Clientes deshabilitados con éxito!", "Éxito");
                 ActualizarFiltroClientes();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al deshabilitar los clientes: " + ex.Message, "Error");
+                MessageBox.Show("Error: " + ex.Message);
             }
         }
     }

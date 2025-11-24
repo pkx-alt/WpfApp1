@@ -603,6 +603,38 @@ namespace WpfApp1.ViewModels
                 }
                 db.Ventas.Add(nuevaVenta);
                 db.SaveChanges();
+
+                // --- CÓDIGO NUEVO ---
+                // Recolectamos los IDs de los productos que cambiaron
+                var idsModificados = CarritoItems.Select(i => int.Parse(i.ID)).ToList();
+
+                // Lanzamos la tarea en segundo plano para no hacer esperar al cliente en caja
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        using (var dbSync = new InventarioDbContext())
+                        {
+                            var productosActualizados = dbSync.Productos
+                                .Include(p => p.Subcategoria).ThenInclude(s => s.Categoria)
+                                .Where(p => idsModificados.Contains(p.ID))
+                                .ToList();
+
+                            var srv = new WpfApp1.Services.SupabaseService();
+                            foreach (var prod in productosActualizados)
+                            {
+                                await srv.SincronizarProducto(prod);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log silencioso
+                        System.Diagnostics.Debug.WriteLine("Error sync post-venta: " + ex.Message);
+                    }
+                });
+                // --------------------
+
                 return nuevaVenta; // <--- Agrega esto
             }
         }

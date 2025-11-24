@@ -6,6 +6,7 @@ using System.Windows.Input; // Necesario para PreviewTextInput
 using System.Windows.Controls; // Necesario para TextChangedEventArgs
 using System.Text.RegularExpressions; // Para validar números
 using WpfApp1.Data; // <--- ¡AÑADE ESTA LÍNEA!
+using Microsoft.EntityFrameworkCore;
 
 namespace WpfApp1.Views.Dialogs
 {
@@ -51,6 +52,9 @@ namespace WpfApp1.Views.Dialogs
 
             try
             {
+                int idProductoParaSync = 0;
+
+                // 1. LÓGICA LOCAL
                 using (var db = new InventarioDbContext())
                 {
                     var productoEnDb = db.Productos.Find(_productoActual.ID);
@@ -60,7 +64,6 @@ namespace WpfApp1.Views.Dialogs
                         int stockAntes = productoEnDb.Stock;
                         string tipoMovimiento = "";
 
-                        // Tu lógica de radios
                         if (RadioAgregar.IsChecked == true)
                         {
                             productoEnDb.Stock += cantidad;
@@ -75,12 +78,8 @@ namespace WpfApp1.Views.Dialogs
                             }
                             productoEnDb.Stock -= cantidad;
                             tipoMovimiento = "Salida (Ajuste Manual)";
-
-                            // Leemos el motivo del ComboBox si lo tienes
-                            // tipoMovimiento += $" - {MotivoComboBox.Text}";
                         }
 
-                        // Creamos la bitácora
                         var historial = new MovimientoInventario
                         {
                             Fecha = DateTime.Now,
@@ -96,11 +95,38 @@ namespace WpfApp1.Views.Dialogs
                         db.Movimientos.Add(historial);
                         db.SaveChanges();
 
-                        // Refrescamos el objeto visual
                         _productoActual.Stock = productoEnDb.Stock;
+                        idProductoParaSync = productoEnDb.ID; // Guardamos ID
                     }
                 }
+
+                // 2. SINCRONIZACIÓN BACKGROUND
+                if (idProductoParaSync > 0)
+                {
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            using (var dbSync = new InventarioDbContext())
+                            {
+                                var prod = await dbSync.Productos
+                                    .Include(p => p.Subcategoria).ThenInclude(s => s.Categoria)
+                                    .FirstOrDefaultAsync(p => p.ID == idProductoParaSync);
+
+                                if (prod != null)
+                                {
+                                    var srv = new WpfApp1.Services.SupabaseService();
+                                    await srv.SincronizarProducto(prod);
+                                }
+                            }
+                        }
+                        catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error sync stock: " + ex.Message); }
+                    });
+                }
+
+                // 3. CERRAR
                 this.DialogResult = true;
+                this.Close();
             }
             catch (Exception ex)
             {

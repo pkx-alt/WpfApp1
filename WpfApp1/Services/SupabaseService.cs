@@ -190,5 +190,129 @@ namespace WpfApp1.Services
                 return $"❌ ERROR GRAVE DE CONEXIÓN:\n{ex.Message}";
             }
         }
+
+        /// <summary>
+        /// Toma un producto local y lo sube a la nube (Crea o Actualiza)
+        /// </summary>
+        public async Task SincronizarProducto(Producto productoLocal)
+        {
+            try
+            {
+                await Inicializar();
+
+                // 1. Convertimos el modelo Local al modelo Web
+                // OJO: Necesitamos cargar la categoría si no viene cargada, 
+                // pero para simplificar, si es nula mandamos "General".
+                string nombreCategoria = "General";
+                if (productoLocal.Subcategoria != null && productoLocal.Subcategoria.Categoria != null)
+                {
+                    nombreCategoria = productoLocal.Subcategoria.Categoria.Nombre;
+                }
+
+                var productoWeb = new ProductoWeb
+                {
+                    Sku = productoLocal.ID, // El vínculo sagrado
+                    Descripcion = productoLocal.Descripcion,
+                    Precio = productoLocal.Precio,
+                    Stock = productoLocal.Stock,
+                    Activo = productoLocal.Activo,
+                    ImagenUrl = productoLocal.ImagenUrl,
+                    Categoria = nombreCategoria,
+                    UltimaActualizacion = DateTime.Now
+                };
+
+                // 2. ¡Upsert! (Insertar o Actualizar)
+                await _client.From<ProductoWeb>().Upsert(productoWeb);
+            }
+            catch (Exception ex)
+            {
+                // En un sistema real, aquí guardaríamos un log de "Sincronización fallida"
+                // Por ahora, lo escribimos en la consola de depuración para que no truene la app.
+                System.Diagnostics.Debug.WriteLine($"Error al subir producto a Supabase: {ex.Message}");
+            }
+        }
+
+        public async Task SincronizarCategoria(Categoria local)
+        {
+            try
+            {
+                await Inicializar();
+                var webModel = new CategoriaWeb
+                {
+                    Id = local.Id,
+                    Nombre = local.Nombre,
+                    UltimaActualizacion = DateTime.Now
+                };
+                await _client.From<CategoriaWeb>().Upsert(webModel);
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error sync Categoria: " + ex.Message); }
+        }
+
+        public async Task SincronizarSubcategoria(Subcategoria local)
+        {
+            try
+            {
+                await Inicializar();
+                var webModel = new SubcategoriaWeb
+                {
+                    Id = local.Id,
+                    Nombre = local.Nombre,
+                    CategoriaId = local.CategoriaId,
+                    UltimaActualizacion = DateTime.Now
+                };
+                await _client.From<SubcategoriaWeb>().Upsert(webModel);
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error sync Subcategoria: " + ex.Message); }
+        }
+
+        public async Task EliminarSubcategoria(long id)
+        {
+            try
+            {
+                await Inicializar();
+                // Borramos donde el ID coincida
+                await _client.From<SubcategoriaWeb>().Where(x => x.Id == id).Delete();
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error delete Subcategoria: " + ex.Message); }
+        }
+
+        public async Task EliminarCategoria(long id)
+        {
+            try
+            {
+                await Inicializar();
+                await _client.From<CategoriaWeb>().Where(x => x.Id == id).Delete();
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error delete Categoria: " + ex.Message); }
+        }
+
+        public async Task SincronizarCliente(Cliente local)
+        {
+            try
+            {
+                await Inicializar();
+
+                var webModel = new ClienteWeb
+                {
+                    Id = local.ID,
+                    Rfc = local.RFC,
+                    RazonSocial = local.RazonSocial,
+                    Telefono = local.Telefono,
+                    Activo = local.Activo,
+                    EsFactura = local.EsFactura,
+                    CodigoPostal = local.CodigoPostal,
+                    RegimenFiscal = local.RegimenFiscal,
+                    UsoCfdi = local.UsoCFDI,
+                    Creado = local.Creado,
+                    UltimaActualizacion = DateTime.Now
+                };
+
+                await _client.From<ClienteWeb>().Upsert(webModel);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error sync Cliente: " + ex.Message);
+            }
+        }
     }
 }

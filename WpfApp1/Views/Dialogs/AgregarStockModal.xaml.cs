@@ -4,8 +4,9 @@ using System.Text.RegularExpressions; // Para validar números
 using System.Windows;
 using System.Windows.Controls; // Necesario para TextChangedEventArgs
 using System.Windows.Input; // Necesario para PreviewTextInput
-using WpfApp1.Models; // ¡Importante!
 using WpfApp1.Data; // <--- ¡AÑADE ESTA LÍNEA!
+using WpfApp1.Models; // ¡Importante!
+using Microsoft.EntityFrameworkCore;
 
 namespace WpfApp1.Views.Dialogs
 {
@@ -34,7 +35,7 @@ namespace WpfApp1.Views.Dialogs
 
         private void FinalizarButton_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Validar la cantidad (esto ya lo tenías)
+            // 1. Validaciones de UI (Esto sigue igual)
             if (!int.TryParse(CantidadTextBox.Text, out int cantidad) || cantidad <= 0)
             {
                 MessageBox.Show("Por favor, introduce una cantidad válida.", "Error");
@@ -43,21 +44,19 @@ namespace WpfApp1.Views.Dialogs
 
             try
             {
+                int idProductoParaSync = 0; // Aquí guardaremos el ID para el "ayudante"
+
+                // 2. GUARDADO LOCAL (Rápido y Síncrono)
                 using (var db = new InventarioDbContext())
                 {
-                    // IMPORTANTE: Volvemos a buscar el producto en ESTE contexto
-                    // para asegurarnos de tener la versión más reciente y evitar errores de tracking.
                     var productoEnDb = db.Productos.Find(_productoActual.ID);
 
                     if (productoEnDb != null)
                     {
-                        // A. Guardamos el estado actual antes de tocar nada
+                        // --- Tu lógica de inventario local ---
                         int stockAntes = productoEnDb.Stock;
-
-                        // B. Aplicamos el cambio (Tu lógica original de RadioButton)
                         string tipoMovimiento = "";
 
-                        // Asumo que tienes RadioAgregar y RadioDisminuir en tu XAML
                         if (RadioAgregar.IsChecked == true)
                         {
                             productoEnDb.Stock += cantidad;
@@ -65,7 +64,6 @@ namespace WpfApp1.Views.Dialogs
                         }
                         else
                         {
-                            // Validación extra
                             if (productoEnDb.Stock < cantidad)
                             {
                                 MessageBox.Show("No puedes quitar más stock del que tienes.");
@@ -75,7 +73,6 @@ namespace WpfApp1.Views.Dialogs
                             tipoMovimiento = "Salida (Corrección)";
                         }
 
-                        // C. ¡LA NOVEDAD! Creamos el registro en la bitácora
                         var movimiento = new MovimientoInventario
                         {
                             Fecha = DateTime.Now,
@@ -83,27 +80,68 @@ namespace WpfApp1.Views.Dialogs
                             TipoMovimiento = tipoMovimiento,
                             Cantidad = cantidad,
                             StockAnterior = stockAntes,
-                            StockNuevo = productoEnDb.Stock, // El stock ya modificado
-                            Motivo = NotasTextBox.Text, // Asumiendo que tienes un TextBox para notas
-                            Usuario = "Admin" // Aquí pondrías el usuario logueado
+                            StockNuevo = productoEnDb.Stock,
+                            Motivo = NotasTextBox.Text,
+                            Usuario = "Admin"
                         };
 
-                        // D. Agregamos el movimiento a la tabla nueva
                         db.Movimientos.Add(movimiento);
 
-                        // E. Guardamos TODO junto (Producto actualizado + Movimiento nuevo)
+                        // Guardamos en SQLite (esto tarda milisegundos)
                         db.SaveChanges();
 
-                        // Actualizamos el objeto visual de la ventana anterior (opcional pero visualmente útil)
+                        // Actualizamos visualmente la ventana padre
                         _productoActual.Stock = productoEnDb.Stock;
+
+                        // ¡IMPORTANTE! Guardamos el ID para el proceso de fondo
+                        idProductoParaSync = productoEnDb.ID;
                     }
                 }
 
+                // 3. TAREA DE FONDO (Aquí está la magia)
+                // Lanzamos un hilo aparte. No usamos 'await' aquí para no bloquear el cierre.
+                if (idProductoParaSync > 0)
+                {
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            // Este código corre en paralelo, no importa si la ventana se cierra.
+                            // Creamos un NUEVO contexto de base de datos exclusivo para este hilo.
+                            using (var dbBackground = new InventarioDbContext())
+                            {
+                                // Volvemos a buscar el producto con sus relaciones limpias
+                                var prodSync = await dbBackground.Productos
+                                                    .Include(p => p.Subcategoria)
+                                                    .ThenInclude(s => s.Categoria)
+                                                    .FirstOrDefaultAsync(p => p.ID == idProductoParaSync);
+
+                                if (prodSync != null)
+                                {
+                                    var srv = new WpfApp1.Services.SupabaseService();
+                                    await srv.SincronizarProducto(prodSync);
+                                    System.Diagnostics.Debug.WriteLine($"Sincronización background exitosa: {prodSync.Descripcion}");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Si falla en el fondo, no podemos mostrar MessageBox porque no hay ventana.
+                            // Lo escribimos en la consola de salida (Output) de Visual Studio.
+                            System.Diagnostics.Debug.WriteLine("Error en sincronización background: " + ex.Message);
+                        }
+                    });
+                }
+
+                // 4. CERRAR INMEDIATAMENTE
+                // Como la tarea anterior ya está corriendo en su propio mundo (Task.Run),
+                // podemos cerrar la ventana sin miedo.
                 this.DialogResult = true;
+                this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al guardar: {ex.Message}", "Error de BD");
+                MessageBox.Show($"Error al guardar localmente: {ex.Message}", "Error de BD");
             }
         }
 

@@ -54,14 +54,13 @@ namespace WpfApp1.Views.Dialogs
         // --- 3. GUARDAR CLIENTE ---
         private void btnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            // Validaciones básicas
+            // --- TUS VALIDACIONES (NO CAMBIAN) ---
             if (string.IsNullOrWhiteSpace(txtRazonSocial.Text))
             {
                 MessageBox.Show("El nombre o razón social es obligatorio.", "Falta nombre", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Validación Estricta (Solo si pidió factura)
             if (chkEsFactura.IsChecked == true)
             {
                 if (string.IsNullOrWhiteSpace(txtRfc.Text) || txtRfc.Text == "XAXX010101000")
@@ -82,12 +81,7 @@ namespace WpfApp1.Views.Dialogs
                 RazonSocial = txtRazonSocial.Text.Trim(),
                 Telefono = txtTelefono.Text.Trim(),
                 Activo = true,
-
-                // --- ¡AQUÍ ESTABA EL ERROR! FALTABA ESTA LÍNEA: ---
                 EsFactura = chkEsFactura.IsChecked == true,
-
-                // Nota: No necesitamos lógica especial aquí porque los TextBox 
-                // ya tienen el valor correcto (sea el genérico o el real) gracias al evento del checkbox.
                 RFC = txtRfc.Text.Trim().ToUpper(),
                 CodigoPostal = txtCodigoPostal.Text.Trim(),
                 RegimenFiscal = txtRegimenFiscal.Text.Trim(),
@@ -96,10 +90,35 @@ namespace WpfApp1.Views.Dialogs
 
             try
             {
+                int nuevoId = 0;
+
+                // 1. GUARDAR LOCALMENTE (SQLite)
                 using (var db = new InventarioDbContext())
                 {
                     db.Clientes.Add(nuevoCliente);
                     db.SaveChanges();
+                    nuevoId = nuevoCliente.ID; // Aquí obtenemos el ID generado por la BD
+                }
+
+                // 2. ¡AQUÍ ESTABA EL FALTANTE! -> SINCRONIZAR CON SUPABASE
+                if (nuevoId > 0)
+                {
+                    // Le asignamos el ID real al objeto antes de enviarlo
+                    nuevoCliente.ID = nuevoId;
+
+                    // Lanzamos la tarea en segundo plano (Fire and Forget)
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var srv = new WpfApp1.Services.SupabaseService();
+                            await srv.SincronizarCliente(nuevoCliente);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Error sync cliente background: " + ex.Message);
+                        }
+                    });
                 }
 
                 MessageBox.Show("¡Cliente registrado exitosamente!", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);

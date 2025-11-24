@@ -101,7 +101,7 @@
                                     </Style>
                                 </TextBlock.Style>
                                 <Run Text="{Binding Stock}"/>
-                                <Run Text=" unidades"/>
+                                <Run Text="unidades"/>
                             </TextBlock>
 
                             <Border x:Name="BajoStockAlertTextBlock" 

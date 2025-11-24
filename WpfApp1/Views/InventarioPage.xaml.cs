@@ -120,9 +120,10 @@ namespace WpfApp1.Views
                 }
             }
         }
+        // En Views/InventarioPage.xaml.cs
+
         private void BtnImportar_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Abrir diálogo para buscar el archivo
             OpenFileDialog openDialog = new OpenFileDialog
             {
                 Filter = "Archivo CSV (*.csv)|*.csv",
@@ -133,84 +134,99 @@ namespace WpfApp1.Views
             {
                 try
                 {
+                    // Lista para guardar los IDs que tendremos que subir a la nube
+                    var productosParaSync = new System.Collections.Generic.List<Producto>();
+
                     using (var db = new InventarioDbContext())
                     {
-                        // 2. ESTRATEGIA DE SUBCATEGORÍA
-                        // Buscamos una subcategoría por defecto para asignarle a los nuevos productos.
-                        // Intentamos buscar una que se llame "General", si no, agarramos la primera que haya.
                         var subcatPorDefecto = db.Subcategorias.FirstOrDefault(s => s.Nombre == "General")
                                                ?? db.Subcategorias.FirstOrDefault();
 
                         if (subcatPorDefecto == null)
                         {
-                            MessageBox.Show("Error: No existen subcategorías en la base de datos. Crea al menos una (ej. 'General') antes de importar.", "Falta Configuración");
+                            MessageBox.Show("Error: No existen subcategorías...", "Falta Configuración");
                             return;
                         }
 
-                        // 3. LEER EL ARCHIVO
                         string[] lineas = File.ReadAllLines(openDialog.FileName);
                         int contados = 0;
                         int errores = 0;
 
-                        // Empezamos en i = 1 para saltarnos los encabezados
                         for (int i = 1; i < lineas.Length; i++)
                         {
                             string linea = lineas[i];
                             if (string.IsNullOrWhiteSpace(linea)) continue;
 
-                            // Separamos por comas
                             string[] partes = linea.Split(',');
 
-                            // VALIDACIÓN BÁSICA: Necesitamos al menos Descripción, Precio, Costo, Stock (4 columnas)
-                            if (partes.Length < 4)
-                            {
-                                errores++;
-                                continue;
-                            }
+                            if (partes.Length < 4) { errores++; continue; }
 
                             try
                             {
-                                // 4. CREAR EL PRODUCTO
                                 var nuevoProd = new Producto
                                 {
-                                    Descripcion = partes[0].Trim(), // Columna A: Descripción
-                                    Precio = decimal.Parse(partes[1]), // Columna B: Precio
-                                    Costo = decimal.Parse(partes[2]),  // Columna C: Costo
-                                    Stock = int.Parse(partes[3]),      // Columna D: Stock
-
-                                    // Datos automáticos
+                                    Descripcion = partes[0].Trim(),
+                                    Precio = decimal.Parse(partes[1]),
+                                    Costo = decimal.Parse(partes[2]),
+                                    Stock = int.Parse(partes[3]),
                                     Activo = true,
-                                    ImagenUrl = "https://via.placeholder.com/150", // Imagen genérica
-                                    SubcategoriaId = subcatPorDefecto.Id // Asignamos la categoría "General"
+                                    ImagenUrl = "https://via.placeholder.com/150",
+                                    SubcategoriaId = subcatPorDefecto.Id
                                 };
 
                                 db.Productos.Add(nuevoProd);
+
+                                // Lo agregamos a nuestra lista temporal para no perderle la pista
+                                productosParaSync.Add(nuevoProd);
+
                                 contados++;
                             }
-                            catch
-                            {
-                                // Si falla una línea (ej: precio con letras), la saltamos y contamos el error
-                                errores++;
-                            }
+                            catch { errores++; }
                         }
 
-                        // 5. GUARDAR EN BD
-                        db.SaveChanges();
+                        db.SaveChanges(); // ¡Aquí SQLite les asigna los IDs a todos!
+
+                        // --- SINCRONIZACIÓN MASIVA EN SEGUNDO PLANO ---
+                        if (productosParaSync.Count > 0)
+                        {
+                            // Sacamos solo los IDs para pasárselos al hilo secundario
+                            var idsParaNube = productosParaSync.Select(p => p.ID).ToList();
+
+                            Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    using (var dbSync = new InventarioDbContext())
+                                    {
+                                        // Cargamos los productos completos (con categoría) usando los IDs
+                                        var listaParaSubir = await dbSync.Productos
+                                            .Include(p => p.Subcategoria).ThenInclude(s => s.Categoria)
+                                            .Where(p => idsParaNube.Contains(p.ID))
+                                            .ToListAsync();
+
+                                        var srv = new WpfApp1.Services.SupabaseService();
+                                        foreach (var prod in listaParaSubir)
+                                        {
+                                            await srv.SincronizarProducto(prod);
+                                        }
+                                        System.Diagnostics.Debug.WriteLine($"Importación CSV sincronizada: {listaParaSubir.Count} productos.");
+                                    }
+                                }
+                                catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error sync CSV: " + ex.Message); }
+                            });
+                        }
+                        // -----------------------------------------------
 
                         string mensaje = $"Se importaron {contados} productos exitosamente.";
-                        if (errores > 0) mensaje += $"\nHubo {errores} líneas con errores que se omitieron.";
+                        if (errores > 0) mensaje += $"\nHubo {errores} líneas con errores.";
 
                         MessageBox.Show(mensaje, "Importación Finalizada", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                        // 6. REFRESCAR LA PANTALLA
                         var vm = this.DataContext as InventarioViewModel;
                         vm?.CargarProductos();
                     }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error crítico al importar: {ex.Message}", "Error");
-                }
+                catch (Exception ex) { MessageBox.Show($"Error crítico: {ex.Message}"); }
             }
         }
 
@@ -218,7 +234,6 @@ namespace WpfApp1.Views
 
         private void BtnImportarXML_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Buscar el archivo
             OpenFileDialog openDialog = new OpenFileDialog
             {
                 Filter = "Factura XML (*.xml)|*.xml",
@@ -229,27 +244,18 @@ namespace WpfApp1.Views
             {
                 try
                 {
+                    // Lista maestra de IDs que cambiaron (nuevos o editados)
+                    var idsAfectados = new System.Collections.Generic.List<int>();
+
                     using (var db = new InventarioDbContext())
                     {
-                        // A. Buscamos la categoría por defecto (igual que en CSV)
                         var subcatPorDefecto = db.Subcategorias.FirstOrDefault(s => s.Nombre == "General")
                                                ?? db.Subcategorias.FirstOrDefault();
 
-                        if (subcatPorDefecto == null)
-                        {
-                            MessageBox.Show("Necesitas tener al menos una subcategoría (ej. 'General') para importar.", "Error");
-                            return;
-                        }
+                        if (subcatPorDefecto == null) { MessageBox.Show("Necesitas subcategorías...", "Error"); return; }
 
-                        // B. Cargamos el XML en memoria
                         XDocument doc = XDocument.Load(openDialog.FileName);
-
-                        // C. Detectar el "Namespace" (El idioma del SAT)
-                        // Las facturas tienen una url rara al principio (http://www.sat.gob.mx/cfd/4).
-                        // Necesitamos esa URL para encontrar las etiquetas hijas.
                         XNamespace cfdi = doc.Root.Name.Namespace;
-
-                        // D. Buscar todos los "Conceptos" (Los productos de la factura)
                         var conceptos = doc.Descendants(cfdi + "Concepto").ToList();
 
                         int nuevos = 0;
@@ -257,38 +263,30 @@ namespace WpfApp1.Views
 
                         foreach (var concepto in conceptos)
                         {
-                            // 1. Extraer datos del XML (Atributos)
                             string descripcion = concepto.Attribute("Descripcion")?.Value;
-                            string noIdentificacion = concepto.Attribute("NoIdentificacion")?.Value ?? ""; // Código de barras o SKU del proveedor
-
-                            // Cantidad (El XML puede traer decimales, nosotros usamos enteros en stock, redondeamos)
                             decimal cantDec = decimal.Parse(concepto.Attribute("Cantidad")?.Value ?? "0");
                             int cantidad = (int)Math.Round(cantDec);
-
-                            // Costo Unitario (ValorUnitario en el XML)
                             decimal costo = decimal.Parse(concepto.Attribute("ValorUnitario")?.Value ?? "0");
-
-                            // Precio Sugerido (Calculamos una ganancia del 30% automática, luego tú la cambias)
                             decimal precioSugerido = costo * 1.30m;
 
-                            // 2. LÓGICA DE MATCH (Emparejamiento)
-                            // Primero buscamos si ya tenemos ese producto por su nombre exacto
                             var productoExistente = db.Productos
                                 .FirstOrDefault(p => p.Descripcion.ToLower() == descripcion.ToLower());
 
                             if (productoExistente != null)
                             {
-                                // --- ESCENARIO: YA EXISTE ---
-                                // Solo sumamos al stock y actualizamos el costo (último costo)
+                                // --- YA EXISTE ---
                                 productoExistente.Stock += cantidad;
                                 productoExistente.Costo = costo;
-                                // Opcional: ¿Actualizar precio? Mejor no, para no afectar tus márgenes sin que te des cuenta.
+
+                                // Guardamos su ID en la lista para sincronizar
+                                if (!idsAfectados.Contains(productoExistente.ID))
+                                    idsAfectados.Add(productoExistente.ID);
 
                                 actualizados++;
                             }
                             else
                             {
-                                // --- ESCENARIO: NUEVO PRODUCTO ---
+                                // --- NUEVO ---
                                 var nuevoProd = new Producto
                                 {
                                     Descripcion = descripcion,
@@ -297,29 +295,64 @@ namespace WpfApp1.Views
                                     Stock = cantidad,
                                     Activo = true,
                                     SubcategoriaId = subcatPorDefecto.Id,
-                                    ImagenUrl = "https://via.placeholder.com/150" // Imagen temporal
+                                    ImagenUrl = "https://via.placeholder.com/150"
                                 };
 
                                 db.Productos.Add(nuevoProd);
+                                // Nota: Aquí 'nuevoProd.ID' aún es 0, pero EF Core es listo.
+                                // Lo rastrearemos después de SaveChanges si mantenemos la referencia,
+                                // o más fácil: haremos el sync DESPUÉS de guardar.
                                 nuevos++;
                             }
                         }
 
-                        // E. Guardar Cambios
-                        db.SaveChanges();
+                        db.SaveChanges(); // Guardamos todo
 
-                        // F. Refrescar la pantalla
+                        // --- CAPTURAR IDs DE LOS NUEVOS ---
+                        // Como acabamos de guardar, buscamos los productos NUEVOS que no teníamos ID antes.
+                        // Un truco simple es volver a buscar por descripción los que acabamos de insertar,
+                        // pero para no complicar el código, haremos esto:
+                        // En este punto 'db.ChangeTracker' ya limpió el estado, así que lo mejor
+                        // es usar la lógica que pusimos en 'ProcesarArchivoXML' abajo, que es más robusta.
+                        // Pero para este botón simple, vamos a re-escanear los productos recién tocados.
+
+                        // (Para simplificar tu aprendizaje: El método 'ProcesarArchivoXML' de abajo es el "pro"
+                        // que usaremos para el correo. Este botón manual lo dejaremos simple y delegaremos
+                        // la lógica "pro" al método que ya tienes 'ProcesarArchivoXML' si quisieras unificarlo,
+                        // pero aquí te dejo la versión corregida con sync).
+
+                        // TRUCO RÁPIDO: Sincronizar TODO lo que coincida con los nombres del XML
+                        var nombresEnXml = conceptos.Select(c => c.Attribute("Descripcion")?.Value.ToLower()).ToList();
+
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                using (var dbSync = new InventarioDbContext())
+                                {
+                                    // Buscamos todos los productos que coincidan con las descripciones del XML
+                                    var productosASincronizar = await dbSync.Productos
+                                        .Include(p => p.Subcategoria).ThenInclude(s => s.Categoria)
+                                        .Where(p => nombresEnXml.Contains(p.Descripcion.ToLower()))
+                                        .ToListAsync();
+
+                                    var srv = new WpfApp1.Services.SupabaseService();
+                                    foreach (var prod in productosASincronizar)
+                                    {
+                                        await srv.SincronizarProducto(prod);
+                                    }
+                                }
+                            }
+                            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error sync XML: " + ex.Message); }
+                        });
+
                         var vm = this.DataContext as InventarioViewModel;
                         vm?.CargarProductos();
 
-                        MessageBox.Show($"Proceso terminado.\n\nNuevos productos creados: {nuevos}\nProductos actualizados (stock): {actualizados}",
-                                        "Importación XML Exitosa", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show($"Proceso terminado.\nNuevos: {nuevos}\nActualizados: {actualizados}");
                     }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error al leer el XML: {ex.Message}\n\nAsegúrate de que sea una factura válida (CFDI 3.3 o 4.0).", "Error");
-                }
+                catch (Exception ex) { MessageBox.Show("Error: " + ex.Message); }
             }
         }
 
@@ -328,71 +361,59 @@ namespace WpfApp1.Views
         // Método público que recibe la ruta de un archivo XML y lo procesa
         // En Views/InventarioPage.xaml.cs
 
+        // En Views/InventarioPage.xaml.cs
+
         public int ProcesarArchivoXML(string rutaArchivo)
         {
             int nuevos = 0;
             int actualizados = 0;
 
+            // Lista para recolectar qué productos tocamos
+            var nombresAfectados = new System.Collections.Generic.List<string>();
+
             try
             {
-                // 1. DATABASE CONTEXT
                 using (var db = new WpfApp1.Data.InventarioDbContext())
                 {
-                    // Buscamos la subcategoría por defecto
                     var subcatPorDefecto = db.Subcategorias.FirstOrDefault(s => s.Nombre == "General")
                                            ?? db.Subcategorias.FirstOrDefault();
 
                     if (subcatPorDefecto == null) return 0;
 
-                    // 2. CARGAR Y ANALIZAR XML (CFDI)
-                    var doc = System.Xml.Linq.XDocument.Load(rutaArchivo);
-                    // Detectamos el Namespace del SAT
-                    System.Xml.Linq.XNamespace cfdi = doc.Root.Name.Namespace;
-
-                    // Obtenemos todos los <cfdi:Concepto>
+                    var doc = XDocument.Load(rutaArchivo);
+                    XNamespace cfdi = doc.Root.Name.Namespace;
                     var conceptos = doc.Descendants(cfdi + "Concepto").ToList();
 
                     foreach (var concepto in conceptos)
                     {
-                        // 3. EXTRACCIÓN Y LIMPIEZA DE DATOS
                         string descripcion = concepto.Attribute("Descripcion")?.Value?.Trim();
-
                         if (string.IsNullOrWhiteSpace(descripcion)) continue;
 
-                        // --- ¡NUEVAS LÍNEAS CLAVE! ---
-                        // Leemos las claves fiscales del XML
+                        // Agregamos a la lista de afectados para sync posterior
+                        nombresAfectados.Add(descripcion.ToLower());
+
                         string claveSat = concepto.Attribute("ClaveProdServ")?.Value;
                         string claveUnidad = concepto.Attribute("ClaveUnidad")?.Value;
-                        // -----------------------------
-
                         decimal cantDec = decimal.Parse(concepto.Attribute("Cantidad")?.Value ?? "0");
                         int cantidad = (int)Math.Round(cantDec);
                         decimal costo = decimal.Parse(concepto.Attribute("ValorUnitario")?.Value ?? "0");
-                        decimal precioSugerido = costo * 1.30m; // Sugerimos un 30% de ganancia
+                        decimal precioSugerido = costo * 1.30m;
 
-                        // 4. LÓGICA DE MATCH (ANTI-DUPLICADOS)
-                        var productoEnMemoria = db.Productos.Local
-                            .FirstOrDefault(p => p.Descripcion.ToLower() == descripcion.ToLower());
-
-                        var productoExistente = productoEnMemoria ?? db.Productos
-                            .FirstOrDefault(p => p.Descripcion.ToLower() == descripcion.ToLower());
+                        // Buscamos en memoria local primero (cache de EF) o en DB
+                        var productoExistente = db.Productos.Local
+                            .FirstOrDefault(p => p.Descripcion.ToLower() == descripcion.ToLower())
+                            ?? db.Productos.FirstOrDefault(p => p.Descripcion.ToLower() == descripcion.ToLower());
 
                         if (productoExistente != null)
                         {
-                            // 5. ACTUALIZAR STOCK, COSTO Y CLAVES FISCALES
                             productoExistente.Stock += cantidad;
                             if (costo > 0) productoExistente.Costo = costo;
-
-                            // --- ¡AÑADIDO PARA ACTUALIZAR DATOS FISCALES! ---
                             if (!string.IsNullOrEmpty(claveSat)) productoExistente.ClaveSat = claveSat;
                             if (!string.IsNullOrEmpty(claveUnidad)) productoExistente.ClaveUnidad = claveUnidad;
-                            // ------------------------------------------------
-
                             actualizados++;
                         }
                         else
                         {
-                            // 6. CREAR NUEVO PRODUCTO
                             var nuevoProd = new WpfApp1.Models.Producto
                             {
                                 Descripcion = descripcion,
@@ -402,23 +423,44 @@ namespace WpfApp1.Views
                                 Activo = true,
                                 SubcategoriaId = subcatPorDefecto.Id,
                                 ImagenUrl = "https://via.placeholder.com/150",
-
-                                // --- ¡AÑADIDO PARA ASIGNAR DATOS FISCALES! ---
-                                // Usamos el operador ?? para asignar un valor por defecto si la lectura del XML falló.
                                 ClaveSat = claveSat ?? "01010101",
                                 ClaveUnidad = claveUnidad ?? "H87"
-                                // --------------------------------------------
                             };
-
                             db.Productos.Add(nuevoProd);
                             nuevos++;
                         }
                     }
 
-                    // 7. GUARDAR Y REFRESCAR
-                    db.SaveChanges();
+                    db.SaveChanges(); // Guardado local
 
-                    // La recarga de la vista se hace en el código que llama a esta función (BtnEscanearCorreo_Click)
+                    // --- SINCRONIZACIÓN BACKGROUND ---
+                    if (nombresAfectados.Count > 0)
+                    {
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                using (var dbSync = new InventarioDbContext())
+                                {
+                                    // Buscamos todos los productos que acabamos de tocar usando sus nombres
+                                    // (Es seguro porque acabamos de guardar)
+                                    var productosParaSubir = await dbSync.Productos
+                                        .Include(p => p.Subcategoria).ThenInclude(s => s.Categoria)
+                                        .Where(p => nombresAfectados.Contains(p.Descripcion.ToLower()))
+                                        .ToListAsync();
+
+                                    var srv = new WpfApp1.Services.SupabaseService();
+                                    foreach (var prod in productosParaSubir)
+                                    {
+                                        await srv.SincronizarProducto(prod);
+                                    }
+                                    System.Diagnostics.Debug.WriteLine($"Sync Auto Email: {productosParaSubir.Count} productos.");
+                                }
+                            }
+                            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error Sync Email: " + ex.Message); }
+                        });
+                    }
+                    // ---------------------------------
                 }
             }
             catch (Exception ex)
@@ -613,20 +655,9 @@ namespace WpfApp1.Views
 
             if (modal.ShowDialog() == true)
             {
-                producto.Activo = !producto.Activo;
-                try
-                {
-                    using (var db = new InventarioDbContext())
-                    {
-                        db.Productos.Update(producto);
-                        db.SaveChanges();
-                    }
-                    VM.CargarProductos();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error: {ex.Message}");
-                }
+                // YA NO HACEMOS NADA AQUÍ con la DB, porque el modal ya lo hizo.
+                // Solo refrescamos la lista visual.
+                VM.CargarProductos();
             }
         }
 
