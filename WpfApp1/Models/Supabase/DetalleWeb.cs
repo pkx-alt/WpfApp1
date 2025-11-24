@@ -8,10 +8,10 @@ namespace WpfApp1.Models.Supabase
     public class DetalleWeb : BaseModel
     {
         [PrimaryKey("id")]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Column("cotizacion_id")]
-        public int CotizacionId { get; set; }
+        public long CotizacionId { get; set; }
 
         [Column("producto_sku")]
         public string ProductoSku { get; set; }

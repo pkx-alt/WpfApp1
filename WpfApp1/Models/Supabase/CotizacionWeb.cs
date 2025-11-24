@@ -8,7 +8,7 @@ namespace WpfApp1.Models.Supabase
     public class CotizacionWeb : BaseModel
     {
         [PrimaryKey("id")]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Column("cliente_nombre")]
         public string ClienteNombre { get; set; }

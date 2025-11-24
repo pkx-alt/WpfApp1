@@ -41,40 +41,63 @@ namespace WpfApp1.Services
         // 4. Marca en la nube como "DESCARGADA"
         public async Task<int> SincronizarCotizaciones()
         {
-            // Asegurarnos que la conexión esté lista
             await Inicializar();
 
-            // 1. Pedir a Supabase las cotizaciones que estén 'PENDIENTE'
-            //    (Usamos el modelo CotizacionWeb que ya arreglaste)
+            // 1. Traer cabeceras PENDIENTES
             var response = await _client.From<CotizacionWeb>()
-                            // .Where(x => x.Estado == "PENDIENTE") // Comentado para probar
+                            .Where(x => x.Estado == "PENDIENTE") // <--- IMPORTANTE: Asegúrate que en la nube diga 'PENDIENTE'
                             .Get();
 
             var cotizacionesNube = response.Models;
             int importadas = 0;
 
-            // Si no hay nada nuevo, nos vamos temprano
             if (cotizacionesNube.Count == 0) return 0;
 
             using (var db = new InventarioDbContext())
             {
+                // Buscar (o crear si no existe) un producto comodín para ítems no encontrados
+                var productoComodin = db.Productos.FirstOrDefault(p => p.Descripcion == "ITEM WEB NO ENCONTRADO");
+
+                if (productoComodin == null)
+                {
+                    // Creamos uno por defecto si no existe, para no perder la venta
+                    // (Necesitamos una subcategoría válida, agarramos la primera)
+                    var subcat = db.Subcategorias.FirstOrDefault();
+                    if (subcat != null)
+                    {
+                        productoComodin = new Producto
+                        {
+                            Descripcion = "ITEM WEB NO ENCONTRADO",
+                            Precio = 0,
+                            Costo = 0,
+                            Stock = 0,
+                            Activo = true,
+                            SubcategoriaId = subcat.Id,
+                            ClaveSat = "01010101",
+                            ClaveUnidad = "H87"
+                        };
+                        db.Productos.Add(productoComodin);
+                        db.SaveChanges();
+                    }
+                }
+
                 foreach (var cotWeb in cotizacionesNube)
                 {
-                    // 2. Convertir: De "Nube" a "Local"
-                    //    Creamos una nueva Cotización local con los datos que bajamos
+                    // Validar si ya existe localmente para no duplicar (por seguridad)
+                    // (Esto asume que podríamos guardar el ID web en algún lado, pero por ahora lo omitimos para simplificar)
+
                     var nuevaCotLocal = new Cotizacion
                     {
                         FechaEmision = cotWeb.FechaCreacion,
-                        FechaVencimiento = cotWeb.FechaCreacion.AddDays(15), // Damos 15 días de vigencia
-                        Origen = "Web", // ¡Esto es clave! Así sabrás en tu lista cuáles vinieron de internet
-                        ClienteId = null, // Por ahora lo dejamos como "Público General" o null
-                        Subtotal = 0, // Lo calcularemos sumando los detalles abajo
+                        FechaVencimiento = cotWeb.FechaCreacion.AddDays(15),
+                        Origen = "Web",
+                        ClienteId = null, // Dejamos null o podrías buscar al cliente por nombre
+                        Subtotal = 0,
                         IVA = 0,
                         Total = 0
                     };
 
-                    // 3. Traer los PRODUCTOS de ESA cotización específica
-                    //    Buscamos en la tabla detalle_web donde coincida el ID
+                    // Traer detalles
                     var detallesResponse = await _client.From<DetalleWeb>()
                                                         .Where(x => x.CotizacionId == cotWeb.Id)
                                                         .Get();
@@ -83,57 +106,89 @@ namespace WpfApp1.Services
 
                     foreach (var detWeb in detallesResponse.Models)
                     {
-                        // 4. INTENTAR ENLAZAR CON PRODUCTO LOCAL
-                        //    Buscamos en tu SQLite si existe un producto con el mismo nombre
+                        // Buscamos producto local
                         var productoLocal = db.Productos.FirstOrDefault(p => p.Descripcion == detWeb.Descripcion);
 
-                        // Si lo encontramos, usamos su ID. Si no, ¿qué hacemos?
-                        // Opción segura: Si no existe, no lo agregamos o lo ponemos con un ID genérico.
-                        // Aquí asumiremos que si no existe, nos saltamos ese renglón para no romper la BD.
-                        if (productoLocal != null)
-                        {
-                            var nuevoDetalle = new CotizacionDetalle
-                            {
-                                ProductoId = productoLocal.ID,
-                                Descripcion = detWeb.Descripcion,
-                                Cantidad = detWeb.Cantidad,
-                                PrecioUnitario = detWeb.Precio,
-                                Cotizacion = nuevaCotLocal // Enlazamos con la cabecera local
-                            };
+                        // Si no existe, usamos el comodín. Si aun así no hay comodín (caso raro), saltamos.
+                        int idProductoFinal = (productoLocal != null) ? productoLocal.ID : (productoComodin?.ID ?? 0);
 
-                            nuevaCotLocal.Detalles.Add(nuevoDetalle);
-                            sumaSubtotal += (detWeb.Cantidad * detWeb.Precio);
-                        }
+                        if (idProductoFinal == 0) continue; // No hay forma de ligarlo
+
+                        var nuevoDetalle = new CotizacionDetalle
+                        {
+                            ProductoId = idProductoFinal,
+                            // Guardamos la descripción original de la web, aunque usemos el ID del comodín
+                            Descripcion = detWeb.Descripcion,
+                            Cantidad = detWeb.Cantidad,
+                            PrecioUnitario = detWeb.Precio,
+                            Cotizacion = nuevaCotLocal
+                        };
+
+                        nuevaCotLocal.Detalles.Add(nuevoDetalle);
+                        sumaSubtotal += (detWeb.Cantidad * detWeb.Precio);
                     }
 
-                    // Si la cotización quedó vacía porque no encontramos ningún producto, mejor no la guardamos
-                    if (nuevaCotLocal.Detalles.Count == 0) continue;
+                    // Si se agregaron detalles, guardamos
+                    if (nuevaCotLocal.Detalles.Count > 0)
+                    {
+                        nuevaCotLocal.Total = sumaSubtotal;
+                        nuevaCotLocal.Subtotal = sumaSubtotal / 1.16m; // Ajusta según tu lógica de impuestos
+                        nuevaCotLocal.IVA = sumaSubtotal - nuevaCotLocal.Subtotal;
 
-                    // Cálculos finales de dinero
-                    // (Ajusta esto según si tus precios web ya tienen IVA o no)
-                    nuevaCotLocal.Total = sumaSubtotal;
-                    nuevaCotLocal.Subtotal = sumaSubtotal / 1.16m;
-                    nuevaCotLocal.IVA = sumaSubtotal - nuevaCotLocal.Subtotal;
+                        db.Cotizaciones.Add(nuevaCotLocal);
 
-                    // 5. Guardar en SQLite (Tu base de datos POS)
-                    db.Cotizaciones.Add(nuevaCotLocal);
+                        // ACTUALIZAR EN NUBE A 'DESCARGADA'
+                        await _client.From<CotizacionWeb>()
+                                     .Where(x => x.Id == cotWeb.Id)
+                                     .Set(x => x.Estado, "DESCARGADA")
+                                     .Update();
 
-                    // 6. CONFIRMACIÓN A LA NUBE
-                    //    Le decimos a Supabase: "Ya bajé la cotización X, cámbiale el estado a DESCARGADA"
-                    //    Así no la volveremos a bajar la próxima vez.
-                    await _client.From<CotizacionWeb>()
-                                 .Where(x => x.Id == cotWeb.Id)
-                                 .Set(x => x.Estado, "DESCARGADA")
-                                 .Update();
-
-                    importadas++;
+                        importadas++;
+                    }
                 }
-
-                // Guardamos todos los cambios en SQLite de un golpe
                 db.SaveChanges();
             }
 
-            return importadas; // Devolvemos cuántas bajamos para mostrar un mensajito
+            return importadas;
+        }
+
+        // --- MÉTODO DE DIAGNÓSTICO RÁPIDO ---
+        public async Task<string> ProbarConexionYTraerDatos()
+        {
+            try
+            {
+                await Inicializar();
+
+                // 1. Intentamos traer TODO sin filtros, para ver si el problema es el estado 'PENDIENTE'
+                var response = await _client.From<CotizacionWeb>().Get();
+                var datos = response.Models;
+
+                // 2. Construimos un reporte simple
+                if (datos.Count == 0)
+                {
+                    return "✅ Conexión exitosa, pero Supabase devolvió 0 registros.\n\n" +
+                           "Posibles causas:\n" +
+                           "- La tabla está vacía.\n" +
+                           "- RLS (Seguridad) te está ocultando los datos (usa la 'service_role' key).\n" +
+                           "- No coinciden los nombres de tabla/columnas.";
+                }
+
+                string reporte = $"¡ÉXITO! Se encontraron {datos.Count} registros en la nube:\n------------------------------------------------\n";
+
+                // Mostramos los primeros 5 para no saturar la ventana
+                foreach (var c in datos.Take(5))
+                {
+                    reporte += $"ID: {c.Id} | Cliente: {c.ClienteNombre} | Total: {c.Total:C} | Estado: {c.Estado}\n";
+                }
+
+                if (datos.Count > 5) reporte += "... y más registros.";
+
+                return reporte;
+            }
+            catch (Exception ex)
+            {
+                return $"❌ ERROR GRAVE DE CONEXIÓN:\n{ex.Message}";
+            }
         }
     }
 }
