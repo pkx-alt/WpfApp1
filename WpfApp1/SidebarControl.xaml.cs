@@ -125,6 +125,7 @@ namespace WpfApp1
         private void SidebarControl_Loaded(object sender, RoutedEventArgs e)
         {
             ActualizarIndicadorCaja();
+            ActualizarNombreTienda(); // <--- ¡AGREGA ESTA LÍNEA!
         }
 
         private void SidebarControl_Unloaded(object sender, RoutedEventArgs e)

@@ -15,7 +15,6 @@
         <ContextMenu x:Key="MenuAccionesProducto">
             <MenuItem Header="Editar Producto" Click="EditarProducto_Click"/>
             <MenuItem Header="Ver detalles" Click="VerDetalles_Click"/>
-            <MenuItem Header="Duplicar" Click="Duplicar_Click"/>
             <MenuItem Header="Historial de movimientos" Click="Historial_Click"/>
             <Separator/>
             <MenuItem Click="Deshabilitar_Click">

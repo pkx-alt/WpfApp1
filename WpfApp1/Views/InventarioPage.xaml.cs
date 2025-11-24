@@ -623,16 +623,6 @@ namespace WpfApp1.Views
             // Aquí abrirías tu ventana de edición real
         }
 
-        
-
-        private void Duplicar_Click(object sender, RoutedEventArgs e)
-        {
-            var menuItem = sender as MenuItem;
-            var producto = menuItem?.DataContext as Producto;
-            if (producto == null) return;
-
-            MessageBox.Show($"Duplicar: {producto.Descripcion} (Próximamente)");
-        }
 
         private void Historial_Click(object sender, RoutedEventArgs e)
         {

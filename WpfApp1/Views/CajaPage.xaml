@@ -79,7 +79,13 @@
                                     <TextBlock x:Name="ResumenOtrosIngresos" Text="Ingresos: $0.00" Padding="5" Foreground="{StaticResource SuccessColor}" FontWeight="SemiBold"/>
                                     <TextBlock x:Name="ResumenEgresos" Text="Egresos: $0.00" Padding="5" Foreground="{StaticResource DangerColor}" FontWeight="SemiBold"/>
                                     <Separator Margin="0,5"/>
-                                    <TextBlock x:Name="ResumenTotalEsperado" Text="Total: $0.00" Padding="5" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
+                                    <TextBlock x:Name="ResumenTotalEsperado" 
+                                       Text="Total: $0.00" 
+                                       Padding="5" 
+                                       FontSize="18" 
+                                       FontWeight="Bold" 
+                                       Foreground="{StaticResource PrimaryColor}"
+                                       TextWrapping="Wrap"/>
                                 </StackPanel>
                             </StackPanel>
                         </Border>

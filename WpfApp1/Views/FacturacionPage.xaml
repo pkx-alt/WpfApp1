@@ -91,7 +91,9 @@
 
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,10">
                                 <TextBlock Text="Global:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0" Foreground="{StaticResource TextSecondary}"/>
-                                <ComboBox Width="140" SelectedIndex="0" Margin="0,0,10,0">
+                                <ComboBox Width="140" 
+                                      SelectedIndex="{Binding IndicePeriodoGlobal}" 
+                                      Margin="0,0,10,0">
                                     <ComboBoxItem Content="Del Día 📅"/>
                                     <ComboBoxItem Content="Semanal 📆"/>
                                     <ComboBoxItem Content="Mensual 🗓️"/>

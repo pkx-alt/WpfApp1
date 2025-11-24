@@ -25,7 +25,12 @@ namespace WpfApp1.ViewModels
     "Todos", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 };
-
+        private int _indicePeriodoGlobal;
+        public int IndicePeriodoGlobal
+        {
+            get => _indicePeriodoGlobal;
+            set { _indicePeriodoGlobal = value; OnPropertyChanged(); }
+        }
         private string _mesSeleccionadoHistorial;
         public string MesSeleccionadoHistorial
         {
@@ -243,9 +248,115 @@ namespace WpfApp1.ViewModels
             }
         }
 
+        // 2. EL MÉTODO CON LÓGICA REAL
         private void GenerarGlobal(object parameter)
         {
-            MessageBox.Show("Generando factura global del periodo seleccionado...", "Factura Global");
+            try
+            {
+                using (var db = new InventarioDbContext())
+                {
+                    // A. Definir el rango de fechas según lo que seleccionaste en el ComboBox
+                    DateTime fechaFin = DateTime.Now.Date.AddDays(1).AddTicks(-1); // Final de hoy
+                    DateTime fechaInicio;
+
+                    switch (IndicePeriodoGlobal)
+                    {
+                        case 0: // Del Día
+                            fechaInicio = DateTime.Today;
+                            break;
+                        case 1: // Semanal (últimos 7 días)
+                            fechaInicio = DateTime.Today.AddDays(-7);
+                            break;
+                        case 2: // Mensual (día 1 del mes actual)
+                            fechaInicio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                            break;
+                        default:
+                            fechaInicio = DateTime.Today;
+                            break;
+                    }
+
+                    // B. Buscar ventas NO facturadas de "Público en General"
+                    //    (Asumimos que Público General es cuando ClienteId es nulo o es el cliente genérico)
+
+                    // Primero obtenemos los IDs de ventas que YA tienen factura para excluirlas
+                    var ventasFacturadasIds = db.Facturas.Select(f => f.VentaId).ToList();
+
+                    var ventasParaGlobal = db.Ventas
+                        .Where(v => v.Fecha >= fechaInicio && v.Fecha <= fechaFin)
+                        .Where(v => !ventasFacturadasIds.Contains(v.VentaId)) // Que no estén facturadas
+                        .Where(v => v.ClienteId == null || v.ClienteId == 1)  // AJUSTA ESTE "1" al ID de tu cliente Público General si es diferente
+                        .ToList();
+
+                    if (ventasParaGlobal.Count == 0)
+                    {
+                        MessageBox.Show("No se encontraron ventas pendientes de facturar en este periodo.", "Sin datos");
+                        return;
+                    }
+
+                    decimal totalGlobal = ventasParaGlobal.Sum(v => v.Total);
+
+                    var confirm = MessageBox.Show(
+                        $"Se encontraron {ventasParaGlobal.Count} ventas por un total de {totalGlobal:C}.\n" +
+                        $"¿Deseas generar la Factura Global ahora?",
+                        "Confirmar Global",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (confirm != MessageBoxResult.Yes) return;
+
+                    // C. Truco Técnico: Como tu tabla Facturas pide UN VentaId, 
+                    // creamos una "Venta Agrupadora" para representar este conjunto.
+
+                    var ventaGlobal = new Venta
+                    {
+                        Fecha = DateTime.Now,
+                        Total = totalGlobal,
+                        Subtotal = totalGlobal / 1.16m, // Asumiendo IVA 16%
+                        IVA = totalGlobal - (totalGlobal / 1.16m),
+                        ClienteId = null, // O el ID de Público General
+                        PagoRecibido = totalGlobal,
+                        Cambio = 0,
+                        FormaPagoSAT = "01", // Efectivo (lo más común en global)
+                        MetodoPagoSAT = "PUE",
+                        Moneda = "MXN"
+                        // Nota: No le agregamos 'Detalles' para no duplicar el inventario
+                    };
+
+                    db.Ventas.Add(ventaGlobal);
+                    db.SaveChanges(); // Guardamos para obtener el ID nuevo
+
+                    // D. Crear la Factura enlazada a esa Venta Global
+                    string folioInterno = "FG-" + (db.Facturas.Count() + 1).ToString("D4");
+                    string uuidSimulado = Guid.NewGuid().ToString().ToUpper();
+
+                    var nuevaFactura = new Factura
+                    {
+                        VentaId = ventaGlobal.VentaId, // Enlazamos a la venta contenedora
+                        FechaEmision = DateTime.Now,
+                        ReceptorNombre = "PUBLICO EN GENERAL",
+                        ReceptorRFC = "XAXX010101000",
+                        Total = totalGlobal,
+                        Estado = "Vigente",
+                        SerieFolio = folioInterno,
+                        UUID = uuidSimulado,
+                        ArchivoXml = "ruta/ficticia/global.xml",
+                        ArchivoPdf = "ruta/ficticia/global.pdf"
+                    };
+
+                    db.Facturas.Add(nuevaFactura);
+                    db.SaveChanges();
+
+                    MessageBox.Show($"¡Factura Global {folioInterno} generada exitosamente!", "Éxito");
+
+                    // E. Refrescar las listas
+                    CargarPendientes();
+                    CargarHistorial(); // Este método ya lo habías agregado antes
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ocurrió un error: {ex.Message}", "Error");
+            }
         }
 
         private void CargarHistorial()
