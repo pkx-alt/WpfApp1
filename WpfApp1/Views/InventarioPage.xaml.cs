@@ -14,11 +14,7 @@ using OrySiPOS.Models;
 using OrySiPOS.ViewModels;
 using OrySiPOS.Views.Dialogs;
 
-public class ProductoDetalleItem
-{
-    public string Propiedad { get; set; }
-    public string Valor { get; set; }
-}
+
 
 namespace OrySiPOS.Views
 {
@@ -513,24 +509,24 @@ namespace OrySiPOS.Views
                 return;
             }
 
-            // 4. Transformar el objeto en una lista de Propiedad: Valor
-            var detalles = new List<ProductoDetalleItem>
-            {
-                new ProductoDetalleItem { Propiedad = "ID (SKU)", Valor = productoCompleto.ID.ToString() },
-                new ProductoDetalleItem { Propiedad = "Descripción", Valor = productoCompleto.Descripcion },
-                new ProductoDetalleItem { Propiedad = "Categoría", Valor = productoCompleto.Subcategoria?.Categoria?.Nombre ?? "N/A" },
-                new ProductoDetalleItem { Propiedad = "Subcategoría", Valor = productoCompleto.Subcategoria?.Nombre ?? "N/A" },
-                new ProductoDetalleItem { Propiedad = "Precio Venta", Valor = productoCompleto.Precio.ToString("C") },
-                new ProductoDetalleItem { Propiedad = "Costo", Valor = productoCompleto.Costo.ToString("C") },
-                new ProductoDetalleItem { Propiedad = "Ganancia (Margen)", Valor = productoCompleto.Ganancia.ToString("C") },
-                new ProductoDetalleItem { Propiedad = "Stock Actual", Valor = productoCompleto.Stock.ToString() + " uds." },
-                new ProductoDetalleItem { Propiedad = "Activo para Venta", Valor = productoCompleto.Activo ? "Sí" : "No" },
-                new ProductoDetalleItem { Propiedad = "Clave SAT", Valor = productoCompleto.ClaveSat },
-                new ProductoDetalleItem { Propiedad = "Clave Unidad", Valor = productoCompleto.ClaveUnidad },
-                new ProductoDetalleItem { Propiedad = "URL Imagen", Valor = productoCompleto.ImagenUrl },
-            };
+            // --- CAMBIO AQUÍ: Usamos ReporteItem ---
+            var detalles = new List<ReporteItem>
+    {
+        new ReporteItem { Propiedad = "ID (SKU)", Valor = productoCompleto.ID.ToString() },
+        new ReporteItem { Propiedad = "Descripción", Valor = productoCompleto.Descripcion },
+        new ReporteItem { Propiedad = "Categoría", Valor = productoCompleto.Subcategoria?.Categoria?.Nombre ?? "N/A" },
+        new ReporteItem { Propiedad = "Subcategoría", Valor = productoCompleto.Subcategoria?.Nombre ?? "N/A" },
+        new ReporteItem { Propiedad = "Precio Venta", Valor = productoCompleto.Precio.ToString("C") },
+        new ReporteItem { Propiedad = "Costo", Valor = productoCompleto.Costo.ToString("C") },
+        new ReporteItem { Propiedad = "Ganancia (Margen)", Valor = productoCompleto.Ganancia.ToString("C") },
+        new ReporteItem { Propiedad = "Stock Actual", Valor = productoCompleto.Stock.ToString() + " uds." },
+        new ReporteItem { Propiedad = "Activo para Venta", Valor = productoCompleto.Activo ? "Sí" : "No" },
+        new ReporteItem { Propiedad = "Clave SAT", Valor = productoCompleto.ClaveSat },
+        new ReporteItem { Propiedad = "Clave Unidad", Valor = productoCompleto.ClaveUnidad },
+        new ReporteItem { Propiedad = "URL Imagen", Valor = productoCompleto.ImagenUrl },
+    };
 
-            // 5. Mostrar el diálogo (VisorReporteWindow)
+            // 5. Mostrar el diálogo
             var dialog = new VisorReporteWindow($"Detalle: {productoCompleto.Descripcion}", detalles);
             dialog.Owner = Window.GetWindow(this);
 

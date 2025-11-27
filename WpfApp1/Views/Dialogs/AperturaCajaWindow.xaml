@@ -87,7 +87,8 @@
                         Style="{StaticResource BtnSecondary}" 
                         Height="45" Width="110" 
                         Click="CancelarButton_Click" 
-                        Margin="0,0,10,0"/>
+                        Margin="0,0,10,0"
+                        IsCancel="True"/>
 
                 <Button x:Name="FinalizarButton" Content="Abrir Caja" 
                         Style="{StaticResource BtnSuccess}" 

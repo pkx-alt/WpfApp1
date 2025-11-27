@@ -7,73 +7,87 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using OrySiPOS.Models;
+// Necesario para acceder a los ajustes guardados
+using OrySiPOS.Properties;
 
 namespace OrySiPOS.Services
 {
     public class EmailImportService
     {
-        // --- CONFIGURACIÓN DE GMAIL ---
+        // Configuración fija de Gmail (esto rara vez cambia)
         private string _servidor = "imap.gmail.com";
         private int _puerto = 993;
 
-        // ⚠️ AQUÍ PONES TUS DATOS REALES ⚠️
-        private string _correo = "samuel.moralesont@gmail.com";
-        private string _password = "kqaf hovv xtvv zecd";
-
-        // Cambia el tipo de retorno a List<InfoCorreo>
         public List<InfoCorreo> DescargarCorreosConDetalles()
         {
             var listaCorreos = new List<InfoCorreo>();
+
+            // 1. LEEMOS LAS CREDENCIALES DE LA CONFIGURACIÓN
+            string usuario = Settings.Default.EmailInventario;
+            string password = Settings.Default.PassEmailInventario;
+            string keyword = Settings.Default.EmailKeyword; // <--- NUEVO
+
+
+            // Validación básica antes de intentar conectar
+            if (string.IsNullOrWhiteSpace(usuario) || string.IsNullOrWhiteSpace(password))
+            {
+                throw new Exception("No has configurado el correo o la contraseña en Ajustes.");
+            }
+
+            if (string.IsNullOrWhiteSpace(keyword)) keyword = "Factura";
 
             try
             {
                 using (var client = new ImapClient())
                 {
+                    // Conexión segura
                     client.Connect(_servidor, _puerto, true);
-                    client.Authenticate(_correo, _password);
+
+                    // 2. USAMOS LAS VARIABLES QUE LEÍMOS DE SETTINGS
+                    client.Authenticate(usuario, password);
 
                     var inbox = client.Inbox;
                     inbox.Open(FolderAccess.ReadWrite);
 
-                    // Buscamos correos no leídos con "Factura"
-                    var query = SearchQuery.NotSeen.And(SearchQuery.SubjectContains("Factura"));
+                    // Buscamos correos NO LEÍDOS que contengan "Factura" en el asunto
+                    // (Puedes ajustar este filtro según tus necesidades)
+                    var query = SearchQuery.NotSeen.And(SearchQuery.SubjectContains(keyword));
                     var uids = inbox.Search(query);
 
                     foreach (var uid in uids)
                     {
                         var message = inbox.GetMessage(uid);
 
-                        // --- AQUÍ EXTRAEMOS LOS DETALLES ---
+                        // Crear objeto de información
                         var info = new InfoCorreo
                         {
-                            // MailKit nos da una lista de remitentes, tomamos el primero
                             Remitente = message.From.ToString(),
                             Asunto = message.Subject,
-                            Fecha = message.Date.DateTime // Convertimos a DateTime local
+                            Fecha = message.Date.DateTime
                         };
 
-                        // Buscar adjuntos
+                        // Buscar adjuntos XML
                         foreach (var attachment in message.Attachments)
                         {
                             if (attachment is MimePart part && part.FileName.ToLower().EndsWith(".xml"))
                             {
+                                // Guardar temporalmente el XML para procesarlo
                                 string tempPath = Path.Combine(Path.GetTempPath(), part.FileName);
                                 using (var stream = File.Create(tempPath))
                                 {
                                     part.Content.DecodeTo(stream);
                                 }
 
-                                // Agregamos la ruta a la lista del objeto info
                                 info.ArchivosAdjuntos.Add(tempPath);
                             }
                         }
 
-                        // Solo agregamos el correo a la lista final si traía facturas XML
+                        // Solo procesamos el correo si traía facturas XML válidas
                         if (info.ArchivosAdjuntos.Count > 0)
                         {
                             listaCorreos.Add(info);
 
-                            // Marcamos como leído SOLO si procesamos algo útil
+                            // Marcamos como LEÍDO para no procesarlo dos veces
                             inbox.AddFlags(uid, MessageFlags.Seen, true);
                         }
                     }
@@ -83,7 +97,8 @@ namespace OrySiPOS.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Error en correo: " + ex.Message);
+                // Lanzamos el error hacia arriba para que la Pantalla lo muestre en un MessageBox
+                throw new Exception("Error al conectar con Gmail: " + ex.Message);
             }
 
             return listaCorreos;

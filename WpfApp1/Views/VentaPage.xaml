@@ -239,8 +239,8 @@
             </StackPanel>
 
             <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Cancelar Venta (Del)" Command="{Binding CancelarVentaCommand}" Style="{StaticResource BtnDanger}" Height="45" Margin="0,0,15,0"/>
-                <Button Content="{Binding TextoBotonFinalizar}" Command="{Binding FinalizarVentaCommand}" Style="{StaticResource BtnSuccess}" Height="45" Padding="30,0" FontSize="16"/>
+                <Button Content="Cancelar Venta" Command="{Binding CancelarVentaCommand}" Style="{StaticResource BtnDanger}" Height="45" Margin="0,0,15,0"/>
+                <Button Content="Finalizar Venta" Command="{Binding FinalizarVentaCommand}" Style="{StaticResource BtnSuccess}" Height="45" Padding="30,0" FontSize="16"/>
             </StackPanel>
         </Grid>
 
@@ -262,7 +262,7 @@
                         <TextBlock Text="👥" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="Cambiar Cliente" FontWeight="Bold" Foreground="#1565C0"/>
-                            <TextBlock Text="Alt + F2" FontSize="11" Foreground="#546E7A"/>
+                            <TextBlock Text="Poner en espera la venta actual" FontSize="11" Foreground="#546E7A"/>
                         </StackPanel>
                     </Grid>
                 </Button>
@@ -290,7 +290,7 @@
                         <TextBlock Text="%" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="Realizar Descuento" FontWeight="Bold" Foreground="#C2185B"/>
-                            <TextBlock Text="Alt + F4" FontSize="11" Foreground="#880E4F"/>
+                            <TextBlock Text="Realizar un descuento sobre la venta" FontSize="11" Foreground="#880E4F"/>
                         </StackPanel>
                     </Grid>
                     <Button.Style>
@@ -355,7 +355,7 @@
                         <TextBlock Text="📄" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="Realizar Factura" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
-                            <TextBlock Text="Alt + F5" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
+                            <TextBlock Text="Factura de la venta actual" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                         </StackPanel>
                     </Grid>
                 </Button>

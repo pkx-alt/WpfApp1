@@ -1,24 +1,25 @@
-﻿using Microsoft.Win32;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 using OrySiPOS.ViewModels;
-using System.IO;       // Para guardar el archivo
-using System.Windows.Documents; // Para crear el reporte (FlowDocument, Table, Paragraph)
-using System.Windows.Media;     // Para colores y pinceles (Brushes)
+using OrySiPOS.Views.Dialogs;
+using QRCoder; // <--- ¡Nuevo!
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using QRCoder; // <--- ¡Nuevo!
-using System.Diagnostics; // Para abrir el PDF automáticamente al final
-using Colors = QuestPDF.Helpers.Colors; // Para evitar conflicto con System.Windows.Media.Colors
-
 // --- ¡NUEVOS USINGS OBLIGATORIOS PARA ACCEDER A LA BD Y MODELOS! ---
 using System;
+using System.Diagnostics; // Para abrir el PDF automáticamente al final
+using System.IO;       // Para guardar el archivo
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using OrySiPOS.Data;
-using OrySiPOS.Models;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents; // Para crear el reporte (FlowDocument, Table, Paragraph)
+using System.Windows.Input;
+using System.Windows.Media;     // Para colores y pinceles (Brushes)
+using Colors = QuestPDF.Helpers.Colors; // Para evitar conflicto con System.Windows.Media.Colors
 // ------------------------------------------------------------------
 
 namespace OrySiPOS.Views
@@ -197,6 +198,57 @@ namespace OrySiPOS.Views
 
 
         // En Views/FacturacionPage.xaml.cs
+        private void Historial_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var grid = sender as DataGrid;
+            // Ojo: La clase FacturaHistorialItem está dentro del ViewModel
+            if (grid?.SelectedItem is OrySiPOS.ViewModels.FacturacionViewModel.FacturaHistorialItem item)
+            {
+                var listaDetalles = new List<ReporteItem>
+                {
+                    new ReporteItem { Propiedad = "Folio Interno", Valor = item.SerieFolio },
+                    new ReporteItem { Propiedad = "UUID Fiscal", Valor = item.UUID },
+                    new ReporteItem { Propiedad = "Receptor", Valor = item.Receptor },
+                    new ReporteItem { Propiedad = "Monto Total", Valor = item.Total.ToString("C") },
+                    new ReporteItem { Propiedad = "Estado SAT", Valor = item.Estado },
+                    new ReporteItem { Propiedad = "Nota", Valor = "Para ver el XML o PDF, use los botones de la fila." }
+                };
+
+                var visor = new VisorReporteWindow($"Detalle Factura: {item.SerieFolio}", listaDetalles);
+                visor.Owner = Window.GetWindow(this);
+                visor.ShowDialog();
+            }
+        }
+
+        // En Views/FacturacionPage.xaml.cs
+
+        // ... (dentro de la clase FacturacionPage) ...
+
+        private void Pendientes_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var grid = sender as DataGrid;
+
+            // Verificamos si lo que se seleccionó es un ticket pendiente
+            if (grid?.SelectedItem is OrySiPOS.ViewModels.FacturacionViewModel.TicketPendienteItem ticket)
+            {
+                // Preparamos la lista para el visor
+                var listaDetalles = new List<ReporteItem>
+        {
+            new ReporteItem { Propiedad = "Ticket #", Valor = ticket.Folio },
+            new ReporteItem { Propiedad = "Fecha Venta", Valor = ticket.Fecha.ToString("F") }, // Formato largo (fecha y hora)
+            new ReporteItem { Propiedad = "Cliente", Valor = ticket.ClienteNombre },
+            new ReporteItem { Propiedad = "RFC Receptor", Valor = ticket.RFC },
+            new ReporteItem { Propiedad = "Monto Total", Valor = ticket.Total.ToString("C") },
+            new ReporteItem { Propiedad = "Estatus", Valor = "Pendiente de Facturar" },
+            new ReporteItem { Propiedad = "Acción", Valor = "Doble clic para ver detalles, clic en 'Facturar' para procesar." }
+        };
+
+                // Abrimos la ventana modal reutilizable
+                var visor = new VisorReporteWindow($"Pre-vista Ticket: {ticket.Folio}", listaDetalles);
+                visor.Owner = Window.GetWindow(this);
+                visor.ShowDialog();
+            }
+        }
 
         private void BtnImprimirHistorial_Click(object sender, RoutedEventArgs e)
         {

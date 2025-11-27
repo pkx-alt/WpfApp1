@@ -44,5 +44,20 @@
     <Setting Name="ImprimirTicketDefault" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
+    <Setting Name="NivelBajoStock" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="PorcentajeIVA" Type="System.Decimal" Scope="User">
+      <Value Profile="(Default)">16</Value>
+    </Setting>
+    <Setting Name="EmailInventario" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="PassEmailInventario" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="EmailKeyword" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Factura</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -55,7 +55,8 @@
         </StackPanel>
 
         <DataGrid Grid.Row="1" 
-                  ItemsSource="{Binding Ventas}">
+          ItemsSource="{Binding Ventas}"
+          MouseDoubleClick="DataGrid_MouseDoubleClick">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Folio" Binding="{Binding Folio}" Width="80" FontWeight="Bold"/>

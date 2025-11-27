@@ -68,7 +68,8 @@
         </Border>
 
         <DataGrid Grid.Row="2" x:Name="GridIngresos" 
-                  ItemsSource="{Binding IngresosFiltrados}">
+          ItemsSource="{Binding IngresosFiltrados}"
+          MouseDoubleClick="GridIngresos_MouseDoubleClick">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat='dd MMM yyyy'}" Width="120" Foreground="{StaticResource TextSecondary}"/>

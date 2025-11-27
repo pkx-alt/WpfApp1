@@ -83,7 +83,8 @@
                         Click="Cancelar_Click"
                         Style="{StaticResource BtnSecondary}" 
                         Width="110" 
-                        Margin="0,0,15,0"/>
+                        Margin="0,0,15,0"
+                        IsCancel="True"/>
 
                 <Button x:Name="BotonConfirmar" 
                         Content="Confirmar" 

@@ -101,7 +101,8 @@
                         Content="❌ Cerrar" 
                         Command="{Binding CerrarVentanaCommand}"
                         Style="{StaticResource BtnSecondary}" 
-                        Width="100"/>
+                        Width="100"
+                        IsCancel="True"/>
             </Grid>
 
             <Grid Grid.Row="1">

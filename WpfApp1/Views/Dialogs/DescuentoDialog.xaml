@@ -76,7 +76,8 @@
                         Content="Cancelar"
                         Style="{StaticResource BtnSecondary}"
                         Click="CancelarButton_Click"
-                        Width="100" Margin="0,0,10,0"/>
+                        Width="100" Margin="0,0,10,0"
+                        IsCancel="True"/>
 
                 <Button x:Name="AceptarButton"
                         Content="Aplicar"

@@ -1,7 +1,8 @@
-﻿using System.Windows;
+﻿using OrySiPOS.ViewModels; // Necesario para leer la constante
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
-using OrySiPOS.ViewModels; // Necesario para leer la constante
 
 namespace OrySiPOS.Views
 {
@@ -39,6 +40,23 @@ namespace OrySiPOS.Views
             // Usamos la constante del ViewModel para que siempre sea idéntica
             TxtBusquedaHistorial.Text = VentasRealizadasViewModel.PlaceholderBusqueda;
             TxtBusquedaHistorial.Foreground = Brushes.Gray;
+        }
+
+        private void DataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // 1. Verificamos que el clic fue en una fila válida
+            if (sender is DataGrid grid && grid.SelectedItem is VentaHistorialItem ventaSeleccionada)
+            {
+                // 2. Obtenemos el ViewModel de la página
+                if (this.DataContext is VentasRealizadasViewModel vm)
+                {
+                    // 3. Ejecutamos el comando del ViewModel, pasándole la venta seleccionada
+                    if (vm.VerDetalleCommand.CanExecute(ventaSeleccionada))
+                    {
+                        vm.VerDetalleCommand.Execute(ventaSeleccionada);
+                    }
+                }
+            }
         }
     }
 }

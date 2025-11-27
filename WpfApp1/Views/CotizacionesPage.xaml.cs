@@ -1,8 +1,9 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using OrySiPOS.ViewModels;
+﻿using OrySiPOS.ViewModels;
 using OrySiPOS.Views.Dialogs;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace OrySiPOS.Views // Asegúrate que este namespace sea el correcto
 {
@@ -108,6 +109,36 @@ namespace OrySiPOS.Views // Asegúrate que este namespace sea el correcto
                     }
 
                     // D. Nos vamos a la pantalla de ventas
+                    this.NavigationService.Navigate(paginaVenta);
+                }
+            }
+        }
+
+        private void DataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // El 'sender' es el DataGrid. Verificamos qué ítem se clickeó.
+            if (sender is DataGrid grid && grid.SelectedItem is OrySiPOS.ViewModels.CotizacionesViewModel.CotizacionItemViewModel itemSeleccionado)
+            {
+                // itemSeleccionado es la fila donde hicieron clic.
+                // Obtenemos el ID (Folio) directamente del objeto.
+                int idCotizacion = itemSeleccionado.Folio;
+
+                // --- AQUÍ REPETIMOS LA LÓGICA DE ABRIR VENTANA ---
+                // (Es la misma lógica que tienes en BtnVerDetalle_Click, pero usando el ID directo)
+
+                var dialogo = new DetalleCotizacionDialog(idCotizacion);
+                dialogo.Owner = Window.GetWindow(this);
+
+                bool? resultado = dialogo.ShowDialog();
+
+                if (resultado == true && dialogo.DeseaConvertir)
+                {
+                    // Lógica de conversión a venta
+                    var paginaVenta = new VentaPage();
+                    if (paginaVenta.DataContext is VentaViewModel vmVenta)
+                    {
+                        vmVenta.CargarDatosDeCotizacion(idCotizacion);
+                    }
                     this.NavigationService.Navigate(paginaVenta);
                 }
             }

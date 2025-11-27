@@ -45,7 +45,8 @@
         </Grid>
 
         <DataGrid Grid.Row="1" 
-                  ItemsSource="{Binding ListaMovimientos}">
+          ItemsSource="{Binding ListaMovimientos}"
+          MouseDoubleClick="DataGrid_MouseDoubleClick">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat='dd/MM/yyyy HH:mm'}" Width="140"/>

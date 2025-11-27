@@ -169,7 +169,8 @@
                 <Button Content="Cerrar" 
                         Command="{Binding CerrarCommand}"
                         Style="{StaticResource BtnSecondary}" 
-                        Width="100" Margin="0,0,10,0"/>
+                        Width="100" Margin="0,0,10,0"
+                        IsCancel="True"/>
 
                 <Button Content="🛒 Convertir a Venta" 
                         Command="{Binding ConvertirCommand}"

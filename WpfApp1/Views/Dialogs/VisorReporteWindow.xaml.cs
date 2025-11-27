@@ -4,9 +4,17 @@ using System.Windows.Input; // <--- NECESARIO
 
 namespace OrySiPOS.Views.Dialogs
 {
+    // 1. CAMBIAMOS EL NOMBRE AQUÍ DE "DetalleItem" A "ReporteItem"
+    public class ReporteItem
+    {
+        public string Propiedad { get; set; }
+        public string Valor { get; set; }
+    }
+    // ------------------------------------------------
     public partial class VisorReporteWindow : Window
     {
-        public VisorReporteWindow(string titulo, IEnumerable<dynamic> datos)
+        // 2. ACTUALIZAMOS EL CONSTRUCTOR PARA RECIBIR "ReporteItem"
+        public VisorReporteWindow(string titulo, IEnumerable<ReporteItem> datos)
         {
             InitializeComponent();
             TxtTitulo.Text = titulo;

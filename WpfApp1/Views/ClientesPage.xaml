@@ -94,9 +94,10 @@
             </Border>
         </StackPanel>
 
-        <DataGrid Grid.Row="1"
-                  x:Name="GridClientes"
-                  ItemsSource="{Binding Clientes}">
+        <DataGrid x:Name="GridClientes"
+          Grid.Row="1"
+          ItemsSource="{Binding Clientes}"
+          MouseDoubleClick="GridClientes_MouseDoubleClick">
 
             <DataGrid.Columns>
 

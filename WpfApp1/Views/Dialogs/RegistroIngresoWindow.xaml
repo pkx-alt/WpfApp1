@@ -102,7 +102,8 @@
                         Click="btnCancelar_Click"
                         Style="{StaticResource BtnSecondary}" 
                         Width="100" 
-                        Margin="0,0,10,0"/>
+                        Margin="0,0,10,0"
+                        IsCancel="True"/>
 
                 <Button Content="Guardar" 
                         Command="{Binding GuardarIngresoCommand}"

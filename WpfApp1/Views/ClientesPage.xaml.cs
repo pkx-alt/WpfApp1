@@ -1,11 +1,13 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using OrySiPOS.Data;
+﻿using OrySiPOS.Data;
 using OrySiPOS.Models;
 using OrySiPOS.ViewModels;
 using OrySiPOS.Views;
 using OrySiPOS.Views.Dialogs;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Collections.Generic;
 
 namespace OrySiPOS.Views
 {
@@ -248,6 +250,34 @@ namespace OrySiPOS.Views
             catch (Exception ex)
             {
                 MessageBox.Show("Error: " + ex.Message);
+            }
+        }
+
+        // --- NUEVO: DOBLE CLIC PARA VER DETALLES ---
+        private void GridClientes_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var grid = sender as DataGrid;
+            if (grid?.SelectedItem is OrySiPOS.Models.Cliente cliente)
+            {
+                // 1. Preparamos los datos a mostrar
+                var listaDetalles = new List<ReporteItem>
+                {
+                    new ReporteItem { Propiedad = "ID Cliente", Valor = cliente.ID.ToString() },
+                    new ReporteItem { Propiedad = "Razón Social", Valor = cliente.RazonSocial },
+                    new ReporteItem { Propiedad = "RFC", Valor = cliente.RFC },
+                    new ReporteItem { Propiedad = "Teléfono", Valor = cliente.Telefono },
+                    new ReporteItem { Propiedad = "Código Postal", Valor = cliente.CodigoPostal },
+                    new ReporteItem { Propiedad = "Régimen Fiscal", Valor = cliente.RegimenFiscal },
+                    new ReporteItem { Propiedad = "Uso CFDI", Valor = cliente.UsoCFDI },
+                    new ReporteItem { Propiedad = "Tipo", Valor = cliente.EsFactura ? "Facturación" : "Público General" },
+                    new ReporteItem { Propiedad = "Estado", Valor = cliente.Activo ? "Activo" : "Inactivo" },
+                    new ReporteItem { Propiedad = "Fecha Registro", Valor = cliente.Creado.ToString("dd/MM/yyyy HH:mm") }
+                };
+
+                // 2. Abrimos el visor genérico
+                var visor = new VisorReporteWindow($"Cliente: {cliente.RazonSocial}", listaDetalles);
+                visor.Owner = Window.GetWindow(this);
+                visor.ShowDialog();
             }
         }
     }

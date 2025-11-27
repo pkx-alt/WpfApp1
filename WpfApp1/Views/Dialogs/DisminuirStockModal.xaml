@@ -40,7 +40,7 @@
                            FontSize="24" 
                            FontWeight="Bold" 
                            Foreground="{StaticResource TextPrimary}"/>
-                <TextBlock Text="Registra mermas, devoluciones o ajustes negativos." 
+                <TextBlock Text="Registra mermas, devoluciones o ajustes negativos."
                            FontSize="14" 
                            Foreground="{StaticResource TextSecondary}" 
                            Margin="0,5,0,0"/>
@@ -86,20 +86,10 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="Stock Actual: " FontSize="14" Foreground="{StaticResource TextSecondary}"/>
 
-                            <TextBlock x:Name="ProductStockTextBlock" FontSize="14" FontWeight="Bold">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Stock}" Value="10">
-                                                <Setter Property="Foreground" Value="{StaticResource WarningColor}"/>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding Stock}" Value="5">
-                                                <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
+                            <TextBlock x:Name="ProductStockTextBlock" 
+                                       FontSize="14" 
+                                       FontWeight="Bold"
+                                       Foreground="{Binding Stock, Converter={StaticResource StockToColorConverter}}">
                                 <Run Text="{Binding Stock}"/>
                                 <Run Text="unidades"/>
                             </TextBlock>

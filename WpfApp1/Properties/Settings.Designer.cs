@@ -190,5 +190,65 @@ namespace OrySiPOS.Properties {
                 this["ImprimirTicketDefault"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        public int NivelBajoStock {
+            get {
+                return ((int)(this["NivelBajoStock"]));
+            }
+            set {
+                this["NivelBajoStock"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("16")]
+        public decimal PorcentajeIVA {
+            get {
+                return ((decimal)(this["PorcentajeIVA"]));
+            }
+            set {
+                this["PorcentajeIVA"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string EmailInventario {
+            get {
+                return ((string)(this["EmailInventario"]));
+            }
+            set {
+                this["EmailInventario"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string PassEmailInventario {
+            get {
+                return ((string)(this["PassEmailInventario"]));
+            }
+            set {
+                this["PassEmailInventario"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Factura")]
+        public string EmailKeyword {
+            get {
+                return ((string)(this["EmailKeyword"]));
+            }
+            set {
+                this["EmailKeyword"] = value;
+            }
+        }
     }
 }

@@ -65,6 +65,41 @@ namespace OrySiPOS.ViewModels
             set { _imprimirTicketDefault = value; OnPropertyChanged(); }
         }
 
+        // --- NUEVAS PROPIEDADES ---
+
+        private int _nivelBajoStock;
+        public int NivelBajoStock
+        {
+            get => _nivelBajoStock;
+            set { _nivelBajoStock = value; OnPropertyChanged(); }
+        }
+
+        private decimal _porcentajeIVA;
+        public decimal PorcentajeIVA
+        {
+            get => _porcentajeIVA;
+            set { _porcentajeIVA = value; OnPropertyChanged(); }
+        }
+
+        private string _emailInventario;
+        public string EmailInventario
+        {
+            get => _emailInventario;
+            set { _emailInventario = value; OnPropertyChanged(); }
+        }
+
+        private string _passEmailInventario;
+        public string PassEmailInventario
+        {
+            get => _passEmailInventario;
+            set { _passEmailInventario = value; OnPropertyChanged(); }
+        }
+        private string _emailKeyword;
+        public string EmailKeyword
+        {
+            get => _emailKeyword;
+            set { _emailKeyword = value; OnPropertyChanged(); }
+        }
         // --- Comandos ---
         public ICommand GuardarCommand { get; }
         public ICommand AbrirPropiedadesImpresoraCommand { get; }
@@ -122,6 +157,12 @@ namespace OrySiPOS.ViewModels
             MensajeTicket = Settings.Default.MensajeTicket;
             ImpresoraSeleccionada = Settings.Default.Impresora;
             ImprimirTicketDefault = Settings.Default.ImprimirTicketDefault;
+            // Nuevas cargas
+            NivelBajoStock = Settings.Default.NivelBajoStock;
+            PorcentajeIVA = Settings.Default.PorcentajeIVA;
+            EmailInventario = Settings.Default.EmailInventario;
+            PassEmailInventario = Settings.Default.PassEmailInventario;
+            EmailKeyword = Settings.Default.EmailKeyword;
         }
 
         private void GuardarCambios(object obj)
@@ -136,6 +177,12 @@ namespace OrySiPOS.ViewModels
                 Settings.Default.MensajeTicket = MensajeTicket;
                 Settings.Default.Impresora = ImpresoraSeleccionada;
                 Settings.Default.ImprimirTicketDefault = ImprimirTicketDefault;
+                // Nuevos guardados
+                Settings.Default.NivelBajoStock = NivelBajoStock;
+                Settings.Default.PorcentajeIVA = PorcentajeIVA;
+                Settings.Default.EmailInventario = EmailInventario;
+                Settings.Default.PassEmailInventario = PassEmailInventario;
+                Settings.Default.EmailKeyword = EmailKeyword;
 
                 // ¡EL PASO MÁS IMPORTANTE! Si no haces Save(), se pierde al cerrar la app.
                 Settings.Default.Save();

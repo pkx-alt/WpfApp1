@@ -244,7 +244,7 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button x:Name="CancelarButton" Content="Cancelar" Click="CancelarButton_Click" Style="{StaticResource BtnSecondary}" Margin="0,0,10,0" Width="100"/>
+                    <Button x:Name="CancelarButton" Content="Cancelar" Click="CancelarButton_Click" Style="{StaticResource BtnSecondary}" Margin="0,0,10,0" Width="100" IsCancel="True"/>
                     <Button x:Name="FinalizarButton" Content="Cerrar Turno" Click="FinalizarButton_Click" Style="{StaticResource BtnSuccess}" Width="140">
                         <Button.Effect>
                             <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>

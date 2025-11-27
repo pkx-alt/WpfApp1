@@ -159,7 +159,8 @@
                 <Button Content="Cerrar" 
                         Command="{Binding CerrarDialogoCommand}"
                         Style="{StaticResource BtnSecondary}" 
-                        Width="100" Margin="0,0,10,0"/>
+                        Width="100" Margin="0,0,10,0"
+                        IsCancel="True"/>
 
                 <Button Content="🖨️ Reimprimir" 
                         Style="{StaticResource BtnSuccess}" 

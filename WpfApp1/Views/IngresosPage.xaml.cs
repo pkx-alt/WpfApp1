@@ -1,9 +1,10 @@
-﻿using System.Linq; // Necesario para la consulta
+﻿using OrySiPOS.Models;
+using OrySiPOS.ViewModels;
+using OrySiPOS.Views.Dialogs;
+using System.Linq; // Necesario para la consulta
 using System.Windows;
 using System.Windows.Controls;
-using OrySiPOS.Views.Dialogs;
-using OrySiPOS.Models;
-using OrySiPOS.ViewModels;
+using System.Windows.Input;
 
 namespace OrySiPOS.Views
 {
@@ -50,6 +51,27 @@ namespace OrySiPOS.Views
                 ViewModel.AgregarIngreso(nuevoIngreso);
 
                 MessageBox.Show("Ingreso registrado con éxito.", "Guardado", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void GridIngresos_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var grid = sender as DataGrid;
+            if (grid?.SelectedItem is OrySiPOS.Models.Ingreso ingreso)
+            {
+                var listaDetalles = new List<ReporteItem>
+                {
+                    new ReporteItem { Propiedad = "Folio Ingreso", Valor = ingreso.Id.ToString() },
+                    new ReporteItem { Propiedad = "Fecha", Valor = ingreso.Fecha.ToString("F") }, // Fecha completa
+                    new ReporteItem { Propiedad = "Categoría", Valor = ingreso.Categoria },
+                    new ReporteItem { Propiedad = "Concepto", Valor = ingreso.Concepto },
+                    new ReporteItem { Propiedad = "Usuario", Valor = ingreso.Usuario },
+                    new ReporteItem { Propiedad = "Monto", Valor = ingreso.Monto.ToString("C") }
+                };
+
+                var visor = new VisorReporteWindow("Detalle de Ingreso", listaDetalles);
+                visor.Owner = Window.GetWindow(this);
+                visor.ShowDialog();
             }
         }
     }

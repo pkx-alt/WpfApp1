@@ -24,7 +24,7 @@ namespace OrySiPOS.ViewModels
         // La lista de búsqueda.
         public ObservableCollection<Producto> ResultadosBusqueda { get; set; }
 
-        private const decimal TASA_IVA = 0.16m;
+        //private const decimal TASA_IVA = 0.16m;
 
         // Propiedades para los TOTALES
         // Fíjate cómo usamos el patrón de "propiedad completa"
@@ -194,21 +194,25 @@ namespace OrySiPOS.ViewModels
 
         private void ActualizarTotales()
         {
-            // 1. Sumamos el precio de lista de todos los productos
-            // (Asumimos que tus precios en 'Productos' YA incluyen IVA)
+            // 1. Sumamos el precio de lista (Bruto con impuestos incluidos)
             decimal sumaTotalConImpuestos = CarritoItems.Sum(item => item.Subtotal);
 
-            // 2. Desglosamos el Subtotal (Matemática: Total / 1.16)
-            Subtotal = sumaTotalConImpuestos / (1 + TASA_IVA);
+            // --- LÓGICA DINÁMICA DE IVA ---
+            // Leemos el entero (ej: 16) y lo convertimos a decimal (0.16)
+            decimal porcentajeConfigurado = OrySiPOS.Properties.Settings.Default.PorcentajeIVA;
+            decimal tasaIva = porcentajeConfigurado / 100m;
 
-            // 3. Calculamos cuánto de eso es IVA
+            // 2. Desglosamos el Subtotal
+            // Fórmula: Total / (1 + 0.16)
+            Subtotal = sumaTotalConImpuestos / (1 + tasaIva);
+
+            // 3. Calculamos el IVA
             Iva = sumaTotalConImpuestos - Subtotal;
 
-            // 4. Calculamos el Total Final a pagar
-            // Al total de los productos le restamos el descuento (si hay)
+            // 4. Calculamos el Total Final (menos descuento)
             Total = sumaTotalConImpuestos - MontoDescuento;
 
-            // --- (El resto se queda igual para notificar a la vista) ---
+            // Notificamos comandos...
             (FinalizarVentaCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (RealizarDescuentoCommand as RelayCommand)?.RaiseCanExecuteChanged();
             (CancelarDescuentoCommand as RelayCommand)?.RaiseCanExecuteChanged();

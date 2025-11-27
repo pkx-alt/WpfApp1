@@ -119,7 +119,8 @@
                     Width="160" 
                     Height="45"
                     HorizontalAlignment="Right"
-                    IsDefault="True">
+                    IsDefault="True"
+                    IsCancel="True">
                 <Button.Effect>
                     <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
                 </Button.Effect>

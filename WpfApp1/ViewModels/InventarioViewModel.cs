@@ -20,7 +20,7 @@ namespace OrySiPOS.ViewModels
         private bool _verActivos;
         private bool _verInactivos;
         private bool _verBajoStock;
-        public const int NivelBajoStock = 5;
+        //public const int NivelBajoStock = 5;
         // 1. AGREGA ESTA CONSTANTE AL PRINCIPIO DE LA CLASE
         public const string TextoPredeterminado = "Buscar por nombre o descripción...";
 
@@ -72,6 +72,13 @@ namespace OrySiPOS.ViewModels
                 OnPropertyChanged();
                 CargarProductos(); // Refresca el DataGrid
             }
+        }
+
+        private decimal _valorTotalInventario;
+        public decimal ValorTotalInventario
+        {
+            get { return _valorTotalInventario; }
+            set { _valorTotalInventario = value; OnPropertyChanged(); }
         }
 
         public bool VerActivos
@@ -253,10 +260,13 @@ namespace OrySiPOS.ViewModels
             }
             // Si ambos son true, no se aplica filtro de estado
 
-            // FILTRO 4: Por Bajo Stock
+            // FILTRO 4: Por Bajo Stock (Dinámico)
             if (VerBajoStock)
             {
-                query = query.Where(p => p.Stock <= NivelBajoStock);
+                // Leemos el valor configurado en Ajustes
+                int limiteStock = OrySiPOS.Properties.Settings.Default.NivelBajoStock;
+
+                query = query.Where(p => p.Stock <= limiteStock);
             }
 
             // 3. Ejecutamos la consulta
@@ -270,6 +280,7 @@ namespace OrySiPOS.ViewModels
             }
 
             TotalProductos = Productos.Count;
+            ValorTotalInventario = Productos.Sum(p => p.Stock * p.Costo);
         }
     }
 }

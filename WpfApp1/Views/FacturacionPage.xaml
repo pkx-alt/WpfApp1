@@ -121,7 +121,8 @@
                     </Border>
 
                     <DataGrid Grid.Row="1" 
-                              ItemsSource="{Binding ListaPendientes}">
+          ItemsSource="{Binding ListaPendientes}"
+          MouseDoubleClick="Pendientes_MouseDoubleClick">
                         <DataGrid.Columns>
                             <DataGridCheckBoxColumn Width="50" 
                                                     Binding="{Binding Seleccionado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
@@ -220,7 +221,7 @@
                     </Border>
 
                     <DataGrid Grid.Row="1" 
-                              ItemsSource="{Binding ListaHistorial}">
+                              ItemsSource="{Binding ListaHistorial}" MouseDoubleClick="Historial_MouseDoubleClick">
 
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Folio" Binding="{Binding SerieFolio}" Width="100" FontWeight="Bold"/>
