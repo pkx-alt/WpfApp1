@@ -11,10 +11,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using WpfApp1.Data;
-using WpfApp1.Models;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     /// <summary>
     /// Lógica de interacción para ConfirmarEstadoClienteWindow.xaml
@@ -76,7 +76,7 @@ namespace WpfApp1.Views.Dialogs
                             var clienteParaNube = dbSync.Clientes.Find(idCliente);
                             if (clienteParaNube != null)
                             {
-                                var srv = new WpfApp1.Services.SupabaseService();
+                                var srv = new OrySiPOS.Services.SupabaseService();
                                 await srv.SincronizarCliente(clienteParaNube);
                             }
                         }

@@ -3,11 +3,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input; // <--- NECESARIO
-using WpfApp1.Data;
-using WpfApp1.Models;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class NuevoProductoModal : Window
     {
@@ -116,7 +116,7 @@ namespace WpfApp1.Views.Dialogs
 
                                 if (prodParaNube != null)
                                 {
-                                    var srv = new WpfApp1.Services.SupabaseService();
+                                    var srv = new OrySiPOS.Services.SupabaseService();
                                     await srv.SincronizarProducto(prodParaNube);
                                     System.Diagnostics.Debug.WriteLine($"Producto nuevo sincronizado: {prodParaNube.Descripcion}");
                                 }

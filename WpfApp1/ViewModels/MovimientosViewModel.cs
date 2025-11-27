@@ -2,10 +2,10 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
-using WpfApp1.Data;
-using WpfApp1.Models;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class MovimientosViewModel : ViewModelBase
     {

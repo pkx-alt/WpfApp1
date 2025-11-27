@@ -4,10 +4,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
-using WpfApp1.Data;
-using WpfApp1.Models;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     // HEREDAMOS DE ViewModelBase PARA TENER OnPropertyChanged
     public class GastosViewModel : ViewModelBase

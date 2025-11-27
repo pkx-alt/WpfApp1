@@ -9,9 +9,9 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media; // Para los colores (Brushes)
-using WpfApp1.Services;
+using OrySiPOS.Services;
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class ReportesPage : Page
     {

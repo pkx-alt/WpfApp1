@@ -1,11 +1,11 @@
 ﻿using System.Linq; // Necesario para la consulta
 using System.Windows;
 using System.Windows.Controls;
-using WpfApp1.Views.Dialogs;
-using WpfApp1.Models;
-using WpfApp1.ViewModels;
+using OrySiPOS.Views.Dialogs;
+using OrySiPOS.Models;
+using OrySiPOS.ViewModels;
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class IngresosPage : Page
     {

@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Input; // <--- Verifica este using
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class AperturaCajaWindow : Window
     {

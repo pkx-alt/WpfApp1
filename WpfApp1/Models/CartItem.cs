@@ -1,7 +1,7 @@
 ﻿// --- Models/CartItem.cs ---
 
 // ¡OJO! Asegúrate de que el namespace sea el de tu carpeta Models
-namespace WpfApp1.Models
+namespace OrySiPOS.Models
 {
     // Necesitamos estos 'usings' para que funcione INotifyPropertyChanged
     using System.ComponentModel;

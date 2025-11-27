@@ -2,7 +2,7 @@
 using Supabase.Postgrest.Attributes;
 using System;
 
-namespace WpfApp1.Models.Supabase
+namespace OrySiPOS.Models.Supabase
 {
     [Table("cotizaciones_web")]
     public class CotizacionWeb : BaseModel

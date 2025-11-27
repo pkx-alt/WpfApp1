@@ -4,11 +4,11 @@ using System.Text.RegularExpressions; // Para validar números
 using System.Windows;
 using System.Windows.Controls; // Necesario para TextChangedEventArgs
 using System.Windows.Input; // Necesario para PreviewTextInput
-using WpfApp1.Data; // <--- ¡AÑADE ESTA LÍNEA!
-using WpfApp1.Models; // ¡Importante!
+using OrySiPOS.Data; // <--- ¡AÑADE ESTA LÍNEA!
+using OrySiPOS.Models; // ¡Importante!
 using Microsoft.EntityFrameworkCore;
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class AgregarStockModal : Window
     {
@@ -118,7 +118,7 @@ namespace WpfApp1.Views.Dialogs
 
                                 if (prodSync != null)
                                 {
-                                    var srv = new WpfApp1.Services.SupabaseService();
+                                    var srv = new OrySiPOS.Services.SupabaseService();
                                     await srv.SincronizarProducto(prodSync);
                                     System.Diagnostics.Debug.WriteLine($"Sincronización background exitosa: {prodSync.Descripcion}");
                                 }

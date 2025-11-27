@@ -6,11 +6,11 @@ using System.Windows; // Para MessageBox
 using Microsoft.EntityFrameworkCore;
 using LiveCharts;
 using LiveCharts.Wpf;
-using WpfApp1.Data;
-using WpfApp1.Models;
-using WpfApp1.Services;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
+using OrySiPOS.Services;
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class EstadisticasViewModel : ViewModelBase
     {

@@ -1,9 +1,9 @@
-﻿<Page x:Class="WpfApp1.Views.DashboardPage"
+﻿<Page x:Class="OrySiPOS.Views.DashboardPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:WpfApp1.Views"
+      xmlns:local="clr-namespace:OrySiPOS.Views"
       mc:Ignorable="d" 
       d:DesignHeight="750" d:DesignWidth="1000"
       Title="DashboardPage" Background="#F9F9F9">

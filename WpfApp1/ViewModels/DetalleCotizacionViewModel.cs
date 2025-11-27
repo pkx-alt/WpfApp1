@@ -4,11 +4,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using WpfApp1.Data;
-using WpfApp1.Models;
-using WpfApp1.Helpers; // Para NumeroALetras
+using OrySiPOS.Data;
+using OrySiPOS.Models;
+using OrySiPOS.Helpers; // Para NumeroALetras
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class DetalleCotizacionViewModel : ViewModelBase
     {

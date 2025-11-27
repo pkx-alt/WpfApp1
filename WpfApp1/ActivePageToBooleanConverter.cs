@@ -3,7 +3,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace WpfApp1 // Asegúrate que el namespace sea el correcto
+namespace OrySiPOS // Asegúrate que el namespace sea el correcto
 {
     public class ActivePageToBooleanConverter : IValueConverter
     {

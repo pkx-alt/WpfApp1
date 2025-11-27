@@ -1,4 +1,4 @@
-﻿<Page x:Class="WpfApp1.Views.ReportesPage"
+﻿<Page x:Class="OrySiPOS.Views.ReportesPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 

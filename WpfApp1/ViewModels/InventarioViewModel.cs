@@ -1,14 +1,14 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
-using WpfApp1.Data;
-using WpfApp1.Models;
-using WpfApp1.Helpers; // Para RelayCommand
+using OrySiPOS.Data;
+using OrySiPOS.Models;
+using OrySiPOS.Helpers; // Para RelayCommand
 using System.Windows.Input;
 using Microsoft.EntityFrameworkCore;
-using WpfApp1.Views.Dialogs;
+using OrySiPOS.Views.Dialogs;
 using System.Windows;
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class InventarioViewModel : ViewModelBase // Asegúrate que herede de tu Base
     {

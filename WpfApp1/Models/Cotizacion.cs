@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WpfApp1.Models
+namespace OrySiPOS.Models
 {
     [Table("Cotizaciones")] // Nombre de la tabla en SQL
     public class Cotizacion

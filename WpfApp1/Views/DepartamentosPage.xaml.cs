@@ -1,8 +1,8 @@
 ﻿// DepartamentosPage.xaml.cs
 using System.Windows.Controls;
-using WpfApp1.ViewModels; // ¡Importante! Traer nuestro ViewModel
+using OrySiPOS.ViewModels; // ¡Importante! Traer nuestro ViewModel
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class DepartamentosPage : Page
     {

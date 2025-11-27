@@ -5,13 +5,13 @@ using System; // Para DateTime
 using System.Collections.Generic; // Para List
 using System.Collections.ObjectModel;
 using System.Linq;
-using WpfApp1.Data;
-using WpfApp1.Models;
-using WpfApp1.Views.Dialogs; // ¡Para poder usar DetalleVentaDialog!
+using OrySiPOS.Data;
+using OrySiPOS.Models;
+using OrySiPOS.Views.Dialogs; // ¡Para poder usar DetalleVentaDialog!
 using System.Windows.Input; // ¡ESTA ES LA LÍNEA QUE FALTA!
 using System.Windows; // ¡ESTA ES LA LÍNEA QUE FALTA!
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     // Usamos tu ViewModelBase para poder notificar a la Vista
     public class VentasRealizadasViewModel : ViewModelBase

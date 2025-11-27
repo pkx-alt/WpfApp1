@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input; // <--- NECESARIO
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class RegistroIngresoWindow : Window
     {

@@ -4,10 +4,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using WpfApp1.Data;
-using WpfApp1.Models;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class CuentasPorCobrarViewModel : ViewModelBase
     {
@@ -164,7 +164,7 @@ namespace WpfApp1.ViewModels
 
             // 2. Preparamos el Modal
             var vm = new RegistroAbonoViewModel(MovimientoSeleccionado.SaldoPendiente);
-            var ventana = new WpfApp1.Views.Dialogs.RegistroAbonoWindow
+            var ventana = new OrySiPOS.Views.Dialogs.RegistroAbonoWindow
             {
                 DataContext = vm,
                 Owner = Application.Current.MainWindow

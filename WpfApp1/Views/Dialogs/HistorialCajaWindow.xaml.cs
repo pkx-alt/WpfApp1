@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using System.Windows;
 using System.Windows.Input; // <--- NECESARIO PARA ARRASTRAR
-using WpfApp1.Data;
+using OrySiPOS.Data;
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class HistorialCajaWindow : Window
     {

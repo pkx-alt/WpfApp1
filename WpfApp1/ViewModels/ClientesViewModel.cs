@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel; // Para ObservableCollection
 using System.Linq; // Para .ToList()
-using WpfApp1.Data;
-using WpfApp1.Models;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     // NOTA: Para un MVVM "completo" esto implementaría INotifyPropertyChanged,
     // pero vamos a mantenerlo simple por ahora.

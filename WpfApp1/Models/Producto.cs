@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations; // Necesario para [Key]
 
-namespace WpfApp1.Models
+namespace OrySiPOS.Models
 {
     public class Producto
     {

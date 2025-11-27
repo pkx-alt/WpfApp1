@@ -1,8 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Input; // <--- NECESARIO
-using WpfApp1.Models;
+using OrySiPOS.Models;
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class DetallesCategoriaDialog : Window
     {

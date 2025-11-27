@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input; // <--- NECESARIO
 
-namespace WpfApp1.Dialogs // Asegúrate de que el namespace coincida con donde está tu archivo
+namespace OrySiPOS.Dialogs // Asegúrate de que el namespace coincida con donde está tu archivo
 {
     public partial class RegistroGastoWindow : Window
     {

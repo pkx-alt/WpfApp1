@@ -1,5 +1,5 @@
 ﻿// --- Enums/MetodoPago.cs ---
-namespace WpfApp1.Enums
+namespace OrySiPOS.Enums
 {
     public enum MetodoPago
     {

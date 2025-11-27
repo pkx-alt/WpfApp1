@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Input;
-using WpfApp1.Models;  // Asegúrate de tener tu modelo Ingreso aquí
-using WpfApp1.Helpers; // O donde tengas tu RelayCommand
+using OrySiPOS.Models;  // Asegúrate de tener tu modelo Ingreso aquí
+using OrySiPOS.Helpers; // O donde tengas tu RelayCommand
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class RegistroIngresoViewModel : ViewModelBase
     {

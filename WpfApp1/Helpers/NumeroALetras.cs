@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace WpfApp1.Helpers
+namespace OrySiPOS.Helpers
 {
     public static class NumeroALetras
     {

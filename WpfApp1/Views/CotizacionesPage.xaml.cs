@@ -1,10 +1,10 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using WpfApp1.ViewModels;
-using WpfApp1.Views.Dialogs;
+using OrySiPOS.ViewModels;
+using OrySiPOS.Views.Dialogs;
 
-namespace WpfApp1.Views // Asegúrate que este namespace sea el correcto
+namespace OrySiPOS.Views // Asegúrate que este namespace sea el correcto
 {
     public partial class CotizacionesPage : Page
     {

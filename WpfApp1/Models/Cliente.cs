@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations; // Necesario para [Key]
 using System.ComponentModel.DataAnnotations.Schema; // <-- ¡ESTA FALTABA! (Para [NotMapped])
 using System.Runtime.CompilerServices; // <-- ¡ESTA FALTABA! (Para [CallerMemberName])
 
-namespace WpfApp1.Models
+namespace OrySiPOS.Models
 {
     public class Cliente : INotifyPropertyChanged
     {

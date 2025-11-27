@@ -1,12 +1,12 @@
 ﻿using System.Windows;
 using System.Windows.Input; // <--- IMPORTANTE
 using System.Windows.Media;
-using WpfApp1.Data;
-using WpfApp1.Models;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class ConfirmarEstadoModal : Window
     {
@@ -98,7 +98,7 @@ namespace WpfApp1.Views.Dialogs
 
                             if (prod != null)
                             {
-                                var srv = new WpfApp1.Services.SupabaseService();
+                                var srv = new OrySiPOS.Services.SupabaseService();
                                 await srv.SincronizarProducto(prod);
                             }
                         }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
-using WpfApp1.Data;
-using WpfApp1.ViewModels; // Para usar tu ViewModelBase
+using OrySiPOS.Data;
+using OrySiPOS.ViewModels; // Para usar tu ViewModelBase
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class DashboardViewModel : ViewModelBase
     {

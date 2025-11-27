@@ -4,11 +4,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.EntityFrameworkCore;
-using WpfApp1.Data;
-using WpfApp1.Models;
-using WpfApp1.Helpers; // Para RelayCommand
+using OrySiPOS.Data;
+using OrySiPOS.Models;
+using OrySiPOS.Helpers; // Para RelayCommand
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class FacturacionViewModel : ViewModelBase
     {

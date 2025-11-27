@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using WpfApp1.Models;
+using OrySiPOS.Models;
 
-namespace WpfApp1.Services
+namespace OrySiPOS.Services
 {
     public class EmailImportService
     {

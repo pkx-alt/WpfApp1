@@ -4,12 +4,12 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.EntityFrameworkCore; // ¡Vital para .Include()!
-using WpfApp1.Data;
-using WpfApp1.Models;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 using System.Threading.Tasks; // Para las tareas asíncronas
-using WpfApp1.Services;       // Para encontrar tu SupabaseService
+using OrySiPOS.Services;       // Para encontrar tu SupabaseService
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class CotizacionesViewModel : ViewModelBase
     {
@@ -89,6 +89,7 @@ namespace WpfApp1.ViewModels
         public ICommand VerDetalleCommand { get; }
         public ICommand ImprimirCommand { get; } // Para futura implementación
                                                  // ... tus otras propiedades ...
+        public System.Windows.Input.ICommand ImprimirTicketCommand { get; }
         public ICommand SincronizarWebCommand { get; }
 
         // --- CONSTRUCTOR ---
@@ -102,7 +103,8 @@ namespace WpfApp1.ViewModels
             // Fechas por defecto: Mes actual
             FechaDesde = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             FechaHasta = DateTime.Now;
-
+            // En el constructor:
+            ImprimirTicketCommand = new RelayCommand(ImprimirCotizacionTicket);
             // Agrega esta línea:
             SincronizarWebCommand = new RelayCommand(async (p) => await SincronizarWeb());
 
@@ -236,6 +238,51 @@ namespace WpfApp1.ViewModels
             finally
             {
                 Mouse.OverrideCursor = null; // Regresamos el cursor a la normalidad
+            }
+        }
+
+        // En CotizacionesViewModel.cs
+
+        private void ImprimirCotizacionTicket(object parameter)
+        {
+            if (parameter is CotizacionItemViewModel itemVM)
+            {
+                // 1. Necesitamos los DETALLES (productos) de esa cotización.
+                // Como el item de la tabla es ligero, hay que consultar la BD completa.
+
+                using (var db = new InventarioDbContext())
+                {
+                    // Buscamos la cotización completa con sus detalles
+                    var cotizacionCompleta = db.Cotizaciones
+                                               .Include(c => c.Detalles) // ¡Trae los productos!
+                                               .Include(c => c.Cliente)
+                                               .FirstOrDefault(c => c.ID == itemVM.Folio);
+
+                    if (cotizacionCompleta != null)
+                    {
+                        // 2. Convertimos los detalles al formato que entiende la impresora (ItemTicket)
+                        var itemsParaImprimir = cotizacionCompleta.Detalles.Select(d => new OrySiPOS.Services.ItemTicket
+                        {
+                            Nombre = d.Descripcion,
+                            Cantidad = d.Cantidad,
+                            Precio = d.PrecioUnitario
+                            // Total se calcula solo en la clase ItemTicket
+                        }).ToList();
+
+                        // 3. Mandamos a imprimir usando el NUEVO método
+                        string nombreCliente = cotizacionCompleta.Cliente != null ? cotizacionCompleta.Cliente.RazonSocial : "Público General";
+
+                        OrySiPOS.Services.TicketPrintingService.ImprimirCotizacion(
+                            productos: itemsParaImprimir,
+                            subtotal: cotizacionCompleta.Subtotal,
+                            iva: cotizacionCompleta.IVA,
+                            total: cotizacionCompleta.Total,
+                            cliente: nombreCliente,
+                            folio: cotizacionCompleta.ID.ToString(),
+                            vigencia: cotizacionCompleta.FechaVencimiento
+                        );
+                    }
+                }
             }
         }
 

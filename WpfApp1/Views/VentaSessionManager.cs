@@ -4,9 +4,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WpfApp1.Models; // <--- ¡AÑADE ESTA LÍNEA!
+using OrySiPOS.Models; // <--- ¡AÑADE ESTA LÍNEA!
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public static class VentaSessionManager
     {

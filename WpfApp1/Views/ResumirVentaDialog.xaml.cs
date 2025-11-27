@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Collections.Generic; // Para la clase de ayuda
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class ResumirVentaDialog : Window
     {

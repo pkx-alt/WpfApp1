@@ -7,12 +7,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using WpfApp1.Data;
-using WpfApp1.Models;
-using WpfApp1.Views;
-using WpfApp1.Views.Dialogs;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
+using OrySiPOS.Views;
+using OrySiPOS.Views.Dialogs;
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class VentaViewModel : ViewModelBase
     {
@@ -474,10 +474,10 @@ namespace WpfApp1.ViewModels
                         if (modalPago.DataContext is FormaPagoViewModel vmFinal && vmFinal.ImprimirTicket)
                         {
                             // 1. Convertimos los items del carrito al formato del impresor
-                            var listaParaImprimir = new List<WpfApp1.Services.ItemTicket>();
+                            var listaParaImprimir = new List<OrySiPOS.Services.ItemTicket>();
                             foreach (var item in this.CarritoItems)
                             {
-                                listaParaImprimir.Add(new WpfApp1.Services.ItemTicket
+                                listaParaImprimir.Add(new OrySiPOS.Services.ItemTicket
                                 {
                                     Nombre = item.Description,
                                     Cantidad = item.Quantity,
@@ -491,7 +491,7 @@ namespace WpfApp1.ViewModels
 
                           
                             // 3. Llamamos al servicio (AHORA CON MÁS DATOS)
-                            WpfApp1.Services.TicketPrintingService.ImprimirTicket(
+                            OrySiPOS.Services.TicketPrintingService.ImprimirTicket(
                                 productos: listaParaImprimir,
                                 subtotal: this.Subtotal,
                                 iva: this.Iva,
@@ -620,7 +620,7 @@ namespace WpfApp1.ViewModels
                                 .Where(p => idsModificados.Contains(p.ID))
                                 .ToList();
 
-                            var srv = new WpfApp1.Services.SupabaseService();
+                            var srv = new OrySiPOS.Services.SupabaseService();
                             foreach (var prod in productosActualizados)
                             {
                                 await srv.SincronizarProducto(prod);

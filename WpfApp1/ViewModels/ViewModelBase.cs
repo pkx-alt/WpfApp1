@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     // Esta es nuestra clase "radio"
     public class ViewModelBase : INotifyPropertyChanged

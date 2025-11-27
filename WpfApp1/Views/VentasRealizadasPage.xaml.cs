@@ -1,9 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using WpfApp1.ViewModels; // Necesario para leer la constante
+using OrySiPOS.ViewModels; // Necesario para leer la constante
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class VentasRealizadasPage : Page
     {

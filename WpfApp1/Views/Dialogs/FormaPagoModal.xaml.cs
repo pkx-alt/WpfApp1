@@ -1,9 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Input; // <--- NECESARIO PARA ARRASTRAR
-using WpfApp1.Models;
-using WpfApp1.ViewModels;
+using OrySiPOS.Models;
+using OrySiPOS.ViewModels;
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class FormaPagoModal : Window
     {

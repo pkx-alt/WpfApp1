@@ -1,9 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Input;
-using WpfApp1.Data;
-using WpfApp1.Models;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class NuevoClienteWindow : Window
     {
@@ -111,7 +111,7 @@ namespace WpfApp1.Views.Dialogs
                     {
                         try
                         {
-                            var srv = new WpfApp1.Services.SupabaseService();
+                            var srv = new OrySiPOS.Services.SupabaseService();
                             await srv.SincronizarCliente(nuevoCliente);
                         }
                         catch (Exception ex)

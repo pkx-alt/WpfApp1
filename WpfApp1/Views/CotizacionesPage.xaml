@@ -1,10 +1,10 @@
-﻿<Page x:Class="WpfApp1.Views.CotizacionesPage"
+﻿<Page x:Class="OrySiPOS.Views.CotizacionesPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:vm="clr-namespace:WpfApp1.ViewModels"
-      xmlns:local="clr-namespace:WpfApp1.Views"
+      xmlns:vm="clr-namespace:OrySiPOS.ViewModels"
+      xmlns:local="clr-namespace:OrySiPOS.Views"
       mc:Ignorable="d" 
       d:DesignHeight="600" d:DesignWidth="800"
       Title="CotizacionesPage"
@@ -125,8 +125,10 @@
                                         Tag="{Binding Folio}"/>
 
                                 <Button Content="Imprimir" Margin="2" Padding="10,5" FontSize="12"
-                                        Style="{StaticResource BtnSecondary}"
-                                        ToolTip="Imprimir PDF"/>
+                                    Style="{StaticResource BtnSecondary}"
+                                    ToolTip="Imprimir Ticket de Cotización"
+                                    Command="{Binding DataContext.ImprimirTicketCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                    CommandParameter="{Binding}" />
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

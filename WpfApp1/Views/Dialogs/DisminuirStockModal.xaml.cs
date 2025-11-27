@@ -1,14 +1,14 @@
 ﻿// --- Archivo: DisminuirStockModal.xaml.cs ---
 
 using System.Windows;
-using WpfApp1.Models; // ¡Importante!
+using OrySiPOS.Models; // ¡Importante!
 using System.Windows.Input; // Necesario para PreviewTextInput
 using System.Windows.Controls; // Necesario para TextChangedEventArgs
 using System.Text.RegularExpressions; // Para validar números
-using WpfApp1.Data; // <--- ¡AÑADE ESTA LÍNEA!
+using OrySiPOS.Data; // <--- ¡AÑADE ESTA LÍNEA!
 using Microsoft.EntityFrameworkCore;
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class DisminuirStockModal : Window
     {
@@ -115,7 +115,7 @@ namespace WpfApp1.Views.Dialogs
 
                                 if (prod != null)
                                 {
-                                    var srv = new WpfApp1.Services.SupabaseService();
+                                    var srv = new OrySiPOS.Services.SupabaseService();
                                     await srv.SincronizarProducto(prod);
                                 }
                             }

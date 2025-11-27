@@ -7,7 +7,7 @@ using System.Windows.Media;
 // using System.ComponentModel;
 // ...etc.
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class VentaPage : Page
     {

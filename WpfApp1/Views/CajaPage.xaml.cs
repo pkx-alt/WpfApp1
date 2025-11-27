@@ -5,13 +5,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
-using WpfApp1.Data;
-using WpfApp1.Dialogs;
-using WpfApp1.Models;
-using WpfApp1.ViewModels;
-using WpfApp1.Views.Dialogs;
+using OrySiPOS.Data;
+using OrySiPOS.Dialogs;
+using OrySiPOS.Models;
+using OrySiPOS.ViewModels;
+using OrySiPOS.Views.Dialogs;
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class CajaPage : Page
     {

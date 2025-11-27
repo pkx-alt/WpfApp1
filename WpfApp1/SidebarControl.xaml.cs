@@ -12,10 +12,10 @@ using System.Windows.Media; // <-- ¡NUEVO! Para los colores
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using WpfApp1.Properties; // <-- ¡NUEVO! Para acceder a los Settings
+using OrySiPOS.Properties; // <-- ¡NUEVO! Para acceder a los Settings
 using System.ComponentModel; // <-- ¡Este es el importante!
 
-namespace WpfApp1
+namespace OrySiPOS
 {
     public partial class SidebarControl : UserControl
     {

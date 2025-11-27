@@ -5,9 +5,9 @@ using System.Text; // Necesario para StringBuilder
 using ESCPOS_NET;
 using ESCPOS_NET.Emitters;
 using ESCPOS_NET.Utilities;
-// Asegúrate de tener acceso a las propiedades. Si da error, agrega: using WpfApp1.Properties;
+// Asegúrate de tener acceso a las propiedades. Si da error, agrega: using OrySiPOS.Properties;
 
-namespace WpfApp1.Services
+namespace OrySiPOS.Services
 {
     public class ItemTicket
     {
@@ -20,7 +20,7 @@ namespace WpfApp1.Services
     public class TicketPrintingService
     {
         // CONSEJO PRO: También podrías leer esto de Settings si el usuario cambia de impresora
-        // private static string NOMBRE_IMPRESORA => WpfApp1.Properties.Settings.Default.ImpresoraSeleccionada; 
+        // private static string NOMBRE_IMPRESORA => OrySiPOS.Properties.Settings.Default.ImpresoraSeleccionada; 
         // Pero por ahora lo dejamos constante como pediste en el código original o fijo.
         private const string NOMBRE_IMPRESORA = "XP-58";
 
@@ -39,7 +39,7 @@ namespace WpfApp1.Services
                 commands.Add(emitter.SetStyles(PrintStyle.Bold | PrintStyle.DoubleHeight | PrintStyle.DoubleWidth));
 
                 // 1. NOMBRE DE LA TIENDA (Desde Ajustes)
-                string nombreTienda = WpfApp1.Properties.Settings.Default.NombreTienda;
+                string nombreTienda = OrySiPOS.Properties.Settings.Default.NombreTienda;
                 if (string.IsNullOrWhiteSpace(nombreTienda)) nombreTienda = "Mi Punto de Venta"; // Texto por defecto si está vacío
 
                 commands.Add(emitter.PrintLine(SinTildes(nombreTienda)));
@@ -47,14 +47,14 @@ namespace WpfApp1.Services
                 commands.Add(emitter.SetStyles(PrintStyle.None));
 
                 // 2. DIRECCIÓN (Desde Ajustes)
-                string direccion = WpfApp1.Properties.Settings.Default.DireccionTienda;
+                string direccion = OrySiPOS.Properties.Settings.Default.DireccionTienda;
                 if (!string.IsNullOrWhiteSpace(direccion))
                 {
                     commands.Add(emitter.PrintLine(SinTildes(direccion)));
                 }
 
                 // 3. TELÉFONO (Desde Ajustes)
-                string telefono = WpfApp1.Properties.Settings.Default.TelefonoTienda;
+                string telefono = OrySiPOS.Properties.Settings.Default.TelefonoTienda;
                 if (!string.IsNullOrWhiteSpace(telefono))
                 {
                     commands.Add(emitter.PrintLine($"Tel: {telefono}"));
@@ -124,7 +124,7 @@ namespace WpfApp1.Services
                 commands.Add(emitter.CenterAlign());
 
                 // 4. MENSAJE PERSONALIZADO (Desde Ajustes)
-                string mensajeFinal = WpfApp1.Properties.Settings.Default.MensajeTicket;
+                string mensajeFinal = OrySiPOS.Properties.Settings.Default.MensajeTicket;
                 if (string.IsNullOrWhiteSpace(mensajeFinal)) mensajeFinal = "Gracias por su compra!";
 
                 commands.Add(emitter.PrintLine(SinTildes(mensajeFinal)));
@@ -141,6 +141,95 @@ namespace WpfApp1.Services
             catch (Exception ex)
             {
                 System.Windows.MessageBox.Show("Error de impresión: " + ex.Message);
+            }
+        }
+
+        // En Services/TicketPrintingService.cs
+
+        // Este método es EXCLUSIVO para Cotizaciones
+        public static void ImprimirCotizacion(List<ItemTicket> productos, decimal subtotal, decimal iva, decimal total, string cliente, string folio, DateTime vigencia)
+        {
+            try
+            {
+                var emitter = new ESCPOS_NET.Emitters.EPSON();
+                var commands = new List<byte[]>();
+
+                // Inicializamos
+                commands.Add(emitter.Initialize());
+
+                // --- ENCABEZADO ---
+                commands.Add(emitter.CenterAlign());
+                commands.Add(emitter.SetStyles(ESCPOS_NET.Emitters.PrintStyle.Bold | ESCPOS_NET.Emitters.PrintStyle.DoubleHeight));
+
+                // Usamos tus Settings igual que en el ticket normal
+                string nombreTienda = OrySiPOS.Properties.Settings.Default.NombreTienda;
+                commands.Add(emitter.PrintLine(SinTildes(nombreTienda)));
+                commands.Add(emitter.SetStyles(ESCPOS_NET.Emitters.PrintStyle.None));
+
+                // Datos de contacto (Opcional, reciclando tu lógica)
+                string telefono = OrySiPOS.Properties.Settings.Default.TelefonoTienda;
+                if (!string.IsNullOrWhiteSpace(telefono)) commands.Add(emitter.PrintLine($"Tel: {telefono}"));
+
+                commands.Add(emitter.PrintLine(DateTime.Now.ToString("dd/MM/yyyy HH:mm")));
+
+                // --- ¡AQUÍ ESTÁ LA DIFERENCIA CLAVE! ---
+                commands.Add(emitter.FeedLines(1));
+                commands.Add(emitter.SetStyles(ESCPOS_NET.Emitters.PrintStyle.Bold | ESCPOS_NET.Emitters.PrintStyle.DoubleWidth));
+                commands.Add(emitter.PrintLine("*** COTIZACION ***")); // <--- Título Grande
+                commands.Add(emitter.SetStyles(ESCPOS_NET.Emitters.PrintStyle.None));
+                commands.Add(emitter.PrintLine("NO ES UN COMPROBANTE FISCAL")); // <--- Aviso legal
+                commands.Add(emitter.FeedLines(1));
+
+                // --- DATOS DEL CLIENTE ---
+                commands.Add(emitter.LeftAlign());
+                commands.Add(emitter.PrintLine($"Folio Cotizacion: {folio}"));
+                commands.Add(emitter.PrintLine($"Cliente: {SinTildes(cliente)}"));
+                commands.Add(emitter.PrintLine($"Vigencia hasta: {vigencia:dd/MM/yyyy}")); // <--- Importante en cotizaciones
+
+                // --- TABLA DE PRODUCTOS (Copiado de tu lógica original) ---
+                commands.Add(emitter.PrintLine(new string('-', 32)));
+                commands.Add(emitter.PrintLine("CANT  DESCRIPCION       IMPORTE"));
+                commands.Add(emitter.PrintLine(new string('-', 32)));
+
+                foreach (var item in productos)
+                {
+                    commands.Add(emitter.PrintLine(SinTildes(item.Nombre)));
+
+                    string linea = $"{item.Cantidad} x {item.Precio:C} = {item.Total:C}";
+                    commands.Add(emitter.RightAlign());
+                    commands.Add(emitter.PrintLine(linea));
+                    commands.Add(emitter.LeftAlign());
+                }
+
+                commands.Add(emitter.PrintLine(new string('-', 32)));
+
+                // --- TOTALES ---
+                // (Podemos reciclar tu método auxiliar ImprimirLineaTotal si lo haces público o lo copias)
+                // Aquí lo hago simple:
+                commands.Add(emitter.RightAlign());
+                commands.Add(emitter.PrintLine($"Subtotal: {subtotal:C}"));
+                commands.Add(emitter.PrintLine($"IVA: {iva:C}"));
+
+                commands.Add(emitter.SetStyles(ESCPOS_NET.Emitters.PrintStyle.Bold | ESCPOS_NET.Emitters.PrintStyle.DoubleWidth));
+                commands.Add(emitter.PrintLine($"TOTAL: {total:C}"));
+                commands.Add(emitter.SetStyles(ESCPOS_NET.Emitters.PrintStyle.None));
+                commands.Add(emitter.PrintLine(new string('-', 32)));
+
+                // --- PIE DE PÁGINA ---
+                commands.Add(emitter.CenterAlign());
+                commands.Add(emitter.PrintLine("Precios sujetos a cambio"));
+                commands.Add(emitter.PrintLine("sin previo aviso."));
+
+                commands.Add(emitter.FeedLines(4));
+                commands.Add(emitter.FullCut());
+
+                // Enviar a impresora
+                byte[] bytes = ESCPOS_NET.Utilities.ByteSplicer.Combine(commands.ToArray());
+                RawPrinterHelper.SendBytesToPrinter("XP-58", bytes); // Ojo: Usa tu variable de nombre de impresora
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Error al imprimir cotización: " + ex.Message);
             }
         }
 

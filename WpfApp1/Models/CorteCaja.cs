@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace WpfApp1.Models
+namespace OrySiPOS.Models
 {
     public class CorteCaja
     {

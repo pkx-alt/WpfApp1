@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Input;
-using WpfApp1.Models;
-using WpfApp1.Helpers; // Usaremos esta clase para los comandos
+using OrySiPOS.Models;
+using OrySiPOS.Helpers; // Usaremos esta clase para los comandos
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class RegistroGastoViewModel : ViewModelBase // Asume que tienes una clase ViewModelBase
     {

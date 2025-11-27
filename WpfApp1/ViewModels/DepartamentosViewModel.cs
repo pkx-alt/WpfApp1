@@ -3,15 +3,15 @@ using Microsoft.EntityFrameworkCore; // ¡Para usar .Include()!
 using System.Collections.ObjectModel; // ¡Muy importante!
 using System.Linq;
 using System.Windows.Input;
-using WpfApp1.Data;
-using WpfApp1.Models;
-using WpfApp1.Helpers;      // Para nuestro RelayCommand
-using WpfApp1.Views.Dialogs; // Para nuestros diálogos
+using OrySiPOS.Data;
+using OrySiPOS.Models;
+using OrySiPOS.Helpers;      // Para nuestro RelayCommand
+using OrySiPOS.Views.Dialogs; // Para nuestros diálogos
 using System.Windows;       // Para MessageBox
 using System.Threading.Tasks; // Para Task.Run
-using WpfApp1.Services;       // Para SupabaseService
+using OrySiPOS.Services;       // Para SupabaseService
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class DepartamentosViewModel : ViewModelBase
     {

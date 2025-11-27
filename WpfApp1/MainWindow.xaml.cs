@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Navigation; // <-- ¡Puede que necesites este!
 
-namespace WpfApp1
+namespace OrySiPOS
 {
     public partial class MainWindow : Window
     {

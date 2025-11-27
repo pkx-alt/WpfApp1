@@ -1,5 +1,5 @@
 ﻿// --- Models/VentaDetalleGridItem.cs ---
-namespace WpfApp1.Models
+namespace OrySiPOS.Models
 {
     public class VentaDetalleGridItem
     {

@@ -1,8 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using WpfApp1.ViewModels;
+using OrySiPOS.ViewModels;
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class MovimientosPage : Page
     {

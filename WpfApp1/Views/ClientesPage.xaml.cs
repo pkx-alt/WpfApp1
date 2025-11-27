@@ -1,13 +1,13 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using WpfApp1.Data;
-using WpfApp1.Models;
-using WpfApp1.ViewModels;
-using WpfApp1.Views;
-using WpfApp1.Views.Dialogs;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
+using OrySiPOS.ViewModels;
+using OrySiPOS.Views;
+using OrySiPOS.Views.Dialogs;
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class ClientesPage : Page
     {
@@ -232,7 +232,7 @@ namespace WpfApp1.Views
                             // Recuperamos los clientes ya actualizados
                             var listaParaNube = dbSync.Clientes.Where(c => idsAfectados.Contains(c.ID)).ToList();
 
-                            var srv = new WpfApp1.Services.SupabaseService();
+                            var srv = new OrySiPOS.Services.SupabaseService();
                             foreach (var c in listaParaNube)
                             {
                                 await srv.SincronizarCliente(c);

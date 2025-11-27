@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using WpfApp1.Data;
+using OrySiPOS.Data;
 
 #nullable disable
 
-namespace WpfApp1.Migrations
+namespace OrySiPOS.Migrations
 {
     [DbContext(typeof(InventarioDbContext))]
     [Migration("20251116014155_AgregandoCategoriasYSubcategorias")]
@@ -20,7 +20,7 @@ namespace WpfApp1.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
 
-            modelBuilder.Entity("WpfApp1.Models.Categoria", b =>
+            modelBuilder.Entity("OrySiPOS.Models.Categoria", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -35,7 +35,7 @@ namespace WpfApp1.Migrations
                     b.ToTable("Categorias");
                 });
 
-            modelBuilder.Entity("WpfApp1.Models.Cliente", b =>
+            modelBuilder.Entity("OrySiPOS.Models.Cliente", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -65,7 +65,7 @@ namespace WpfApp1.Migrations
                     b.ToTable("Clientes");
                 });
 
-            modelBuilder.Entity("WpfApp1.Models.Producto", b =>
+            modelBuilder.Entity("OrySiPOS.Models.Producto", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -96,7 +96,7 @@ namespace WpfApp1.Migrations
                     b.ToTable("Productos");
                 });
 
-            modelBuilder.Entity("WpfApp1.Models.Subcategoria", b =>
+            modelBuilder.Entity("OrySiPOS.Models.Subcategoria", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -116,7 +116,7 @@ namespace WpfApp1.Migrations
                     b.ToTable("Subcategorias");
                 });
 
-            modelBuilder.Entity("WpfApp1.Models.Venta", b =>
+            modelBuilder.Entity("OrySiPOS.Models.Venta", b =>
                 {
                     b.Property<int>("VentaId")
                         .ValueGeneratedOnAdd()
@@ -139,7 +139,7 @@ namespace WpfApp1.Migrations
                     b.ToTable("Ventas");
                 });
 
-            modelBuilder.Entity("WpfApp1.Models.VentaDetalle", b =>
+            modelBuilder.Entity("OrySiPOS.Models.VentaDetalle", b =>
                 {
                     b.Property<int>("VentaDetalleId")
                         .ValueGeneratedOnAdd()
@@ -166,9 +166,9 @@ namespace WpfApp1.Migrations
                     b.ToTable("VentasDetalle");
                 });
 
-            modelBuilder.Entity("WpfApp1.Models.Subcategoria", b =>
+            modelBuilder.Entity("OrySiPOS.Models.Subcategoria", b =>
                 {
-                    b.HasOne("WpfApp1.Models.Categoria", "Categoria")
+                    b.HasOne("OrySiPOS.Models.Categoria", "Categoria")
                         .WithMany("Subcategorias")
                         .HasForeignKey("CategoriaId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -177,15 +177,15 @@ namespace WpfApp1.Migrations
                     b.Navigation("Categoria");
                 });
 
-            modelBuilder.Entity("WpfApp1.Models.VentaDetalle", b =>
+            modelBuilder.Entity("OrySiPOS.Models.VentaDetalle", b =>
                 {
-                    b.HasOne("WpfApp1.Models.Producto", "Producto")
+                    b.HasOne("OrySiPOS.Models.Producto", "Producto")
                         .WithMany()
                         .HasForeignKey("ProductoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WpfApp1.Models.Venta", "Venta")
+                    b.HasOne("OrySiPOS.Models.Venta", "Venta")
                         .WithMany("Detalles")
                         .HasForeignKey("VentaId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -196,12 +196,12 @@ namespace WpfApp1.Migrations
                     b.Navigation("Venta");
                 });
 
-            modelBuilder.Entity("WpfApp1.Models.Categoria", b =>
+            modelBuilder.Entity("OrySiPOS.Models.Categoria", b =>
                 {
                     b.Navigation("Subcategorias");
                 });
 
-            modelBuilder.Entity("WpfApp1.Models.Venta", b =>
+            modelBuilder.Entity("OrySiPOS.Models.Venta", b =>
                 {
                     b.Navigation("Detalles");
                 });

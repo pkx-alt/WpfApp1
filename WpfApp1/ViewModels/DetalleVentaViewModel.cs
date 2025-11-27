@@ -5,11 +5,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using WpfApp1.Data;
-using WpfApp1.Models;
-using WpfApp1.Helpers; // ¡Para poder usar NumeroALetras!
+using OrySiPOS.Data;
+using OrySiPOS.Models;
+using OrySiPOS.Helpers; // ¡Para poder usar NumeroALetras!
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     // Usamos ViewModelBase para poder "notificar" a la vista
     public class DetalleVentaViewModel : ViewModelBase

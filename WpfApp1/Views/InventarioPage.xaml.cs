@@ -9,10 +9,10 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Xml.Linq; // <--- ¡VITAL! Para entender el lenguaje del SAT
-using WpfApp1.Data;
-using WpfApp1.Models;
-using WpfApp1.ViewModels;
-using WpfApp1.Views.Dialogs;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
+using OrySiPOS.ViewModels;
+using OrySiPOS.Views.Dialogs;
 
 public class ProductoDetalleItem
 {
@@ -20,7 +20,7 @@ public class ProductoDetalleItem
     public string Valor { get; set; }
 }
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class InventarioPage : Page
     {
@@ -204,7 +204,7 @@ namespace WpfApp1.Views
                                             .Where(p => idsParaNube.Contains(p.ID))
                                             .ToListAsync();
 
-                                        var srv = new WpfApp1.Services.SupabaseService();
+                                        var srv = new OrySiPOS.Services.SupabaseService();
                                         foreach (var prod in listaParaSubir)
                                         {
                                             await srv.SincronizarProducto(prod);
@@ -336,7 +336,7 @@ namespace WpfApp1.Views
                                         .Where(p => nombresEnXml.Contains(p.Descripcion.ToLower()))
                                         .ToListAsync();
 
-                                    var srv = new WpfApp1.Services.SupabaseService();
+                                    var srv = new OrySiPOS.Services.SupabaseService();
                                     foreach (var prod in productosASincronizar)
                                     {
                                         await srv.SincronizarProducto(prod);
@@ -373,7 +373,7 @@ namespace WpfApp1.Views
 
             try
             {
-                using (var db = new WpfApp1.Data.InventarioDbContext())
+                using (var db = new OrySiPOS.Data.InventarioDbContext())
                 {
                     var subcatPorDefecto = db.Subcategorias.FirstOrDefault(s => s.Nombre == "General")
                                            ?? db.Subcategorias.FirstOrDefault();
@@ -414,7 +414,7 @@ namespace WpfApp1.Views
                         }
                         else
                         {
-                            var nuevoProd = new WpfApp1.Models.Producto
+                            var nuevoProd = new OrySiPOS.Models.Producto
                             {
                                 Descripcion = descripcion,
                                 Costo = costo,
@@ -449,7 +449,7 @@ namespace WpfApp1.Views
                                         .Where(p => nombresAfectados.Contains(p.Descripcion.ToLower()))
                                         .ToListAsync();
 
-                                    var srv = new WpfApp1.Services.SupabaseService();
+                                    var srv = new OrySiPOS.Services.SupabaseService();
                                     foreach (var prod in productosParaSubir)
                                     {
                                         await srv.SincronizarProducto(prod);
@@ -498,7 +498,7 @@ namespace WpfApp1.Views
         {
             Producto productoCompleto;
 
-            using (var db = new WpfApp1.Data.InventarioDbContext())
+            using (var db = new OrySiPOS.Data.InventarioDbContext())
             {
                 // Traemos el producto completo, incluyendo Subcategoría y Categoría
                 productoCompleto = db.Productos
@@ -719,7 +719,7 @@ namespace WpfApp1.Views
 
                 // 4. ¡AQUÍ ESTÁ LA NUEVA LÍNEA CLAVE! 
                 // Solo recargamos la vista principal DESPUÉS de que el usuario cierre la ventana modal.
-                var vm = this.DataContext as WpfApp1.ViewModels.InventarioViewModel;
+                var vm = this.DataContext as OrySiPOS.ViewModels.InventarioViewModel;
                 vm?.CargarProductos();
 
             }

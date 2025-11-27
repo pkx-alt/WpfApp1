@@ -3,7 +3,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace WpfApp1.Converters
+namespace OrySiPOS.Converters
 {
     public class EnumToBooleanConverter : IValueConverter
     {

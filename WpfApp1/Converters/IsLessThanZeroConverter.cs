@@ -4,7 +4,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace WpfApp1.Converters
+namespace OrySiPOS.Converters
 {
     /// <summary>
     /// Este Converter devuelve 'true' si el valor (decimal) es menor que cero.

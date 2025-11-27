@@ -3,16 +3,24 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows; // Para MessageBox
 using System.Windows.Input;
-using WpfApp1.Data;
-using WpfApp1.Enums;
-using WpfApp1.Models;
-namespace WpfApp1.ViewModels
+using OrySiPOS.Data;
+using OrySiPOS.Enums;
+using OrySiPOS.Models;
+namespace OrySiPOS.ViewModels
 {
     // Usamos nuestra clase base para poder notificar cambios
     public class FormaPagoViewModel : ViewModelBase
     {
         // --- 1. Propiedades para el Estado ---
         // --- 1. Propiedades para el Estado ---
+        private decimal _totalExacto;
+
+        private decimal _ajusteRedondeo;
+        public decimal AjusteRedondeo
+        {
+            get { return _ajusteRedondeo; }
+            set { _ajusteRedondeo = value; OnPropertyChanged(); }
+        }
 
         private decimal _totalAPagar;
         public decimal TotalAPagar
@@ -21,13 +29,25 @@ namespace WpfApp1.ViewModels
             set
             {
                 _totalAPagar = value;
+
+                // TRUCO: Si _totalExacto es 0 (es la primera vez) o el cambio es drástico,
+                // asumimos que este es el nuevo "precio real" que viene de la venta.
+                if (_totalExacto == 0 || Math.Abs(_totalExacto - value) > 1)
+                {
+                    _totalExacto = value;
+                }
+
                 OnPropertyChanged();
+                // Recalcular cambio y métodos
                 OnPropertyChanged(nameof(Cambio));
-                // Dispara la re-evaluación del pago (auto-llenado)
-                PagoRecibido = _totalAPagar;
+                PagoRecibido = _totalAPagar; // Sugerir pago exacto
+
+                // ¡IMPORTANTE! Llamar a la lógica de redondeo inmediatamente
                 ActualizarLogicaDePago();
             }
         }
+
+
 
         private decimal _pagoRecibido;
         public decimal PagoRecibido
@@ -155,7 +175,7 @@ namespace WpfApp1.ViewModels
             // 5. Establecer el estado inicial del método de pago
             MetodoPagoSeleccionado = MetodoPago.Efectivo;
 
-            ImprimirTicket = WpfApp1.Properties.Settings.Default.ImprimirTicketDefault;
+            ImprimirTicket = OrySiPOS.Properties.Settings.Default.ImprimirTicketDefault;
 
             // (Opcional) Si quieres que la vista se entere inmediatamente si usas INotify en esta propiedad:
             OnPropertyChanged(nameof(ImprimirTicket));
@@ -193,10 +213,10 @@ namespace WpfApp1.ViewModels
             }
 
 
-            if (WpfApp1.Properties.Settings.Default.ImprimirTicketDefault != this.ImprimirTicket)
+            if (OrySiPOS.Properties.Settings.Default.ImprimirTicketDefault != this.ImprimirTicket)
             {
-                WpfApp1.Properties.Settings.Default.ImprimirTicketDefault = this.ImprimirTicket;
-                WpfApp1.Properties.Settings.Default.Save(); // ¡Importante guardar!
+                OrySiPOS.Properties.Settings.Default.ImprimirTicketDefault = this.ImprimirTicket;
+                OrySiPOS.Properties.Settings.Default.Save(); // ¡Importante guardar!
             }
             // ¡Todo bien! Cerramos y devolvemos true
             CloseAction?.Invoke(true);
@@ -229,29 +249,47 @@ namespace WpfApp1.ViewModels
             switch (MetodoPagoSeleccionado)
             {
                 case MetodoPago.Efectivo:
-                    // 1. Habilitamos el TextBox
                     IsPagoRecibidoEnabled = true;
+
+                    // --- LÓGICA DE REDONDEO (.50 sube, .49 baja) ---
+                    // Usamos 'AwayFromZero' para que 0.50 se vaya a 1.00 (el estándar en comercio)
+                    decimal totalRedondeado = Math.Round(_totalExacto, 0, MidpointRounding.AwayFromZero);
+
+                    // 1. Actualizamos el total visual
+                    _totalAPagar = totalRedondeado;
+                    OnPropertyChanged(nameof(TotalAPagar));
+
+                    // 2. Calculamos y mostramos el ajuste (Ej: 12.00 - 12.40 = -0.40)
+                    AjusteRedondeo = _totalAPagar - _totalExacto;
+
+                    // 3. Sugerimos el nuevo pago
+                    PagoRecibido = _totalAPagar;
                     break;
 
                 case MetodoPago.Tarjeta:
                 case MetodoPago.Transferencia:
-                    // 1. Deshabilitamos el TextBox
                     IsPagoRecibidoEnabled = false;
-                    // 2. Auto-llenamos el pago con el total
-                    PagoRecibido = TotalAPagar;
+
+                    // --- RESTAURAR VALOR EXACTO ---
+                    // Si no es efectivo, cobramos los centavos exactos
+                    _totalAPagar = _totalExacto;
+                    OnPropertyChanged(nameof(TotalAPagar));
+
+                    // El ajuste es cero porque no hay redondeo
+                    AjusteRedondeo = 0;
+
+                    PagoRecibido = _totalAPagar;
                     break;
 
                 case MetodoPago.Mixto:
-                    // 1. Deshabilitamos el TextBox (por ahora)
                     IsPagoRecibidoEnabled = false;
-                    MessageBox.Show("El método de pago 'Mixto' es una función avanzada y no está implementado aún.", "Función no disponible", MessageBoxButton.OK, MessageBoxImage.Information);
-                    // 2. (Opcional) Regresarlo a Efectivo
-                    // MetodoPagoSeleccionado = MetodoPago.Efectivo; 
+                    MessageBox.Show("El método de pago 'Mixto' es una función avanzada...", "Función no disponible");
                     break;
             }
 
-            // Forzamos la re-evaluación del método SAT (MetodoPagoSAT)
             OnPropertyChanged(nameof(MetodoPagoSAT));
+            OnPropertyChanged(nameof(FormaPagoSAT));
+            OnPropertyChanged(nameof(Cambio));
         }
         private void CargarClientesParaCombo()
         {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Input;
-using WpfApp1.Helpers; // Para RelayCommand
+using OrySiPOS.Helpers; // Para RelayCommand
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class RegistroAbonoViewModel : ViewModelBase
     {

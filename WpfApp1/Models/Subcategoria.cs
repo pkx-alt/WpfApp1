@@ -3,7 +3,7 @@
 // ¡Añade este 'using' en la parte de arriba!
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WpfApp1.Models
+namespace OrySiPOS.Models
 {
     public class Subcategoria
     {

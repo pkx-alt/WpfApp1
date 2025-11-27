@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WpfApp1.Data;
+using OrySiPOS.Data;
 
-namespace WpfApp1.Services
+namespace OrySiPOS.Services
 {
     public class ReportesAdministrativosService
     {

@@ -2,10 +2,10 @@
 using System.Threading;     // Necesario
 using System.Windows;
 using System.Windows.Markup; // <--- ¡NUEVO! Necesario para XmlLanguage
-using WpfApp1.Data;
+using OrySiPOS.Data;
 using QuestPDF.Infrastructure;
 
-namespace WpfApp1
+namespace OrySiPOS
 {
     public partial class App : Application
     {

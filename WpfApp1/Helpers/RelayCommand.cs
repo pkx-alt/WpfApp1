@@ -2,7 +2,7 @@
 using System;
 using System.Windows.Input;
 
-namespace WpfApp1.Helpers
+namespace OrySiPOS.Helpers
 {
     // Esta es nuestra clase "cable" reutilizable
     public class RelayCommand : ICommand

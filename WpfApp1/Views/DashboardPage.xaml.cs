@@ -1,9 +1,9 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using WpfApp1.ViewModels; // <--- ¡No olvides este using!
+using OrySiPOS.ViewModels; // <--- ¡No olvides este using!
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class DashboardPage : Page
     {

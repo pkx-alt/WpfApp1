@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic; // ¡Necesario para ICollection!
 
-namespace WpfApp1.Models
+namespace OrySiPOS.Models
 {
     public class Categoria
     {

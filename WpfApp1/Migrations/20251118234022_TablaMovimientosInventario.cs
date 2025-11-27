@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace WpfApp1.Migrations
+namespace OrySiPOS.Migrations
 {
     /// <inheritdoc />
     public partial class TablaMovimientosInventario : Migration

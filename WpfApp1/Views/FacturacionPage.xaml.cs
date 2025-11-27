@@ -2,7 +2,7 @@
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using WpfApp1.ViewModels;
+using OrySiPOS.ViewModels;
 using System.IO;       // Para guardar el archivo
 using System.Windows.Documents; // Para crear el reporte (FlowDocument, Table, Paragraph)
 using System.Windows.Media;     // Para colores y pinceles (Brushes)
@@ -17,11 +17,11 @@ using Colors = QuestPDF.Helpers.Colors; // Para evitar conflicto con System.Wind
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using WpfApp1.Data;
-using WpfApp1.Models;
+using OrySiPOS.Data;
+using OrySiPOS.Models;
 // ------------------------------------------------------------------
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class FacturacionPage : Page
     {

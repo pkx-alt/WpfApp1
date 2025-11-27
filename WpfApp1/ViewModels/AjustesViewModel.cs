@@ -1,10 +1,12 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
-using WpfApp1.Helpers; // Para el RelayCommand
-using WpfApp1.Properties; // ¡Importante! Para acceder a Settings
+using OrySiPOS.Helpers; // Para el RelayCommand
+using OrySiPOS.Properties; // ¡Importante! Para acceder a Settings
+using System.Diagnostics;
+using System.Printing; // <-- ¡Nuevo! Para hablar con el servicio de impresión de Windows
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     public class AjustesViewModel : ViewModelBase
     {
@@ -65,21 +67,45 @@ namespace WpfApp1.ViewModels
 
         // --- Comandos ---
         public ICommand GuardarCommand { get; }
+        public ICommand AbrirPropiedadesImpresoraCommand { get; }
 
         // --- Constructor ---
+        // En ViewModels/AjustesViewModel.cs
+
         public AjustesViewModel()
         {
-            // 1. Llenamos la lista de impresoras (Simulada por ahora)
-            // Un reto para después: Usar System.Drawing.Printing para listar las reales de Windows.
-            ListaImpresoras = new ObservableCollection<string>
-            {
-                "Microsoft Print to PDF",
-                "EPSON TM-T20II",
-                "POS-58",
-                "Generic Text Only"
-            };
+            // 1. Inicializamos la lista vacía
+            ListaImpresoras = new ObservableCollection<string>();
 
-            // 2. Cargamos los datos guardados
+            try
+            {
+                // Creamos un servidor de impresión local (tu PC)
+                var server = new LocalPrintServer();
+
+                // Obtenemos todas las colas de impresión (impresoras instaladas)
+                var colas = server.GetPrintQueues();
+
+                foreach (var cola in colas)
+                {
+                    // Agregamos el nombre real de cada impresora a nuestra lista
+                    ListaImpresoras.Add(cola.Name); // o cola.FullName
+                }
+            }
+            catch (Exception ex)
+            {
+                // Si algo falla (ej. servicio de impresión detenido), cargamos una lista de emergencia
+                // para que el programa no truene.
+                ListaImpresoras.Add("Microsoft Print to PDF");
+                System.Diagnostics.Debug.WriteLine("Error al listar impresoras: " + ex.Message);
+            }
+
+            // Si por alguna razón no encontró nada, avisamos
+            if (ListaImpresoras.Count == 0)
+            {
+                ListaImpresoras.Add("(No se encontraron impresoras)");
+            }
+
+            // 2. Cargamos los datos guardados (tu configuración previa)
             CargarConfiguracion();
 
             // 3. Configurar el botón
@@ -119,6 +145,33 @@ namespace WpfApp1.ViewModels
             catch (System.Exception ex)
             {
                 MessageBox.Show("Error al guardar: " + ex.Message);
+            }
+        }
+
+        private void AbrirPropiedades(object obj)
+        {
+            if (string.IsNullOrEmpty(ImpresoraSeleccionada))
+            {
+                MessageBox.Show("Primero selecciona una impresora de la lista.");
+                return;
+            }
+
+            try
+            {
+                // Este comando mágico de Windows abre las propiedades de una impresora específica
+                // printui.dll es la herramienta nativa de Windows para esto.
+                string argumentos = $"/p /n \"{ImpresoraSeleccionada}\"";
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "rundll32",
+                    Arguments = $"printui.dll,PrintUIEntry {argumentos}",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("No se pudo abrir la configuración de Windows: " + ex.Message);
             }
         }
     }

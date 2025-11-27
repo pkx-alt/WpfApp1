@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input; // <--- Necesario para arrastrar
 
-namespace WpfApp1.Views.Dialogs
+namespace OrySiPOS.Views.Dialogs
 {
     public partial class CrearCategoriaDialog : Window
     {

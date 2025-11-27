@@ -2,7 +2,7 @@
 using System;
 using System.Windows.Input;
 
-namespace WpfApp1.ViewModels
+namespace OrySiPOS.ViewModels
 {
     // Esta es nuestra clase "traductora"
     public class RelayCommand : ICommand

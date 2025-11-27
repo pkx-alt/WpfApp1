@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WpfApp1.Data;            // Para acceder a tu InventarioDbContext (SQLite)
-using WpfApp1.Models;          // Para tus modelos locales (Cotizacion, etc)
-using WpfApp1.Models.Supabase; // Para los modelos nube que acabas de arreglar (CotizacionWeb)
+using OrySiPOS.Data;            // Para acceder a tu InventarioDbContext (SQLite)
+using OrySiPOS.Models;          // Para tus modelos locales (Cotizacion, etc)
+using OrySiPOS.Models.Supabase; // Para los modelos nube que acabas de arreglar (CotizacionWeb)
 
-namespace WpfApp1.Services
+namespace OrySiPOS.Services
 {
     public class SupabaseService
     {

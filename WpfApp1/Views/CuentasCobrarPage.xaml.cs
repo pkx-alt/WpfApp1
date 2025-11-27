@@ -1,14 +1,14 @@
 ﻿using System.Windows.Controls;
-using WpfApp1.ViewModels;
+using OrySiPOS.ViewModels;
 
-namespace WpfApp1.Views
+namespace OrySiPOS.Views
 {
     public partial class CuentasCobrarPage : Page // <--- CAMBIADO DE EmpleadosPage
     {
         public CuentasCobrarPage() // <--- CAMBIADO EL CONSTRUCTOR
         {
             InitializeComponent();
-            this.DataContext = new WpfApp1.ViewModels.CuentasPorCobrarViewModel();
+            this.DataContext = new OrySiPOS.ViewModels.CuentasPorCobrarViewModel();
         }
     }
 }

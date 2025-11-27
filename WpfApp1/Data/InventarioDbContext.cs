@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq; // Necesario para .Any()
 using System.Reflection;
 using System.Windows;
-using WpfApp1.Models;
+using OrySiPOS.Models;
 
-namespace WpfApp1.Data
+namespace OrySiPOS.Data
 {
     public class InventarioDbContext : DbContext
     {

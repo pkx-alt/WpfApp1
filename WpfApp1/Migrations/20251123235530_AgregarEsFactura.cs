@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace WpfApp1.Migrations
+namespace OrySiPOS.Migrations
 {
     /// <inheritdoc />
     public partial class AgregarEsFactura : Migration
