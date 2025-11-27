@@ -105,7 +105,7 @@ namespace OrySiPOS.Services
                     commands.AddRange(ImprimirLineaTotal(emitter, "Descuento:", -descuento));
                 }
 
-                commands.AddRange(ImprimirLineaTotal(emitter, "IVA (16%):", iva));
+                commands.AddRange(ImprimirLineaTotal(emitter, "Total IVA:", iva));
 
                 commands.Add(emitter.PrintLine(new string(' ', 32)));
 

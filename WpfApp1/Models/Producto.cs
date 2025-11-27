@@ -13,6 +13,8 @@ namespace OrySiPOS.Models
 
         public decimal Costo { get; set; }
 
+        public decimal PorcentajeIVA { get; set; } = 0.16m;
+
         // ¡Ojo aquí! La ganancia la calculamos, no la guardamos.
         // El DataGrid la leerá igual.
         public decimal Ganancia => Precio - Costo;

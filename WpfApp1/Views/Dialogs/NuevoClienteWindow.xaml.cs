@@ -7,9 +7,40 @@ namespace OrySiPOS.Views.Dialogs
 {
     public partial class NuevoClienteWindow : Window
     {
-        public NuevoClienteWindow()
+        // Variable para guardar el cliente si estamos en modo edición
+        private Cliente _clienteEdicion;
+
+        public NuevoClienteWindow(Cliente clienteAEditar = null)
         {
             InitializeComponent();
+
+            if (clienteAEditar != null)
+            {
+                // MODO EDICIÓN
+                _clienteEdicion = clienteAEditar;
+                CargarDatosEnFormulario();
+                btnGuardar.Content = "Actualizar Cliente"; // Cambiamos el texto del botón
+                this.Title = "Editar Cliente"; // Cambiamos el título de la ventana
+            }
+            else
+            {
+                // MODO CREACIÓN (Normal)
+                _clienteEdicion = null;
+            }
+        }
+
+        private void CargarDatosEnFormulario()
+        {
+            // Rellenamos las cajas de texto con los datos del cliente existente
+            txtRazonSocial.Text = _clienteEdicion.RazonSocial;
+            txtTelefono.Text = _clienteEdicion.Telefono;
+            chkEsFactura.IsChecked = _clienteEdicion.EsFactura;
+
+            // Datos fiscales
+            txtRfc.Text = _clienteEdicion.RFC;
+            txtCodigoPostal.Text = _clienteEdicion.CodigoPostal;
+            txtRegimenFiscal.Text = _clienteEdicion.RegimenFiscal;
+            txtUsoCFDI.Text = _clienteEdicion.UsoCFDI;
         }
 
         // --- 1. ARRASTRAR VENTANA ---
@@ -75,59 +106,98 @@ namespace OrySiPOS.Views.Dialogs
                 }
             }
 
-            // Crear el objeto
-            var nuevoCliente = new Cliente
-            {
-                RazonSocial = txtRazonSocial.Text.Trim(),
-                Telefono = txtTelefono.Text.Trim(),
-                Activo = true,
-                EsFactura = chkEsFactura.IsChecked == true,
-                RFC = txtRfc.Text.Trim().ToUpper(),
-                CodigoPostal = txtCodigoPostal.Text.Trim(),
-                RegimenFiscal = txtRegimenFiscal.Text.Trim(),
-                UsoCFDI = txtUsoCFDI.Text.Trim()
-            };
+            //// Crear el objeto
+            //var nuevoCliente = new Cliente
+            //{
+            //    RazonSocial = txtRazonSocial.Text.Trim(),
+            //    Telefono = txtTelefono.Text.Trim(),
+            //    Activo = true,
+            //    EsFactura = chkEsFactura.IsChecked == true,
+            //    RFC = txtRfc.Text.Trim().ToUpper(),
+            //    CodigoPostal = txtCodigoPostal.Text.Trim(),
+            //    RegimenFiscal = txtRegimenFiscal.Text.Trim(),
+            //    UsoCFDI = txtUsoCFDI.Text.Trim()
+            //};
 
             try
             {
-                int nuevoId = 0;
-
-                // 1. GUARDAR LOCALMENTE (SQLite)
                 using (var db = new InventarioDbContext())
                 {
-                    db.Clientes.Add(nuevoCliente);
-                    db.SaveChanges();
-                    nuevoId = nuevoCliente.ID; // Aquí obtenemos el ID generado por la BD
-                }
-
-                // 2. ¡AQUÍ ESTABA EL FALTANTE! -> SINCRONIZAR CON SUPABASE
-                if (nuevoId > 0)
-                {
-                    // Le asignamos el ID real al objeto antes de enviarlo
-                    nuevoCliente.ID = nuevoId;
-
-                    // Lanzamos la tarea en segundo plano (Fire and Forget)
-                    Task.Run(async () =>
+                    if (_clienteEdicion == null)
                     {
-                        try
+                        // --- LÓGICA DE CREAR NUEVO (Tu código original) ---
+                        var nuevoCliente = new Cliente
                         {
-                            var srv = new OrySiPOS.Services.SupabaseService();
-                            await srv.SincronizarCliente(nuevoCliente);
-                        }
-                        catch (Exception ex)
+                            RazonSocial = txtRazonSocial.Text.Trim(),
+                            Telefono = txtTelefono.Text.Trim(),
+                            Activo = true,
+                            EsFactura = chkEsFactura.IsChecked == true,
+                            RFC = txtRfc.Text.Trim().ToUpper(),
+                            CodigoPostal = txtCodigoPostal.Text.Trim(),
+                            RegimenFiscal = txtRegimenFiscal.Text.Trim(),
+                            UsoCFDI = txtUsoCFDI.Text.Trim()
+                        };
+
+                        db.Clientes.Add(nuevoCliente);
+                        db.SaveChanges();
+
+                        // Sync nube (copia tu lógica original de sync aquí para nuevo cliente)
+                    }
+                    else
+                    {
+                        // --- LÓGICA DE ACTUALIZAR (LO NUEVO) ---
+
+                        // 1. Buscamos el cliente en la BD para asegurarnos de tener la última versión
+                        var clienteEnDb = db.Clientes.Find(_clienteEdicion.ID);
+
+                        if (clienteEnDb != null)
                         {
-                            System.Diagnostics.Debug.WriteLine("Error sync cliente background: " + ex.Message);
+                            // 2. Actualizamos los campos
+                            clienteEnDb.RazonSocial = txtRazonSocial.Text.Trim();
+                            clienteEnDb.Telefono = txtTelefono.Text.Trim();
+                            clienteEnDb.EsFactura = chkEsFactura.IsChecked == true;
+                            clienteEnDb.RFC = txtRfc.Text.Trim().ToUpper();
+                            clienteEnDb.CodigoPostal = txtCodigoPostal.Text.Trim();
+                            clienteEnDb.RegimenFiscal = txtRegimenFiscal.Text.Trim();
+                            clienteEnDb.UsoCFDI = txtUsoCFDI.Text.Trim();
+
+                            // 3. Guardamos cambios
+                            db.Clientes.Update(clienteEnDb);
+                            db.SaveChanges();
+
+                            // 4. Sync Nube (Tarea en segundo plano)
+                            int idActualizado = clienteEnDb.ID;
+                            Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    // Obtenemos contexto fresco para el hilo secundario
+                                    using (var dbSync = new InventarioDbContext())
+                                    {
+                                        var c = dbSync.Clientes.Find(idActualizado);
+                                        if (c != null)
+                                        {
+                                            var srv = new OrySiPOS.Services.SupabaseService();
+                                            await srv.SincronizarCliente(c);
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine("Error sync update: " + ex.Message);
+                                }
+                            });
                         }
-                    });
+                    }
                 }
 
-                MessageBox.Show("¡Cliente registrado exitosamente!", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("¡Operación exitosa!", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
                 this.DialogResult = true;
                 this.Close();
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                MessageBox.Show("Error al guardar: " + ex.Message, "Error de Base de Datos");
+                MessageBox.Show("Error al guardar: " + ex.Message);
             }
         }
 

@@ -29,6 +29,11 @@ namespace OrySiPOS.Models.Supabase
         [Column("activo")]
         public bool Activo { get; set; }
 
+        // --- ¡NUEVO CAMPO! ---
+        // Mapeamos a la columna 'porcentaje_iva' en Postgres
+        [Column("porcentaje_iva")]
+        public decimal PorcentajeIVA { get; set; }
+
         [Column("updated_at")]
         public DateTime UltimaActualizacion { get; set; }
     }

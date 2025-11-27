@@ -1,7 +1,11 @@
-﻿using System.Collections.ObjectModel; // Para ObservableCollection
-using System.Linq; // Para .ToList()
-using OrySiPOS.Data;
+﻿using OrySiPOS.Data;
 using OrySiPOS.Models;
+using OrySiPOS.Views.Dialogs;
+using System.Collections.ObjectModel; // Para ObservableCollection
+using System.Linq; // Para .ToList()
+using System.Windows.Input;
+using System.Windows;
+
 
 namespace OrySiPOS.ViewModels
 {
@@ -11,11 +15,19 @@ namespace OrySiPOS.ViewModels
     {
         // Esta es la propiedad que tu DataGrid está buscando.
         // La inicializamos de una vez para que no esté vacía.
+        // COMANDO NUEVO
+        public ICommand EditarClienteCommand { get; private set; }
+
+        // COMANDO PARA DESHABILITAR (Reutilizando lógica)
+        public ICommand CambiarEstadoClienteCommand { get; private set; }
         public ObservableCollection<Cliente> Clientes { get; set; } = new ObservableCollection<Cliente>();
 
         // El constructor: se ejecuta cuando se crea el objeto
         public ClientesViewModel()
         {
+            // Inicializar comandos
+            EditarClienteCommand = new RelayCommand(OnEditarCliente);
+            CambiarEstadoClienteCommand = new RelayCommand(OnCambiarEstadoCliente);
             CargarClientes(); // Cargamos los clientes al iniciar
         }
 
@@ -74,6 +86,40 @@ namespace OrySiPOS.ViewModels
                 }
 
                 TotalClientes = Clientes.Count;
+            }
+        }
+
+        private void OnEditarCliente(object parametro)
+        {
+            if (parametro is Cliente clienteSeleccionado)
+            {
+                // Pasamos el cliente al constructor que acabamos de modificar
+                var ventana = new NuevoClienteWindow(clienteSeleccionado);
+
+                // Centramos la ventana sobre la principal
+                ventana.Owner = Application.Current.MainWindow;
+
+                bool? resultado = ventana.ShowDialog();
+
+                if (resultado == true)
+                {
+                    // Si guardó cambios, recargamos la lista para verlos reflejados
+                    CargarClientes(); // (Ojo: asegúrate de mantener tus filtros actuales si los usas)
+                }
+            }
+        }
+
+        private void OnCambiarEstadoCliente(object parametro)
+        {
+            if (parametro is Cliente clienteSeleccionado)
+            {
+                var modal = new ConfirmarEstadoClienteWindow(clienteSeleccionado);
+                bool? resultado = modal.ShowDialog();
+
+                if (resultado == true)
+                {
+                    CargarClientes();
+                }
             }
         }
     }

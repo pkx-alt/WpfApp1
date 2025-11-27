@@ -35,6 +35,12 @@ namespace OrySiPOS.ViewModels
         // public ICommand AddStockCommand { get; } 
         // ...etc...
 
+        // NUEVOS COMANDOS
+        public ICommand EditarProductoCommand { get; }
+        public ICommand CambiarEstadoProductoCommand { get; }
+        // Agregaremos este también para el menú "Ver Detalles" si quieres usarlo
+        public ICommand VerDetallesCommand { get; }
+
         // --- Propiedades para los Filtros ---
 
         public Categoria CategoriaSeleccionada
@@ -142,7 +148,12 @@ namespace OrySiPOS.ViewModels
             // Comandos
             LimpiarFiltrosCommand = new RelayCommand(OnLimpiarFiltros);
             NuevoProductoCommand = new RelayCommand(OnNuevoProducto);
+            // Inicializar Comandos
+            EditarProductoCommand = new RelayCommand(OnEditarProducto);
+            CambiarEstadoProductoCommand = new RelayCommand(OnCambiarEstadoProducto);
 
+
+            // VerDetallesCommand = new RelayCommand(OnVerDetalles);
             // Carga los filtros y pon los valores por defecto
             CargarFiltros();
             OnLimpiarFiltros(null); // Esto pone los filtros por defecto Y carga productos
@@ -205,6 +216,42 @@ namespace OrySiPOS.ViewModels
             if (resultado == true)
             {
                 CargarProductos(); // Recarga la lista
+            }
+        }
+
+        private void OnEditarProducto(object parametro)
+        {
+            if (parametro is Producto productoSeleccionado)
+            {
+                // Aquí está la clave: Pasamos el producto al constructor
+                // NOTA: Como el objeto 'productoSeleccionado' viene del DataGrid y puede estar incompleto (sin Categoría cargada),
+                // es mejor buscarlo bien en la BD dentro del modal o pasarlo tal cual si usamos .Include en CargarProductos.
+                // Tu método CargarProductos YA USA .Include, así que el objeto viene completo. ¡Bien!
+
+                var modal = new NuevoProductoModal(productoSeleccionado);
+                modal.Owner = Application.Current.MainWindow;
+
+                if (modal.ShowDialog() == true)
+                {
+                    CargarProductos(); // Refrescar la tabla
+                }
+            }
+        }
+
+        private void OnCambiarEstadoProducto(object parametro)
+        {
+            if (parametro is Producto productoSeleccionado)
+            {
+                bool deshabilitar = productoSeleccionado.Activo;
+
+                // Usamos tu ventana existente 'ConfirmarEstadoModal'
+                var modal = new ConfirmarEstadoModal(productoSeleccionado, deshabilitar);
+                modal.Owner = Application.Current.MainWindow;
+
+                if (modal.ShowDialog() == true)
+                {
+                    CargarProductos(); // Refrescar para ver el cambio de color/estado
+                }
             }
         }
 

@@ -9,6 +9,33 @@
       Title="ClientesPage"
       Background="{StaticResource PageBackground}">
 
+    <Page.Resources>
+        <ContextMenu x:Key="MenuAccionesCliente">
+            <MenuItem Header="✏️ Editar Cliente" 
+                  Command="{Binding DataContext.EditarClienteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                  CommandParameter="{Binding}" />
+
+            <MenuItem Header="📄 Ver Detalles" Click="VerDetallesMenu_Click"/>
+            <Separator/>
+
+            <MenuItem Command="{Binding DataContext.CambiarEstadoClienteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                  CommandParameter="{Binding}">
+                <MenuItem.Style>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Header" Value="🚫 Deshabilitar"/>
+                        <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Activo}" Value="False">
+                                <Setter Property="Header" Value="✅ Habilitar"/>
+                                <Setter Property="Foreground" Value="{StaticResource SuccessColor}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </MenuItem.Style>
+            </MenuItem>
+        </ContextMenu>
+    </Page.Resources>
+
     <Grid Margin="30">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -98,6 +125,11 @@
           Grid.Row="1"
           ItemsSource="{Binding Clientes}"
           MouseDoubleClick="GridClientes_MouseDoubleClick">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                    <Setter Property="ContextMenu" Value="{StaticResource MenuAccionesCliente}"/>
+                </Style>
+            </DataGrid.RowStyle>
 
             <DataGrid.Columns>
 

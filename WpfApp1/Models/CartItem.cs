@@ -17,6 +17,8 @@ namespace OrySiPOS.Models
         public string Description { get; set; }
         public decimal Price { get; set; }
 
+        public decimal TasaIVA { get; set; }
+
         private int _quantity;
         public int Quantity
         {

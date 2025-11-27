@@ -13,17 +13,23 @@
 
     <Page.Resources>
         <ContextMenu x:Key="MenuAccionesProducto">
-            <MenuItem Header="Editar Producto" Click="EditarProducto_Click"/>
-            <MenuItem Header="Ver detalles" Click="VerDetalles_Click"/>
-            <MenuItem Header="Historial de movimientos" Click="Historial_Click"/>
+            <MenuItem Header="✏️ Editar Producto" 
+              Click="MenuEditar_Click" />
+            <MenuItem Header="📄 Ver detalles" Click="VerDetalles_Click"/>
+            <MenuItem Header="📊 Historial de movimientos" Click="Historial_Click"/>
+
             <Separator/>
-            <MenuItem Click="Deshabilitar_Click">
+
+            <MenuItem Command="{Binding DataContext.CambiarEstadoProductoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+              CommandParameter="{Binding}">
                 <MenuItem.Style>
                     <Style TargetType="MenuItem">
-                        <Setter Property="Header" Value="Deshabilitar"/>
+                        <Setter Property="Header" Value="🚫 Deshabilitar"/>
+                        <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Activo}" Value="False">
-                                <Setter Property="Header" Value="Habilitar"/>
+                                <Setter Property="Header" Value="✅ Reactivar"/>
+                                <Setter Property="Foreground" Value="{StaticResource SuccessColor}"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>

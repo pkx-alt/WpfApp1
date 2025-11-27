@@ -217,6 +217,7 @@ namespace OrySiPOS.Services
                     Stock = productoLocal.Stock,
                     Activo = productoLocal.Activo,
                     ImagenUrl = productoLocal.ImagenUrl,
+                    PorcentajeIVA = productoLocal.PorcentajeIVA,
                     Categoria = nombreCategoria,
                     UltimaActualizacion = DateTime.Now
                 };

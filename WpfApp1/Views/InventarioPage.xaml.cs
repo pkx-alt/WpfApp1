@@ -517,6 +517,7 @@ namespace OrySiPOS.Views
         new ReporteItem { Propiedad = "Categoría", Valor = productoCompleto.Subcategoria?.Categoria?.Nombre ?? "N/A" },
         new ReporteItem { Propiedad = "Subcategoría", Valor = productoCompleto.Subcategoria?.Nombre ?? "N/A" },
         new ReporteItem { Propiedad = "Precio Venta", Valor = productoCompleto.Precio.ToString("C") },
+        new ReporteItem { Propiedad = "Tasa IVA", Valor = (productoCompleto.PorcentajeIVA * 100).ToString("0") + "%" },
         new ReporteItem { Propiedad = "Costo", Valor = productoCompleto.Costo.ToString("C") },
         new ReporteItem { Propiedad = "Ganancia (Margen)", Valor = productoCompleto.Ganancia.ToString("C") },
         new ReporteItem { Propiedad = "Stock Actual", Valor = productoCompleto.Stock.ToString() + " uds." },
@@ -723,6 +724,23 @@ namespace OrySiPOS.Views
             {
                 Mouse.OverrideCursor = null;
                 MessageBox.Show("Error: " + ex.Message, "Error al importar");
+            }
+        }
+
+        private void MenuEditar_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Obtenemos el producto de la fila donde se hizo clic
+            if (sender is MenuItem menuItem && menuItem.DataContext is Producto productoSeleccionado)
+            {
+                // 2. Obtenemos el "Cerebro" (ViewModel) de la página
+                if (this.DataContext is InventarioViewModel vm)
+                {
+                    // 3. ¡Ejecutamos el comando manualmente!
+                    if (vm.EditarProductoCommand.CanExecute(productoSeleccionado))
+                    {
+                        vm.EditarProductoCommand.Execute(productoSeleccionado);
+                    }
+                }
             }
         }
     }

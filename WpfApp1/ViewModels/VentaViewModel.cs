@@ -194,23 +194,33 @@ namespace OrySiPOS.ViewModels
 
         private void ActualizarTotales()
         {
-            // 1. Sumamos el precio de lista (Bruto con impuestos incluidos)
-            decimal sumaTotalConImpuestos = CarritoItems.Sum(item => item.Subtotal);
+            decimal acumuladoSubtotal = 0;
+            decimal acumuladoIVA = 0;
 
-            // --- LÓGICA DINÁMICA DE IVA ---
-            // Leemos el entero (ej: 16) y lo convertimos a decimal (0.16)
-            decimal porcentajeConfigurado = OrySiPOS.Properties.Settings.Default.PorcentajeIVA;
-            decimal tasaIva = porcentajeConfigurado / 100m;
+            // Recorremos cada producto en el carrito
+            foreach (var item in CarritoItems)
+            {
+                // El 'Price' es precio público (con impuestos).
+                // El 'Subtotal' del item es (Price * Quantity).
+                decimal totalLineaConImpuestos = item.Subtotal;
 
-            // 2. Desglosamos el Subtotal
-            // Fórmula: Total / (1 + 0.16)
-            Subtotal = sumaTotalConImpuestos / (1 + tasaIva);
+                // Desglosamos ESTA línea con SU propia tasa
+                // Fórmula: Base = Total / (1 + Tasa)
+                decimal baseLinea = totalLineaConImpuestos / (1 + item.TasaIVA);
 
-            // 3. Calculamos el IVA
-            Iva = sumaTotalConImpuestos - Subtotal;
+                // Impuesto = Total - Base
+                decimal ivaLinea = totalLineaConImpuestos - baseLinea;
 
-            // 4. Calculamos el Total Final (menos descuento)
-            Total = sumaTotalConImpuestos - MontoDescuento;
+                acumuladoSubtotal += baseLinea;
+                acumuladoIVA += ivaLinea;
+            }
+
+            // Asignamos los resultados a las propiedades visuales
+            Subtotal = acumuladoSubtotal;
+            Iva = acumuladoIVA;
+
+            // El total sigue siendo Subtotal + IVA (menos descuentos si hubiera)
+            Total = (Subtotal + Iva) - MontoDescuento;
 
             // Notificamos comandos...
             (FinalizarVentaCommand as RelayCommand)?.RaiseCanExecuteChanged();
@@ -290,7 +300,8 @@ namespace OrySiPOS.ViewModels
                     ID = producto.ID.ToString(),
                     Description = producto.Descripcion,
                     Price = producto.Precio,
-                    Quantity = 1
+                    Quantity = 1,
+                    TasaIVA = producto.PorcentajeIVA
                 };
                 CarritoItems.Add(nuevoItem);
             }

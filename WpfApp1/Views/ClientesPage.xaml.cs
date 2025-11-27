@@ -253,31 +253,48 @@ namespace OrySiPOS.Views
             }
         }
 
-        // --- NUEVO: DOBLE CLIC PARA VER DETALLES ---
+        // 1. MÉTODO AYUDANTE (Hace el trabajo real)
+        // Este método recibe el Cliente directamente y abre la ventana.
+        private void AbrirDetallesCliente(Cliente cliente)
+        {
+            // Preparamos los datos a mostrar (Copiamos tu lógica original aquí)
+            var listaDetalles = new List<ReporteItem>
+    {
+        new ReporteItem { Propiedad = "ID Cliente", Valor = cliente.ID.ToString() },
+        new ReporteItem { Propiedad = "Razón Social", Valor = cliente.RazonSocial },
+        new ReporteItem { Propiedad = "RFC", Valor = cliente.RFC },
+        new ReporteItem { Propiedad = "Teléfono", Valor = cliente.Telefono },
+        new ReporteItem { Propiedad = "Código Postal", Valor = cliente.CodigoPostal },
+        new ReporteItem { Propiedad = "Régimen Fiscal", Valor = cliente.RegimenFiscal },
+        new ReporteItem { Propiedad = "Uso CFDI", Valor = cliente.UsoCFDI },
+        new ReporteItem { Propiedad = "Tipo", Valor = cliente.EsFactura ? "Facturación" : "Público General" },
+        new ReporteItem { Propiedad = "Estado", Valor = cliente.Activo ? "Activo" : "Inactivo" },
+        new ReporteItem { Propiedad = "Fecha Registro", Valor = cliente.Creado.ToString("dd/MM/yyyy HH:mm") }
+    };
+
+            // Abrimos el visor
+            var visor = new VisorReporteWindow($"Cliente: {cliente.RazonSocial}", listaDetalles);
+            visor.Owner = Window.GetWindow(this);
+            visor.ShowDialog();
+        }
+
+        // 2. EVENTO PARA EL DOBLE CLIC (Lo mantenemos, pero ahora usa el ayudante)
         private void GridClientes_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var grid = sender as DataGrid;
-            if (grid?.SelectedItem is OrySiPOS.Models.Cliente cliente)
+            if (grid?.SelectedItem is Cliente cliente)
             {
-                // 1. Preparamos los datos a mostrar
-                var listaDetalles = new List<ReporteItem>
-                {
-                    new ReporteItem { Propiedad = "ID Cliente", Valor = cliente.ID.ToString() },
-                    new ReporteItem { Propiedad = "Razón Social", Valor = cliente.RazonSocial },
-                    new ReporteItem { Propiedad = "RFC", Valor = cliente.RFC },
-                    new ReporteItem { Propiedad = "Teléfono", Valor = cliente.Telefono },
-                    new ReporteItem { Propiedad = "Código Postal", Valor = cliente.CodigoPostal },
-                    new ReporteItem { Propiedad = "Régimen Fiscal", Valor = cliente.RegimenFiscal },
-                    new ReporteItem { Propiedad = "Uso CFDI", Valor = cliente.UsoCFDI },
-                    new ReporteItem { Propiedad = "Tipo", Valor = cliente.EsFactura ? "Facturación" : "Público General" },
-                    new ReporteItem { Propiedad = "Estado", Valor = cliente.Activo ? "Activo" : "Inactivo" },
-                    new ReporteItem { Propiedad = "Fecha Registro", Valor = cliente.Creado.ToString("dd/MM/yyyy HH:mm") }
-                };
+                AbrirDetallesCliente(cliente); // <--- Llamamos al ayudante
+            }
+        }
 
-                // 2. Abrimos el visor genérico
-                var visor = new VisorReporteWindow($"Cliente: {cliente.RazonSocial}", listaDetalles);
-                visor.Owner = Window.GetWindow(this);
-                visor.ShowDialog();
+        // 3. ¡NUEVO! EVENTO PARA EL MENÚ CONTEXTUAL (Este recibe RoutedEventArgs)
+        private void VerDetallesMenu_Click(object sender, RoutedEventArgs e)
+        {
+            // El "sender" es el MenuItem. Su DataContext es el Cliente de la fila donde hiciste clic derecho.
+            if (sender is MenuItem menuItem && menuItem.DataContext is Cliente cliente)
+            {
+                AbrirDetallesCliente(cliente); // <--- Llamamos al mismo ayudante
             }
         }
     }
