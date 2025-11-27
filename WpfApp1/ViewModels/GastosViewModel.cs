@@ -26,6 +26,13 @@ namespace OrySiPOS.ViewModels
             }
         }
 
+        private int _totalGastos;
+        public int TotalGastos
+        {
+            get { return _totalGastos; }
+            set { _totalGastos = value; OnPropertyChanged(); }
+        }
+
         // GastosViewModel.cs (dentro de la clase)
 
         // Propiedades de filtro (necesitan OnPropertyChanged)
@@ -87,6 +94,7 @@ namespace OrySiPOS.ViewModels
 
             // 3. Asignamos el método de filtrado
             GastosFiltrados.Filter = new Predicate<object>(FiltroPersonalizado);
+            AplicarFiltros();
         }
 
         private void CargarGastos()
@@ -112,6 +120,7 @@ namespace OrySiPOS.ViewModels
                     {
                         ListaGastos.Add(gasto);
                     }
+
 
                     // Calcular total
                     DateTime inicioMes = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
@@ -187,6 +196,7 @@ namespace OrySiPOS.ViewModels
         {
             // Le decimos a la vista filtrada que re-evalúe todos los elementos.
             GastosFiltrados.Refresh();
+            TotalGastos = GastosFiltrados.Cast<object>().Count();
         }
     }
 }

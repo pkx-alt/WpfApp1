@@ -43,6 +43,21 @@ namespace OrySiPOS.ViewModels
             }
         }
 
+        // Contadores para las pestañas
+        private int _totalPendientes;
+        public int TotalPendientes
+        {
+            get { return _totalPendientes; }
+            set { _totalPendientes = value; OnPropertyChanged(); }
+        }
+
+        private int _totalHistorial;
+        public int TotalHistorial
+        {
+            get { return _totalHistorial; }
+            set { _totalHistorial = value; OnPropertyChanged(); }
+        }
+
         // 2. Filtro por Estado ("Todas", "Vigentes", "Canceladas")
         public ObservableCollection<string> ListaEstados { get; set; } = new ObservableCollection<string> { "Todas", "Vigente", "Cancelada" };
 
@@ -184,6 +199,8 @@ namespace OrySiPOS.ViewModels
                         Seleccionado = false
                     });
                 }
+
+                TotalPendientes = ListaPendientes.Count;
             }
         }
 
@@ -404,6 +421,8 @@ namespace OrySiPOS.ViewModels
                         Estado = f.Estado
                     });
                 }
+
+                TotalHistorial = ListaHistorial.Count;
             }
         }
 

@@ -15,7 +15,13 @@ namespace OrySiPOS.ViewModels
         private List<Ingreso> _todosLosIngresos; // Lista completa sin filtrar
         public ObservableCollection<Ingreso> ListaIngresos { get; set; } // Lista observable (obsoleta, usamos la vista)
         public ICollectionView IngresosFiltrados { get; set; } // <-- LO NUEVO: La fuente de datos de la DataGrid
-
+        
+        private int _totalIngresos;
+        public int TotalIngresos
+        {
+            get { return _totalIngresos; }
+            set { _totalIngresos = value; OnPropertyChanged(); }
+        }
         // --- PROPIEDADES DE FILTRO (Con OnPropertyChanged y AplicarFiltros) ---
         private DateTime? _fechaInicio;
         public DateTime? FechaInicio
@@ -58,6 +64,7 @@ namespace OrySiPOS.ViewModels
 
             // 2. Asignamos nuestro método de filtrado personalizado
             IngresosFiltrados.Filter = new Predicate<object>(FiltroPersonalizado);
+            AplicarFiltros();
         }
 
         // --- MÉTODOS DE LÓGICA ---
@@ -77,6 +84,8 @@ namespace OrySiPOS.ViewModels
                     {
                         ListaIngresos.Add(ingreso);
                     }
+
+
 
                     // Recalcula el total del mes
                     DateTime inicioMes = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
@@ -129,6 +138,7 @@ namespace OrySiPOS.ViewModels
         public void AplicarFiltros()
         {
             IngresosFiltrados.Refresh(); // <-- Fuerza a que FiltroPersonalizado se ejecute de nuevo
+            TotalIngresos = IngresosFiltrados.Cast<object>().Count();
         }
 
         public void AgregarIngreso(Ingreso nuevoIngreso)

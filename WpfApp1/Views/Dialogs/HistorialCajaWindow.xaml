@@ -36,6 +36,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,20">
@@ -154,7 +155,28 @@
                 </DataGrid>
             </Border>
 
-            <Button Grid.Row="2" 
+            <Border Grid.Row="2" 
+        Background="#E9ECEF" 
+        BorderBrush="{StaticResource BorderBrush}" 
+        BorderThickness="0,1,0,0" 
+        Padding="15,5" 
+        Margin="0,0,0,15"
+        CornerRadius="0">
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="Cortes registrados:" 
+                   FontWeight="SemiBold" 
+                   Foreground="{StaticResource TextSecondary}" 
+                   Margin="0,0,5,0"/>
+
+                    <TextBlock x:Name="TxtTotalRegistros" 
+                   Text="0"
+                   FontWeight="Bold" 
+                   Foreground="{StaticResource PrimaryColor}"/>
+                </StackPanel>
+            </Border>
+
+            <Button Grid.Row="3" 
                     Content="Cerrar Historial" 
                     Click="Button_Click"
                     Style="{StaticResource BtnSecondary}" 

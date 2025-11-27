@@ -7,7 +7,7 @@ namespace OrySiPOS.ViewModels
 {
     // NOTA: Para un MVVM "completo" esto implementaría INotifyPropertyChanged,
     // pero vamos a mantenerlo simple por ahora.
-    public class ClientesViewModel
+    public class ClientesViewModel : ViewModelBase
     {
         // Esta es la propiedad que tu DataGrid está buscando.
         // La inicializamos de una vez para que no esté vacía.
@@ -27,6 +27,13 @@ namespace OrySiPOS.ViewModels
         // En ClientesViewModel.cs
 
         // Nota cómo agregamos dos nuevos booleanos al final: verFacturados y verNoFacturados
+
+        private int _totalClientes;
+        public int TotalClientes
+        {
+            get { return _totalClientes; }
+            set { _totalClientes = value; OnPropertyChanged(); } // Ahora sí funcionará OnPropertyChanged
+        }
         public void CargarClientes(string busqueda = null, bool verActivos = true, bool verInactivos = false, bool verFacturados = true, bool verNoFacturados = true)
         {
             Clientes.Clear();
@@ -65,6 +72,8 @@ namespace OrySiPOS.ViewModels
                 {
                     Clientes.Add(cliente);
                 }
+
+                TotalClientes = Clientes.Count;
             }
         }
     }

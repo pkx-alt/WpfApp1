@@ -110,6 +110,18 @@ namespace OrySiPOS.ViewModels
             }
         }
 
+        private int _totalProductos;
+        public int TotalProductos
+        {
+            get { return _totalProductos; }
+            set
+            {
+                _totalProductos = value;
+                // Esto es vital: avisamos a la vista que el número cambió
+                OnPropertyChanged();
+            }
+        }
+
 
         // --- Constructor ---
         public InventarioViewModel()
@@ -256,6 +268,8 @@ namespace OrySiPOS.ViewModels
             {
                 Productos.Add(producto);
             }
+
+            TotalProductos = Productos.Count;
         }
     }
 }

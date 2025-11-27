@@ -21,7 +21,14 @@ namespace OrySiPOS.ViewModels
         //  en tu .xaml.cs. ¡Debemos moverla!)
         public ObservableCollection<VentaHistorialItem> Ventas { get; set; }
         public ICommand VerDetalleCommand { get; }
-
+        
+        
+        private int _totalVentas;
+        public int TotalVentas
+        {
+            get { return _totalVentas; }
+            set { _totalVentas = value; OnPropertyChanged(); }
+        }
         // 1. DEFINIR EL TEXTO PREDETERMINADO
         public const string PlaceholderBusqueda = "Buscar ventas por folio o cliente....";
 
@@ -331,6 +338,8 @@ namespace OrySiPOS.ViewModels
                         Total = venta.Total
                     });
                 }
+
+                TotalVentas = Ventas.Count;
             }
         }
         // --- ¡NUEVO MÉTODO! ---

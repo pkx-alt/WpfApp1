@@ -70,6 +70,13 @@ namespace OrySiPOS.ViewModels
                 CargarCotizaciones();
             }
         }
+
+        private int _totalCotizaciones;
+        public int TotalCotizaciones
+        {
+            get { return _totalCotizaciones; }
+            set { _totalCotizaciones = value; OnPropertyChanged(); }
+        }
         // ... dentro de la clase CotizacionesViewModel ...
 
         // Propiedad para guardar qué eligió el usuario en el ComboBox
@@ -186,6 +193,8 @@ namespace OrySiPOS.ViewModels
                 {
                     ListaCotizaciones.Add(new CotizacionItemViewModel(cot));
                 }
+
+                TotalCotizaciones = ListaCotizaciones.Count;
             }
         }
 

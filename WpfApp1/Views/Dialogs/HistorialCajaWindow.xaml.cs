@@ -28,6 +28,8 @@ namespace OrySiPOS.Views.Dialogs
                 // Cargamos todos los cortes, ordenados del más reciente al más antiguo
                 var lista = db.CortesCaja.OrderByDescending(c => c.Id).ToList();
                 GridHistorial.ItemsSource = lista;
+
+                TxtTotalRegistros.Text = lista.Count.ToString();
             }
         }
 

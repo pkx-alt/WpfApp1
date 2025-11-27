@@ -18,6 +18,12 @@ namespace OrySiPOS.ViewModels
             get { return _tituloPagina; }
             set { _tituloPagina = value; OnPropertyChanged(); }
         }
+        private int _totalMovimientos;
+        public int TotalMovimientos
+        {
+            get { return _totalMovimientos; }
+            set { _totalMovimientos = value; OnPropertyChanged(); }
+        }
         // -----------------------
 
         public MovimientosViewModel()
@@ -59,6 +65,8 @@ namespace OrySiPOS.ViewModels
                     {
                         ListaMovimientos.Add(item);
                     }
+
+                    TotalMovimientos = ListaMovimientos.Count;
                 }
                 catch (System.Exception ex)
                 {
