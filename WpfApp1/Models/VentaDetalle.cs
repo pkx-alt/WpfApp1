@@ -6,19 +6,21 @@ namespace OrySiPOS.Models
     public class VentaDetalle
     {
         [Key]
-        public int VentaDetalleId { get; set; } // Clave primaria del detalle
+        public int VentaDetalleId { get; set; }
 
         public int Cantidad { get; set; }
-        public decimal PrecioUnitario { get; set; } // Precio al momento de la venta
+        public decimal PrecioUnitario { get; set; } // Precio de venta (Ya lo tenías, ¡bien!)
 
-        // --- Claves Foráneas (Foreign Keys) ---
+        // --- ¡NUEVOS CAMPOS (SNAPSHOT)! ---
+        // Guardamos esto para que el historial nunca cambie
+        public string Descripcion { get; set; }
+        public decimal Costo { get; set; }
+        // ----------------------------------
 
-        // 1. Enlace al Producto
         public int ProductoId { get; set; }
         [ForeignKey("ProductoId")]
         public virtual Producto Producto { get; set; }
 
-        // 2. Enlace a la Venta (el "ticket" padre)
         public int VentaId { get; set; }
         [ForeignKey("VentaId")]
         public virtual Venta Venta { get; set; }

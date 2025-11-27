@@ -123,6 +123,19 @@ namespace OrySiPOS.ViewModels
             }
         }
 
+        private bool _verPendientesSat;
+        public bool VerPendientesSat
+        {
+            get => _verPendientesSat;
+            set
+            {
+                if (_verPendientesSat == value) return;
+                _verPendientesSat = value;
+                OnPropertyChanged();
+                CargarProductos(); // ¡Recargamos la lista al cambiar!
+            }
+        }
+
         private int _totalProductos;
         public int TotalProductos
         {
@@ -205,6 +218,7 @@ namespace OrySiPOS.ViewModels
             VerActivos = true;
             VerInactivos = false;
             VerBajoStock = false;
+            VerPendientesSat = false; // <--- Nuevo
 
             CargarProductos();
         }
@@ -223,18 +237,15 @@ namespace OrySiPOS.ViewModels
         {
             if (parametro is Producto productoSeleccionado)
             {
-                // Aquí está la clave: Pasamos el producto al constructor
-                // NOTA: Como el objeto 'productoSeleccionado' viene del DataGrid y puede estar incompleto (sin Categoría cargada),
-                // es mejor buscarlo bien en la BD dentro del modal o pasarlo tal cual si usamos .Include en CargarProductos.
-                // Tu método CargarProductos YA USA .Include, así que el objeto viene completo. ¡Bien!
-
                 var modal = new NuevoProductoModal(productoSeleccionado);
                 modal.Owner = Application.Current.MainWindow;
 
-                if (modal.ShowDialog() == true)
-                {
-                    CargarProductos(); // Refrescar la tabla
-                }
+                // Mostramos el diálogo
+                modal.ShowDialog();
+
+                // YA NO LLAMAMOS A CargarProductos() AQUÍ
+                // Porque el modal ya actualizó el objeto 'productoSeleccionado' en memoria
+                // y gracias a INotifyPropertyChanged, la tabla ya se refrescó sola.
             }
         }
 
@@ -314,6 +325,13 @@ namespace OrySiPOS.ViewModels
                 int limiteStock = OrySiPOS.Properties.Settings.Default.NivelBajoStock;
 
                 query = query.Where(p => p.Stock <= limiteStock);
+            }
+
+            // --- NUEVO FILTRO SAT ---
+            if (VerPendientesSat)
+            {
+                // Mostramos solo los que tienen la clave genérica "01010101"
+                query = query.Where(p => p.ClaveSat == "01010101");
             }
 
             // 3. Ejecutamos la consulta

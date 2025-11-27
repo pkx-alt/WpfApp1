@@ -160,10 +160,27 @@
                     <StackPanel>
 
                         <TextBlock Text="Cliente" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
-                        <ComboBox ItemsSource="{Binding ListaClientes}"
-                                  SelectedItem="{Binding ClienteSeleccionado}"
-                                  DisplayMemberPath="RazonSocial"
-                                  Height="35" FontSize="14" Margin="0,0,0,20"/>
+
+                        <Grid Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <ComboBox Grid.Column="0"
+              ItemsSource="{Binding ListaClientes}"
+              SelectedItem="{Binding ClienteSeleccionado}"
+              DisplayMemberPath="RazonSocial"
+              Height="35" FontSize="14"/>
+
+                            <Button Grid.Column="1" 
+            Content="+" 
+            Command="{Binding NuevoClienteRapidoCommand}"
+            Style="{StaticResource BtnSuccess}"
+            Width="35" Height="35" 
+            Margin="5,0,0,0"
+            ToolTip="Registrar nuevo cliente rápido"/>
+                        </Grid>
 
                         <TextBlock Text="TOTAL A PAGAR" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Right"/>
 

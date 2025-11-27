@@ -7,6 +7,9 @@ using OrySiPOS.Data;
 using OrySiPOS.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks; // Para el Sync
+using System.ComponentModel;   // Para ICollectionView
+using System.Windows.Data;     // Para CollectionViewSource
+using System.Collections.Generic;
 
 namespace OrySiPOS.Views.Dialogs
 {
@@ -15,11 +18,22 @@ namespace OrySiPOS.Views.Dialogs
         public Producto ProductoRegistrado { get; private set; }
         private Producto _productoEdicion; // Guardamos el producto si es edición
 
+        // Listas en memoria para el filtrado rápido (Modelo de Base de Datos)
+        private List<SatProducto> _listaSatProductos;
+        private List<SatUnidad> _listaSatUnidades;
+
+        // Vistas (Lentes) para filtrar
+        private ICollectionView _vistaClavesSat;
+        private ICollectionView _vistaUnidades;
+
         // Constructor modificado: acepta producto opcional
         public NuevoProductoModal(Producto productoParaEditar = null)
         {
             InitializeComponent();
-            CargarCombos();
+
+            // 1. Cargar Datos
+            CargarCombos();       // Categorías y Subcategorías
+            CargarCatalogosSat(); // Catálogos del SAT desde BD
 
             if (productoParaEditar != null)
             {
@@ -28,7 +42,7 @@ namespace OrySiPOS.Views.Dialogs
                 Title = "Editar Producto";
                 btnGuardar.Content = "Actualizar";
 
-                // ¡TRUCO DE SÉNIOR! Bloqueamos el stock
+                // Bloqueamos el stock visualmente
                 txtStock.IsEnabled = false;
                 txtStock.ToolTip = "Usa el módulo de 'Movimientos' para ajustar existencias.";
 
@@ -41,10 +55,14 @@ namespace OrySiPOS.Views.Dialogs
                 Title = "Nuevo Producto";
                 btnGuardar.Content = "Guardar Producto";
                 txtStock.IsEnabled = true; // En creación sí permitimos stock inicial
+
+                // Defaults SAT (Genéricos)
+                CmbClaveSat.SelectedValue = "01010101";
+                CmbClaveUnidad.SelectedValue = "H87";
             }
         }
 
-        // Método para arrastrar la ventana (ya lo tienes, déjalo igual)
+        // Método para arrastrar la ventana
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left) this.DragMove();
@@ -54,10 +72,28 @@ namespace OrySiPOS.Views.Dialogs
         {
             using (var db = new InventarioDbContext())
             {
-                // Cargamos categorías para el combo
                 var categorias = db.Categorias.Include(c => c.Subcategorias).ToList();
                 CmbCategoria.ItemsSource = categorias;
             }
+        }
+
+        private void CargarCatalogosSat()
+        {
+            using (var db = new InventarioDbContext())
+            {
+                // Traemos los catálogos de la BD a la memoria
+                // (Como son pocos registros, es rápido)
+                _listaSatProductos = db.SatProductos.OrderBy(x => x.Descripcion).ToList();
+                _listaSatUnidades = db.SatUnidades.OrderBy(x => x.Descripcion).ToList();
+            }
+
+            // Creamos las vistas filtrables
+            _vistaClavesSat = CollectionViewSource.GetDefaultView(_listaSatProductos);
+            _vistaUnidades = CollectionViewSource.GetDefaultView(_listaSatUnidades);
+
+            // Asignamos al XAML
+            CmbClaveSat.ItemsSource = _vistaClavesSat;
+            CmbClaveUnidad.ItemsSource = _vistaUnidades;
         }
 
         private void CargarDatosEnFormulario()
@@ -68,24 +104,26 @@ namespace OrySiPOS.Views.Dialogs
             txtCosto.Text = _productoEdicion.Costo.ToString();
             txtStock.Text = _productoEdicion.Stock.ToString();
             txtImagenUrl.Text = _productoEdicion.ImagenUrl;
-            txtClaveSat.Text = _productoEdicion.ClaveSat;
-            txtClaveUnidad.Text = _productoEdicion.ClaveUnidad;
 
-            // 2. Seleccionar Categoría y Subcategoría (Un poco más complejo visualmente)
-            // Necesitamos saber la Subcategoría actual para seleccionar los combos correctos
+            // 2. Datos SAT
+            // Intentamos seleccionar de la lista
+            CmbClaveSat.SelectedValue = _productoEdicion.ClaveSat;
+            // Si la clave no está en la lista (ej. es antigua o rara), ponemos el texto directo
+            if (CmbClaveSat.SelectedIndex == -1) CmbClaveSat.Text = _productoEdicion.ClaveSat;
+
+            CmbClaveUnidad.SelectedValue = _productoEdicion.ClaveUnidad;
+            if (CmbClaveUnidad.SelectedIndex == -1) CmbClaveUnidad.Text = _productoEdicion.ClaveUnidad;
+
+            // 3. Seleccionar Categoría y Subcategoría
             if (_productoEdicion.Subcategoria != null)
             {
-                // Buscamos en el Combo de Categorías aquella que coincida con la del producto
                 foreach (Categoria cat in CmbCategoria.ItemsSource)
                 {
                     if (cat.Id == _productoEdicion.Subcategoria.CategoriaId)
                     {
                         CmbCategoria.SelectedItem = cat;
-
-                        // Forzamos la actualización de las subcategorías
                         CmbSubcategoria.ItemsSource = cat.Subcategorias;
 
-                        // Ahora buscamos la subcategoría específica
                         foreach (Subcategoria sub in CmbSubcategoria.ItemsSource)
                         {
                             if (sub.Id == _productoEdicion.SubcategoriaId)
@@ -99,19 +137,24 @@ namespace OrySiPOS.Views.Dialogs
                 }
             }
 
-            // Usamos CultureInfo.InvariantCulture para asegurar que el punto (.) se lea bien
+            // 4. Selección de IVA (Blindada contra errores de decimales)
+            bool ivaEncontrado = false;
             foreach (ComboBoxItem item in CmbIVA.Items)
             {
-                if (decimal.TryParse(item.Tag.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out decimal valorTag))
+                if (item.Tag != null && decimal.TryParse(item.Tag.ToString(),
+                    System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out decimal valorTag))
                 {
-                    // Usamos una tolerancia pequeña para comparar decimales
-                    if (Math.Abs(valorTag - _productoEdicion.PorcentajeIVA) < 0.001m)
+                    if (Math.Abs(valorTag - _productoEdicion.PorcentajeIVA) < 0.0001m)
                     {
                         CmbIVA.SelectedItem = item;
+                        ivaEncontrado = true;
                         break;
                     }
                 }
             }
+            if (!ivaEncontrado) CmbIVA.SelectedIndex = 0; // Default 16%
         }
 
         private void CmbCategoria_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -129,24 +172,76 @@ namespace OrySiPOS.Views.Dialogs
             }
         }
 
+        // --- MÉTODOS DE FILTRADO SAT ---
+
+        private void CmbClaveSat_KeyUp(object sender, KeyEventArgs e)
+        {
+            FiltarCombos(CmbClaveSat, _vistaClavesSat);
+        }
+
+        private void CmbClaveUnidad_KeyUp(object sender, KeyEventArgs e)
+        {
+            FiltarCombos(CmbClaveUnidad, _vistaUnidades);
+        }
+
+        private void FiltarCombos(ComboBox cmb, ICollectionView vista)
+        {
+            if (cmb == null || vista == null) return;
+
+            // Ignorar teclas de navegación para permitir moverse en la lista
+            if (Keyboard.IsKeyDown(Key.Down) || Keyboard.IsKeyDown(Key.Up) || Keyboard.IsKeyDown(Key.Enter)) return;
+
+            string texto = cmb.Text;
+
+            if (string.IsNullOrEmpty(texto))
+            {
+                vista.Filter = null;
+            }
+            else
+            {
+                vista.Filter = (obj) =>
+                {
+                    string busqueda = texto.ToUpper();
+
+                    if (obj is SatProducto prod)
+                        return prod.Clave.Contains(busqueda) || prod.Descripcion.ToUpper().Contains(busqueda);
+
+                    if (obj is SatUnidad uni)
+                        return uni.Clave.Contains(busqueda) || uni.Descripcion.ToUpper().Contains(busqueda);
+
+                    return false;
+                };
+            }
+
+            cmb.IsDropDownOpen = true;
+            // Mantiene el cursor en su lugar
+            cmb.GetBindingExpression(ComboBox.TextProperty)?.UpdateSource();
+        }
+
+        // --- GUARDADO ---
+
         private void Guardar_Click(object sender, RoutedEventArgs e)
         {
-            // Validaciones básicas
+            // 1. Validaciones básicas
             if (string.IsNullOrWhiteSpace(txtDescripcion.Text)) { MessageBox.Show("Falta descripción"); return; }
             if (!decimal.TryParse(txtPrecio.Text, out decimal precio)) { MessageBox.Show("Precio inválido"); return; }
+
             decimal.TryParse(txtCosto.Text, out decimal costo);
-            // El stock lo leemos, pero en edición no cambiará porque está deshabilitado visualmente (o el usuario no debería poder tocarlo)
             int.TryParse(txtStock.Text, out int stock);
 
             string img = string.IsNullOrWhiteSpace(txtImagenUrl.Text) ? "https://via.placeholder.com/150" : txtImagenUrl.Text;
-            string claveSat = string.IsNullOrWhiteSpace(txtClaveSat.Text) ? "01010101" : txtClaveSat.Text;
-            string claveUnidad = string.IsNullOrWhiteSpace(txtClaveUnidad.Text) ? "H87" : txtClaveUnidad.Text;
 
-            // 1. LEER EL IVA SELECCIONADO
-            decimal ivaSeleccionado = 0.16m; // Valor por defecto si falla
+            // 2. CAPTURAR CLAVES SAT (Inteligente)
+            string claveSatFinal = CmbClaveSat.SelectedValue != null ? CmbClaveSat.SelectedValue.ToString() : CmbClaveSat.Text.Trim();
+            string unidadFinal = CmbClaveUnidad.SelectedValue != null ? CmbClaveUnidad.SelectedValue.ToString() : CmbClaveUnidad.Text.Trim();
+
+            if (string.IsNullOrEmpty(claveSatFinal)) claveSatFinal = "01010101";
+            if (string.IsNullOrEmpty(unidadFinal)) unidadFinal = "H87";
+
+            // 3. IVA
+            decimal ivaSeleccionado = 0.16m;
             if (CmbIVA.SelectedItem is ComboBoxItem item)
             {
-                // Forzamos la lectura con punto decimal (InvariantCulture)
                 decimal.TryParse(item.Tag.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out ivaSeleccionado);
             }
 
@@ -159,9 +254,26 @@ namespace OrySiPOS.Views.Dialogs
 
                 using (var db = new InventarioDbContext())
                 {
+                    // A. AUTO-APRENDIZAJE: Guardar claves SAT nuevas
+                    var existeProdSat = db.SatProductos.Find(claveSatFinal);
+                    if (existeProdSat == null)
+                    {
+                        db.SatProductos.Add(new SatProducto { Clave = claveSatFinal, Descripcion = "(Nuevo - Guardado Automático)" });
+                    }
+
+                    var existeUnidadSat = db.SatUnidades.Find(unidadFinal);
+                    if (existeUnidadSat == null)
+                    {
+                        db.SatUnidades.Add(new SatUnidad { Clave = unidadFinal, Descripcion = "(Nuevo - Guardado Automático)" });
+                    }
+                    // Guardamos los catálogos antes de seguir
+                    db.SaveChanges();
+
+
+                    // B. GUARDAR PRODUCTO
                     if (_productoEdicion == null)
                     {
-                        // --- CREAR NUEVO ---
+                        // --- CREAR ---
                         ProductoRegistrado = new Producto
                         {
                             Descripcion = txtDescripcion.Text,
@@ -172,8 +284,8 @@ namespace OrySiPOS.Views.Dialogs
                             SubcategoriaId = subcat.Id,
                             PorcentajeIVA = ivaSeleccionado,
                             Activo = true,
-                            ClaveSat = claveSat,
-                            ClaveUnidad = claveUnidad
+                            ClaveSat = claveSatFinal,
+                            ClaveUnidad = unidadFinal
                         };
                         db.Productos.Add(ProductoRegistrado);
                         db.SaveChanges();
@@ -181,29 +293,39 @@ namespace OrySiPOS.Views.Dialogs
                     }
                     else
                     {
-                        // --- ACTUALIZAR EXISTENTE ---
+                        // MODO EDITAR: AQUÍ HACEMOS EL CAMBIO
                         var prodDb = db.Productos.Find(_productoEdicion.ID);
                         if (prodDb != null)
                         {
+                            // 1. Actualizamos la BD (Tu código original)
                             prodDb.Descripcion = txtDescripcion.Text;
                             prodDb.Precio = precio;
                             prodDb.Costo = costo;
-                            // ¡OJO! NO actualizamos prodDb.Stock aquí.
-                            // Solo atributos descriptivos.
                             prodDb.PorcentajeIVA = ivaSeleccionado;
                             prodDb.ImagenUrl = img;
                             prodDb.SubcategoriaId = subcat.Id;
-                            prodDb.ClaveSat = claveSat;
-                            prodDb.ClaveUnidad = claveUnidad;
+                            prodDb.ClaveSat = claveSatFinal;
+                            prodDb.ClaveUnidad = unidadFinal;
 
                             db.Productos.Update(prodDb);
                             db.SaveChanges();
                             idParaSync = prodDb.ID;
+
+                            // 2. ¡NUEVO! ACTUALIZAMOS EL OBJETO VISUAL EN MEMORIA
+                            // Esto dispara el OnPropertyChanged y actualiza el icono al instante
+                            _productoEdicion.Descripcion = txtDescripcion.Text;
+                            _productoEdicion.Precio = precio;
+                            _productoEdicion.Costo = costo;
+                            _productoEdicion.PorcentajeIVA = ivaSeleccionado;
+                            // _productoEdicion.Stock = stock; // El stock no se edita aquí, recuerda
+                            _productoEdicion.ClaveSat = claveSatFinal;     // <--- Dispara cambio de icono
+                            _productoEdicion.ClaveUnidad = unidadFinal;    // <--- Dispara cambio de icono
+                            _productoEdicion.Subcategoria = subcat; // Para que se vea el nombre de subcategoría
                         }
                     }
                 }
 
-                // Sincronización en segundo plano (Reutilizable para ambos casos)
+                // C. SYNC NUBE (Segundo plano)
                 if (idParaSync > 0)
                 {
                     Task.Run(async () =>
@@ -223,7 +345,7 @@ namespace OrySiPOS.Views.Dialogs
                                 }
                             }
                         }
-                        catch { /* Log error */ }
+                        catch { /* Log error silencioso */ }
                     });
                 }
 

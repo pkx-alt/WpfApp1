@@ -363,20 +363,36 @@ namespace OrySiPOS.Views
         {
             int nuevos = 0;
             int actualizados = 0;
-
-            // Lista para recolectar qué productos tocamos
             var nombresAfectados = new System.Collections.Generic.List<string>();
 
             try
             {
                 using (var db = new OrySiPOS.Data.InventarioDbContext())
                 {
+                    // 1. CARGAR EL XML Y BUSCAR EL UUID
+                    var doc = XDocument.Load(rutaArchivo);
+
+                    XNamespace tfd = "http://www.sat.gob.mx/TimbreFiscalDigital";
+                    var timbre = doc.Descendants(tfd + "TimbreFiscalDigital").FirstOrDefault();
+                    string uuid = timbre?.Attribute("UUID")?.Value?.ToUpper();
+
+                    // 2. VALIDACIÓN DE DUPLICADOS
+                    if (string.IsNullOrEmpty(uuid)) return 0;
+
+                    bool yaExiste = db.HistorialImportaciones.Any(h => h.UUID == uuid);
+                    if (yaExiste)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"FACTURA DUPLICADA: {uuid}");
+                        return 0;
+                    }
+
+                    // --- PROCESAMIENTO DE CONCEPTOS ---
+
                     var subcatPorDefecto = db.Subcategorias.FirstOrDefault(s => s.Nombre == "General")
                                            ?? db.Subcategorias.FirstOrDefault();
 
                     if (subcatPorDefecto == null) return 0;
 
-                    var doc = XDocument.Load(rutaArchivo);
                     XNamespace cfdi = doc.Root.Name.Namespace;
                     var conceptos = doc.Descendants(cfdi + "Concepto").ToList();
 
@@ -385,31 +401,43 @@ namespace OrySiPOS.Views
                         string descripcion = concepto.Attribute("Descripcion")?.Value?.Trim();
                         if (string.IsNullOrWhiteSpace(descripcion)) continue;
 
-                        // Agregamos a la lista de afectados para sync posterior
                         nombresAfectados.Add(descripcion.ToLower());
 
-                        string claveSat = concepto.Attribute("ClaveProdServ")?.Value;
-                        string claveUnidad = concepto.Attribute("ClaveUnidad")?.Value;
+                        // --- ¡AQUÍ ESTÁ LA CORRECCIÓN! LEEMOS LOS DATOS SAT ---
+                        string claveSatXml = concepto.Attribute("ClaveProdServ")?.Value;
+                        string unidadXml = concepto.Attribute("ClaveUnidad")?.Value;
+
+                        // Valores monetarios
                         decimal cantDec = decimal.Parse(concepto.Attribute("Cantidad")?.Value ?? "0");
                         int cantidad = (int)Math.Round(cantDec);
                         decimal costo = decimal.Parse(concepto.Attribute("ValorUnitario")?.Value ?? "0");
                         decimal precioSugerido = costo * 1.30m;
 
-                        // Buscamos en memoria local primero (cache de EF) o en DB
+                        // Buscamos producto existente
                         var productoExistente = db.Productos.Local
                             .FirstOrDefault(p => p.Descripcion.ToLower() == descripcion.ToLower())
                             ?? db.Productos.FirstOrDefault(p => p.Descripcion.ToLower() == descripcion.ToLower());
 
                         if (productoExistente != null)
                         {
+                            // --- ACTUALIZAR EXISTENTE ---
                             productoExistente.Stock += cantidad;
+
+                            // Actualizamos costo solo si el nuevo es mayor (opcional, o siempre)
                             if (costo > 0) productoExistente.Costo = costo;
-                            if (!string.IsNullOrEmpty(claveSat)) productoExistente.ClaveSat = claveSat;
-                            if (!string.IsNullOrEmpty(claveUnidad)) productoExistente.ClaveUnidad = claveUnidad;
+
+                            // ¡CORRECCIÓN! Si el XML trae clave SAT, actualizamos la nuestra
+                            if (!string.IsNullOrEmpty(claveSatXml) && claveSatXml.Length == 8)
+                                productoExistente.ClaveSat = claveSatXml;
+
+                            if (!string.IsNullOrEmpty(unidadXml))
+                                productoExistente.ClaveUnidad = unidadXml;
+
                             actualizados++;
                         }
                         else
                         {
+                            // --- CREAR NUEVO ---
                             var nuevoProd = new OrySiPOS.Models.Producto
                             {
                                 Descripcion = descripcion,
@@ -419,49 +447,65 @@ namespace OrySiPOS.Views
                                 Activo = true,
                                 SubcategoriaId = subcatPorDefecto.Id,
                                 ImagenUrl = "https://via.placeholder.com/150",
-                                ClaveSat = claveSat ?? "01010101",
-                                ClaveUnidad = claveUnidad ?? "H87"
+
+                                // ¡CORRECCIÓN! Asignamos lo que viene del XML. 
+                                // Si viene vacío (raro en CFDI), usamos el genérico.
+                                ClaveSat = !string.IsNullOrEmpty(claveSatXml) ? claveSatXml : "01010101",
+                                ClaveUnidad = !string.IsNullOrEmpty(unidadXml) ? unidadXml : "H87"
                             };
+
+                            // Importante: Calcular ganancia (precio) base
+                            // (Ya lo asignamos arriba en precioSugerido)
+
                             db.Productos.Add(nuevoProd);
                             nuevos++;
+
+                            // OJO: También deberíamos guardar la clave en el catálogo de aprendizaje 
+                            // para que aparezca en el buscador futuro (Lógica del Paso 2 de NuevoProductoModal)
+                            // Pero eso lo podemos dejar para la sincronización o agregarlo aquí si quieres.
                         }
                     }
 
-                    db.SaveChanges(); // Guardado local
+                    // 3. REGISTRAR HISTORIAL
+                    db.HistorialImportaciones.Add(new OrySiPOS.Models.HistorialImportacion
+                    {
+                        UUID = uuid,
+                        FechaProcesado = DateTime.Now,
+                        Archivo = System.IO.Path.GetFileName(rutaArchivo)
+                    });
+
+                    db.SaveChanges();
 
                     // --- SINCRONIZACIÓN BACKGROUND ---
                     if (nombresAfectados.Count > 0)
                     {
-                        Task.Run(async () =>
+                        System.Threading.Tasks.Task.Run(async () =>
                         {
                             try
                             {
-                                using (var dbSync = new InventarioDbContext())
+                                using (var dbSync = new OrySiPOS.Data.InventarioDbContext())
                                 {
-                                    // Buscamos todos los productos que acabamos de tocar usando sus nombres
-                                    // (Es seguro porque acabamos de guardar)
-                                    var productosParaSubir = await dbSync.Productos
+                                    var productosParaSubir = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+                                        dbSync.Productos
                                         .Include(p => p.Subcategoria).ThenInclude(s => s.Categoria)
                                         .Where(p => nombresAfectados.Contains(p.Descripcion.ToLower()))
-                                        .ToListAsync();
+                                    );
 
                                     var srv = new OrySiPOS.Services.SupabaseService();
                                     foreach (var prod in productosParaSubir)
                                     {
                                         await srv.SincronizarProducto(prod);
                                     }
-                                    System.Diagnostics.Debug.WriteLine($"Sync Auto Email: {productosParaSubir.Count} productos.");
                                 }
                             }
-                            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error Sync Email: " + ex.Message); }
+                            catch { /* Log silencioso */ }
                         });
                     }
-                    // ---------------------------------
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Error procesando archivo: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("Error XML: " + ex.Message);
             }
 
             return nuevos + actualizados;

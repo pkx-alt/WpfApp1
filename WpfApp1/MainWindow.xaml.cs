@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Windows;
 using System.Windows.Navigation; // <-- ¡Puede que necesites este!
 
@@ -12,6 +13,34 @@ namespace OrySiPOS
             // Carga la página inicial al arrancar
             // (Usamos el nuevo método para que el sidebar también se pinte)
             NavigateToPage("Dashboard");
+            // --- SCRIPT DE CORRECCIÓN DE HISTORIAL (Ejecutar una sola vez) ---
+            using (var db = new OrySiPOS.Data.InventarioDbContext())
+            {
+                // Buscamos detalles que no tengan descripción guardada
+                var detallesViejos = db.VentasDetalle
+                                       .Include(d => d.Producto)
+                                       .Where(d => string.IsNullOrEmpty(d.Descripcion))
+                                       .ToList();
+
+                if (detallesViejos.Count > 0)
+                {
+                    foreach (var det in detallesViejos)
+                    {
+                        if (det.Producto != null)
+                        {
+                            det.Descripcion = det.Producto.Descripcion;
+                            det.Costo = det.Producto.Costo;
+                        }
+                        else
+                        {
+                            det.Descripcion = "Producto Desconocido";
+                        }
+                    }
+                    db.SaveChanges();
+                    MessageBox.Show($"Se actualizaron {detallesViejos.Count} registros históricos.");
+                }
+            }
+            // ----------------------------------------------------------------
         }
 
         // -----------------------------------------------------------------

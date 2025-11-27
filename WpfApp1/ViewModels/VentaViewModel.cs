@@ -393,15 +393,14 @@ namespace OrySiPOS.ViewModels
         // Esta es la lógica de tu "Mostrar Mensaje" (Button_Click)
         private void EjecutarFinalizarVenta(object parameter)
         {
+            // 1. Validar carrito vacío
             if (!CarritoItems.Any())
             {
                 MessageBox.Show("El carrito está vacío.");
                 return;
             }
 
-            // --- 1. NUEVA VALIDACIÓN DE STOCK ---
-            // Antes de abrir el modal de pago, revisamos si alcanza el stock.
-            // Solo validamos esto si ES VENTA (no cotización)
+            // 2. Validación de Stock (Solo si es Venta real)
             if (!this.EsModoCotizacion)
             {
                 string productosSinStock = "";
@@ -410,7 +409,7 @@ namespace OrySiPOS.ViewModels
                     foreach (var item in CarritoItems)
                     {
                         int id = int.Parse(item.ID);
-                        var prod = db.Productos.AsNoTracking().FirstOrDefault(p => p.ID == id); // AsNoTracking es más rápido para leer
+                        var prod = db.Productos.AsNoTracking().FirstOrDefault(p => p.ID == id);
                         if (prod != null && prod.Stock < item.Quantity)
                         {
                             productosSinStock += $"- {prod.Descripcion} (Tienes: {prod.Stock}, Vendes: {item.Quantity})\n";
@@ -418,77 +417,98 @@ namespace OrySiPOS.ViewModels
                     }
                 }
 
-                // Si encontramos problemas, preguntamos al jefe (tú)
                 if (!string.IsNullOrEmpty(productosSinStock))
                 {
                     var respuesta = MessageBox.Show(
                         $"⚠️ ADVERTENCIA DE INVENTARIO ⚠️\n\n" +
-                        $"Los siguientes productos no tienen stock suficiente en el sistema:\n{productosSinStock}\n" +
+                        $"Los siguientes productos no tienen stock suficiente:\n{productosSinStock}\n" +
                         $"¿Deseas continuar y dejar el inventario en NEGATIVO?",
                         "Confirmar venta sin stock",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Warning);
 
-                    if (respuesta == MessageBoxResult.No) return; // Cancelamos si dices que no
+                    if (respuesta == MessageBoxResult.No) return;
                 }
             }
-            // 1. Preparamos el modal
+
+            // 3. Preparar y mostrar el Modal de Pago
             var modalPago = new FormaPagoModal();
             modalPago.Owner = Application.Current.MainWindow;
-            modalPago.TotalAPagar = this.Total;
+            modalPago.TotalAPagar = this.Total; // Pasamos el total actual
 
-            // Pasamos el modo al ViewModel del modal
+            // Pasamos el modo al ViewModel del modal para que sepa si es Cotización
             if (modalPago.DataContext is FormaPagoViewModel vmDelModal)
             {
                 vmDelModal.EsModoCotizacion = this.EsModoCotizacion;
             }
 
-            // 2. Mostramos el modal
             bool? resultado = modalPago.ShowDialog();
 
+            // 4. Procesar Resultado
             if (resultado == true)
             {
                 try
                 {
-                    // --- RECOLECCIÓN DE DATOS FINALES ---
+                    // Recuperamos los datos que el usuario eligió en el modal
                     var cliente = modalPago.ClienteSeleccionadoEnModal;
                     decimal pago = modalPago.PagoRecibidoEnModal;
-
-                    // --- ¡DATOS CFDI DEL MODAL! ---
                     string formaPagoSat = modalPago.FormaPagoSATEnModal;
                     string metodoPagoSat = modalPago.MetodoPagoSATEnModal;
 
+                    // ============================================================
+                    // [CORRECCIÓN] AJUSTE POR REDONDEO (EVITAR DEUDAS FALSAS)
+                    // ============================================================
+
+                    // Leemos el ajuste que calculó el modal (Ej: -0.40)
+                    decimal ajuste = modalPago.AjusteRedondeoEnModal;
+
+                    // Si el ajuste es negativo (se cobró menos por falta de monedas),
+                    // lo aplicamos como un descuento para bajar el Total de la venta.
+                    if (ajuste < 0)
+                    {
+                        this.MontoDescuento += Math.Abs(ajuste);
+
+                        if (string.IsNullOrEmpty(this.TipoDescuento))
+                            this.TipoDescuento = "Ajuste Redondeo";
+
+                        // ¡CRÍTICO! Recalculamos para que 'this.Total' baje y sea igual a 'pago'
+                        ActualizarTotales();
+                    }
+                    // ============================================================
+
+
                     if (this.EsModoCotizacion)
                     {
-                        // --- LÓGICA DE COTIZACIÓN ---
+                        // --- CAMINO A: COTIZACIÓN ---
                         GuardarCotizacionEnBD(cliente);
                         MessageBox.Show("Cotización guardada correctamente.", "Éxito");
                     }
                     else
                     {
-                        // --- LÓGICA DE VENTA NORMAL ---
-                        decimal montoPago = modalPago.PagoRecibidoEnModal;
+                        // --- CAMINO B: VENTA REAL ---
+
+                        // Calculamos el cambio. Como ya ajustamos el Total arriba, 
+                        // si fue redondeo exacto, el cambio será 0.00.
                         decimal cambio = pago - this.Total;
 
-                        // A. Guardamos en BD y obtenemos la venta guardada (para el Folio)
-                        var ventaGuardada = GuardarVentaEnBD(this.Subtotal, this.Iva, this.Total, cliente, montoPago, cambio, formaPagoSat, metodoPagoSat);
+                        // Guardamos en BD
+                        var ventaGuardada = GuardarVentaEnBD(this.Subtotal, this.Iva, this.Total, cliente, pago, cambio, formaPagoSat, metodoPagoSat);
 
-                        // B. Validamos si pagó completo o es crédito
-                        if (cambio < 0)
+                        // Validamos si quedó deuda real (usamos tolerancia pequeña)
+                        if (cambio < -0.01m)
                         {
                             decimal deuda = Math.Abs(cambio);
-                            MessageBox.Show($"Venta a CRÉDITO registrada. Adeudo: {deuda:C}", "Crédito");
+                            MessageBox.Show($"Venta a CRÉDITO registrada. Adeudo: {deuda:C}", "Crédito Autorizado");
                         }
                         else
                         {
                             MessageBox.Show("Venta realizada con éxito.", "Venta Finalizada");
                         }
 
-                        // C. --- IMPRESIÓN DE TICKET ---
-                        // Verificamos si el usuario marcó "Imprimir ticket" en el modal
+                        // --- IMPRESIÓN DE TICKET ---
                         if (modalPago.DataContext is FormaPagoViewModel vmFinal && vmFinal.ImprimirTicket)
                         {
-                            // 1. Convertimos los items del carrito al formato del impresor
+                            // Convertimos items para el servicio de impresión
                             var listaParaImprimir = new List<OrySiPOS.Services.ItemTicket>();
                             foreach (var item in this.CarritoItems)
                             {
@@ -500,19 +520,17 @@ namespace OrySiPOS.ViewModels
                                 });
                             }
 
-                            // 2. Obtenemos datos finales
                             string nombreCliente = (cliente != null) ? cliente.RazonSocial : "Público General";
                             string folioString = ventaGuardada.VentaId.ToString();
 
-                          
-                            // 3. Llamamos al servicio (AHORA CON MÁS DATOS)
+                            // Mandamos a imprimir
                             OrySiPOS.Services.TicketPrintingService.ImprimirTicket(
                                 productos: listaParaImprimir,
                                 subtotal: this.Subtotal,
                                 iva: this.Iva,
-                                descuento: this.MontoDescuento, // Agregamos el descuento también por si acaso
+                                descuento: this.MontoDescuento,
                                 total: this.Total,
-                                pago: montoPago,
+                                pago: pago,
                                 cambio: cambio,
                                 cliente: nombreCliente,
                                 folio: folioString
@@ -520,12 +538,12 @@ namespace OrySiPOS.ViewModels
                         }
                     }
 
-                    // Limpieza final
+                    // 5. Limpiar todo para la siguiente venta
                     LimpiarSesion();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Ocurrió un error: " + ex.Message);
+                    MessageBox.Show("Ocurrió un error al procesar la venta: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -612,7 +630,11 @@ namespace OrySiPOS.ViewModels
                         ProductoId = productoId,
                         Cantidad = item.Quantity,
                         PrecioUnitario = item.Price,
-                        Venta = nuevaVenta
+                        Venta = nuevaVenta,
+                        // --- ¡AQUÍ GUARDAMOS LA FOTO! ---
+                        Descripcion = item.Description, // Guardamos el nombre actual
+                        Costo = productoEnDb.Costo      // Guardamos el costo actual
+                                                        // --------------------------------
                     };
                     nuevaVenta.Detalles.Add(detalle);
                 }

@@ -87,12 +87,20 @@
 
                 <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,0,15">
                     <TextBlock Text="Régimen Fiscal:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
-                    <TextBox x:Name="txtRegimenFiscal" Text="616" Height="35" MaxLength="3" ToolTip="Ej: 601, 612, 626" FontSize="14" Padding="5,0"/>
+                    <ComboBox x:Name="CmbRegimen" 
+              DisplayMemberPath="Display" 
+              SelectedValuePath="Clave"
+              Height="35" FontSize="13" Padding="5,0"
+              VerticalContentAlignment="Center"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="5" Grid.Column="2" Margin="0,0,0,15">
                     <TextBlock Text="Uso de CFDI:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
-                    <TextBox x:Name="txtUsoCFDI" Text="S01" Height="35" MaxLength="3" ToolTip="Ej: G03, P01" FontSize="14" Padding="5,0"/>
+                    <ComboBox x:Name="CmbUsoCfdi" 
+              DisplayMemberPath="Display" 
+              SelectedValuePath="Clave"
+              Height="35" FontSize="13" Padding="5,0"
+              VerticalContentAlignment="Center"/>
                 </StackPanel>
             </Grid>
 

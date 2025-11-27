@@ -1,56 +1,121 @@
-﻿using System.ComponentModel.DataAnnotations; // Necesario para [Key]
+﻿using System.ComponentModel; // Para INotifyPropertyChanged
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.CompilerServices; // Para CallerMemberName
 
 namespace OrySiPOS.Models
 {
-    public class Producto
+    // 1. Agregamos la interfaz INotifyPropertyChanged
+    public class Producto : INotifyPropertyChanged
     {
-        [Key] // Esto le dice a EF Core que 'ID' es la clave primaria.
+        [Key]
         public int ID { get; set; }
 
-        public string Descripcion { get; set; }
+        // Para propiedades visuales simples, podemos dejarlas auto-implementadas si no afectan lógica visual crítica,
+        // pero para ClaveSat y ClaveUnidad necesitamos avisar del cambio.
 
-        public decimal Precio { get; set; }
+        private string _descripcion;
+        public string Descripcion
+        {
+            get => _descripcion;
+            set { _descripcion = value; OnPropertyChanged(); }
+        }
 
-        public decimal Costo { get; set; }
+        private decimal _precio;
+        public decimal Precio
+        {
+            get => _precio;
+            set { _precio = value; OnPropertyChanged(); OnPropertyChanged(nameof(Ganancia)); }
+        }
+
+        private decimal _costo;
+        public decimal Costo
+        {
+            get => _costo;
+            set { _costo = value; OnPropertyChanged(); OnPropertyChanged(nameof(Ganancia)); }
+        }
 
         public decimal PorcentajeIVA { get; set; } = 0.16m;
 
-        // ¡Ojo aquí! La ganancia la calculamos, no la guardamos.
-        // El DataGrid la leerá igual.
         public decimal Ganancia => Precio - Costo;
 
-        public int Stock { get; set; }
+        private int _stock;
+        public int Stock
+        {
+            get => _stock;
+            set { _stock = value; OnPropertyChanged(); }
+        }
 
-        public string ImagenUrl { get; set; } // Ruta a la imagen
-        // --- ¡AQUÍ ESTÁ LA NUEVA PROPIEDAD! ---
-        public bool Activo { get; set; }
-        // --- ¡AÑADE ESTAS DOS LÍNEAS! ---
+        public string ImagenUrl { get; set; }
 
-        // 1. La Clave Foránea (FK)
-        //    Esta columna guardará el 'Id' de la Subcategoría
-        //    a la que este producto pertenece.
+        private bool _activo;
+        public bool Activo
+        {
+            get => _activo;
+            set { _activo = value; OnPropertyChanged(); }
+        }
+
         public int SubcategoriaId { get; set; }
 
-        // --- DATOS FISCALES CFDI CONCEPTO ---
+        // --- AQUÍ ESTÁ LA MAGIA PARA EL SAT ---
+
+        private string _claveSat;
         [MaxLength(8)]
-        public string ClaveSat { get; set; } // Clave de Producto/Servicio
+        public string ClaveSat
+        {
+            get => _claveSat;
+            set
+            {
+                if (_claveSat != value)
+                {
+                    _claveSat = value;
+                    OnPropertyChanged();
+                    // ¡AVISAR QUE EL ESTATUS DE DATOS FISCALES CAMBIÓ!
+                    OnPropertyChanged(nameof(TieneDatosFiscales));
+                }
+            }
+        }
 
+        private string _claveUnidad;
         [MaxLength(3)]
-        public string ClaveUnidad { get; set; } // Clave de Unidad (Ej. H87 - Pieza)
-        // ------------------------------------
+        public string ClaveUnidad
+        {
+            get => _claveUnidad;
+            set
+            {
+                if (_claveUnidad != value)
+                {
+                    _claveUnidad = value;
+                    OnPropertyChanged();
+                    // ¡AVISAR QUE EL ESTATUS DE DATOS FISCALES CAMBIÓ!
+                    OnPropertyChanged(nameof(TieneDatosFiscales));
+                }
+            }
+        }
 
-        // 2. La Propiedad de Navegación
-        //    Esto le dice a EF Core: "Ese 'SubcategoriaId' de arriba
-        //    se 'enlaza' a un objeto 'Subcategoria' completo".
         public virtual Subcategoria Subcategoria { get; set; }
+
+        // --- PROPIEDAD CALCULADA VISUAL ---
+        [NotMapped]
+        public bool TieneDatosFiscales =>
+            !string.IsNullOrEmpty(ClaveSat) &&
+            ClaveSat != "01010101" &&
+            !string.IsNullOrEmpty(ClaveUnidad);
+
         public Producto()
         {
-            // Es buena idea inicializar valores por defecto
             Descripcion = string.Empty;
             ImagenUrl = string.Empty;
-            Activo = true; // Por defecto, un producto siempre nace "Activo"
-            ClaveSat = "01010101"; // Genérico: "No existe en el catálogo"
-            ClaveUnidad = "H87";    // Genérico: "Pieza"
+            Activo = true;
+            ClaveSat = "01010101";
+            ClaveUnidad = "H87";
+        }
+
+        // --- IMPLEMENTACIÓN DE LA INTERFAZ ---
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

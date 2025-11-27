@@ -1,131 +1,171 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Input;
 using OrySiPOS.Data;
 using OrySiPOS.Models;
+using OrySiPOS.Helpers;
+using System.Threading.Tasks;
 
 namespace OrySiPOS.Views.Dialogs
 {
     public partial class NuevoClienteWindow : Window
     {
-        // Variable para guardar el cliente si estamos en modo edición
         private Cliente _clienteEdicion;
 
         public NuevoClienteWindow(Cliente clienteAEditar = null)
         {
             InitializeComponent();
 
+            // Cargar Catálogos
+            CmbRegimen.ItemsSource = CatalogosSAT.Regimenes;
+            CmbUsoCfdi.ItemsSource = CatalogosSAT.UsosCFDI;
+
             if (clienteAEditar != null)
             {
-                // MODO EDICIÓN
                 _clienteEdicion = clienteAEditar;
+                this.Title = "Editar Cliente";
+                btnGuardar.Content = "Actualizar Cliente";
                 CargarDatosEnFormulario();
-                btnGuardar.Content = "Actualizar Cliente"; // Cambiamos el texto del botón
-                this.Title = "Editar Cliente"; // Cambiamos el título de la ventana
             }
             else
             {
-                // MODO CREACIÓN (Normal)
                 _clienteEdicion = null;
+                // Defaults para nuevo
+                chkEsFactura.IsChecked = false;
+                txtRfc.Text = "XAXX010101000";
+                txtCodigoPostal.Text = "00000";
+                CmbRegimen.SelectedValue = "616";
+                CmbUsoCfdi.SelectedValue = "S01";
+
+                // Aplicar bloqueo inicial
+                ActualizarEstadoVisual();
             }
         }
 
         private void CargarDatosEnFormulario()
         {
-            // Rellenamos las cajas de texto con los datos del cliente existente
             txtRazonSocial.Text = _clienteEdicion.RazonSocial;
             txtTelefono.Text = _clienteEdicion.Telefono;
             chkEsFactura.IsChecked = _clienteEdicion.EsFactura;
-
-            // Datos fiscales
             txtRfc.Text = _clienteEdicion.RFC;
             txtCodigoPostal.Text = _clienteEdicion.CodigoPostal;
-            txtRegimenFiscal.Text = _clienteEdicion.RegimenFiscal;
-            txtUsoCFDI.Text = _clienteEdicion.UsoCFDI;
+            CmbRegimen.SelectedValue = _clienteEdicion.RegimenFiscal;
+            CmbUsoCfdi.SelectedValue = _clienteEdicion.UsoCFDI;
+
+            // Aplicar bloqueo según lo cargado
+            ActualizarEstadoVisual();
         }
 
-        // --- 1. ARRASTRAR VENTANA ---
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-                this.DragMove();
-        }
-
-        // --- 2. LÓGICA VISUAL INTELIGENTE ---
-        // Aquí ocurre la magia de borrar/rellenar los campos
         private void chkEsFactura_Click(object sender, RoutedEventArgs e)
+        {
+            // Cuando hacen clic, aplicamos la lógica Y sugerimos cambios
+            bool quiereFactura = chkEsFactura.IsChecked == true;
+
+            if (quiereFactura)
+            {
+                // Limpiar genéricos para obligar a capturar
+                if (txtRfc.Text == "XAXX010101000") txtRfc.Text = "";
+                if (txtCodigoPostal.Text == "00000") txtCodigoPostal.Text = "";
+
+                // Sugerencia inteligente: Si es factura, NO debe ser 616. Sugerimos 605.
+                if ((string)CmbRegimen.SelectedValue == "616") CmbRegimen.SelectedValue = "605";
+                if ((string)CmbUsoCfdi.SelectedValue == "S01") CmbUsoCfdi.SelectedValue = "G03";
+
+                txtRfc.Focus();
+            }
+            else
+            {
+                // Restaurar genéricos
+                txtRfc.Text = "XAXX010101000";
+                txtCodigoPostal.Text = "00000";
+                CmbRegimen.SelectedValue = "616";
+                CmbUsoCfdi.SelectedValue = "S01";
+            }
+
+            ActualizarEstadoVisual();
+        }
+
+        // --- MÉTODO MAESTRO DE ESTADO VISUAL ---
+        private void ActualizarEstadoVisual()
         {
             bool requiereFactura = chkEsFactura.IsChecked == true;
 
             if (requiereFactura)
             {
-                // CASO: QUIERE FACTURA -> Borramos los genéricos para que escriba
-
-                // Solo borramos si el texto es el genérico por defecto. 
-                // (Así, si el usuario ya escribió algo y desmarca/marca por error, no le borramos su avance)
-                if (txtRfc.Text == "XAXX010101000") txtRfc.Text = "";
-                if (txtCodigoPostal.Text == "00000") txtCodigoPostal.Text = "";
-                if (txtRegimenFiscal.Text == "616") txtRegimenFiscal.Text = "";
-                if (txtUsoCFDI.Text == "S01") txtUsoCFDI.Text = "";
-
-                // Ponemos el cursor en el RFC para empezar a escribir de inmediato
-                txtRfc.Focus();
+                // CLIENTE REAL: Todo habilitado
+                CmbRegimen.IsEnabled = true;
+                CmbUsoCfdi.IsEnabled = true;
+                txtRfc.IsEnabled = true;
+                txtCodigoPostal.IsEnabled = true;
             }
             else
             {
-                // CASO: NO QUIERE FACTURA -> Rellenamos con genéricos
-
-                // Restauramos los valores "comodín" del SAT
-                txtRfc.Text = "XAXX010101000";
-                txtCodigoPostal.Text = "00000";
-                txtRegimenFiscal.Text = "616";
-                txtUsoCFDI.Text = "S01";
+                // PÚBLICO GENERAL: Todo bloqueado
+                CmbRegimen.IsEnabled = false;
+                CmbUsoCfdi.IsEnabled = false;
+                txtRfc.IsEnabled = false;
+                txtCodigoPostal.IsEnabled = false;
             }
         }
 
-        // --- 3. GUARDAR CLIENTE ---
         private void btnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            // --- TUS VALIDACIONES (NO CAMBIAN) ---
+            // 1. Validaciones Básicas
             if (string.IsNullOrWhiteSpace(txtRazonSocial.Text))
             {
-                MessageBox.Show("El nombre o razón social es obligatorio.", "Falta nombre", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("El nombre es obligatorio.", "Falta dato", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (CmbRegimen.SelectedItem == null || CmbUsoCfdi.SelectedItem == null)
+            {
+                MessageBox.Show("Selecciona Régimen y Uso válidos.", "Falta dato", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (chkEsFactura.IsChecked == true)
+            string regimen = CmbRegimen.SelectedValue.ToString();
+            string uso = CmbUsoCfdi.SelectedValue.ToString();
+
+            // 2. VALIDACIONES FISCALES (TU PETICIÓN)
+
+            // REGLA A: Si pide factura (Cliente Real), NO puede ser 616
+            if (chkEsFactura.IsChecked == true && regimen == "616")
             {
-                if (string.IsNullOrWhiteSpace(txtRfc.Text) || txtRfc.Text == "XAXX010101000")
+                MessageBox.Show(
+                    "Un cliente que requiere factura NO puede tener el régimen '616 - Sin obligaciones fiscales'.\n\n" +
+                    "Ese régimen es exclusivo para el público en general.\n" +
+                    "Por favor selecciona el régimen real del cliente (ej. 605, 601, 626).",
+                    "Error Fiscal", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // REGLA B: Público en General (Si por error lograran moverle) debe ser 616/S01
+            if (chkEsFactura.IsChecked == false)
+            {
+                if (regimen != "616" || uso != "S01")
                 {
-                    MessageBox.Show("Si requiere factura, debes ingresar un RFC real válido.", "RFC Inválido", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                if (string.IsNullOrWhiteSpace(txtCodigoPostal.Text) || txtCodigoPostal.Text == "00000")
-                {
-                    MessageBox.Show("El código postal es obligatorio para facturar.", "CP Inválido", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
+                    // Autocorrección silenciosa por seguridad
+                    regimen = "616";
+                    uso = "S01";
                 }
             }
 
-            //// Crear el objeto
-            //var nuevoCliente = new Cliente
-            //{
-            //    RazonSocial = txtRazonSocial.Text.Trim(),
-            //    Telefono = txtTelefono.Text.Trim(),
-            //    Activo = true,
-            //    EsFactura = chkEsFactura.IsChecked == true,
-            //    RFC = txtRfc.Text.Trim().ToUpper(),
-            //    CodigoPostal = txtCodigoPostal.Text.Trim(),
-            //    RegimenFiscal = txtRegimenFiscal.Text.Trim(),
-            //    UsoCFDI = txtUsoCFDI.Text.Trim()
-            //};
+            // REGLA C: Sueldos y Salarios (605) no deduce G01/G03
+            if (regimen == "605" && (uso == "G01" || uso == "G03"))
+            {
+                MessageBox.Show(
+                    "El régimen '605 - Sueldos y Salarios' NO puede usar G01 ni G03.\n" +
+                    "Selecciona 'S01 - Sin efectos fiscales' para que el SAT acepte la factura.",
+                    "Validación SAT", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
+            // 3. GUARDADO
             try
             {
                 using (var db = new InventarioDbContext())
                 {
                     if (_clienteEdicion == null)
                     {
-                        // --- LÓGICA DE CREAR NUEVO (Tu código original) ---
                         var nuevoCliente = new Cliente
                         {
                             RazonSocial = txtRazonSocial.Text.Trim(),
@@ -134,64 +174,46 @@ namespace OrySiPOS.Views.Dialogs
                             EsFactura = chkEsFactura.IsChecked == true,
                             RFC = txtRfc.Text.Trim().ToUpper(),
                             CodigoPostal = txtCodigoPostal.Text.Trim(),
-                            RegimenFiscal = txtRegimenFiscal.Text.Trim(),
-                            UsoCFDI = txtUsoCFDI.Text.Trim()
+                            RegimenFiscal = regimen,
+                            UsoCFDI = uso,
+                            Creado = DateTime.Now
                         };
-
                         db.Clientes.Add(nuevoCliente);
                         db.SaveChanges();
-
-                        // Sync nube (copia tu lógica original de sync aquí para nuevo cliente)
                     }
                     else
                     {
-                        // --- LÓGICA DE ACTUALIZAR (LO NUEVO) ---
-
-                        // 1. Buscamos el cliente en la BD para asegurarnos de tener la última versión
                         var clienteEnDb = db.Clientes.Find(_clienteEdicion.ID);
-
                         if (clienteEnDb != null)
                         {
-                            // 2. Actualizamos los campos
                             clienteEnDb.RazonSocial = txtRazonSocial.Text.Trim();
                             clienteEnDb.Telefono = txtTelefono.Text.Trim();
                             clienteEnDb.EsFactura = chkEsFactura.IsChecked == true;
                             clienteEnDb.RFC = txtRfc.Text.Trim().ToUpper();
                             clienteEnDb.CodigoPostal = txtCodigoPostal.Text.Trim();
-                            clienteEnDb.RegimenFiscal = txtRegimenFiscal.Text.Trim();
-                            clienteEnDb.UsoCFDI = txtUsoCFDI.Text.Trim();
+                            clienteEnDb.RegimenFiscal = regimen;
+                            clienteEnDb.UsoCFDI = uso;
 
-                            // 3. Guardamos cambios
                             db.Clientes.Update(clienteEnDb);
                             db.SaveChanges();
 
-                            // 4. Sync Nube (Tarea en segundo plano)
-                            int idActualizado = clienteEnDb.ID;
-                            Task.Run(async () =>
-                            {
+                            // Sync
+                            int idSync = clienteEnDb.ID;
+                            Task.Run(async () => {
                                 try
                                 {
-                                    // Obtenemos contexto fresco para el hilo secundario
                                     using (var dbSync = new InventarioDbContext())
                                     {
-                                        var c = dbSync.Clientes.Find(idActualizado);
-                                        if (c != null)
-                                        {
-                                            var srv = new OrySiPOS.Services.SupabaseService();
-                                            await srv.SincronizarCliente(c);
-                                        }
+                                        var c = await dbSync.Clientes.FindAsync(idSync);
+                                        if (c != null) await new OrySiPOS.Services.SupabaseService().SincronizarCliente(c);
                                     }
                                 }
-                                catch (Exception ex)
-                                {
-                                    System.Diagnostics.Debug.WriteLine("Error sync update: " + ex.Message);
-                                }
+                                catch { }
                             });
                         }
                     }
                 }
 
-                MessageBox.Show("¡Operación exitosa!", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
                 this.DialogResult = true;
                 this.Close();
             }
@@ -205,6 +227,11 @@ namespace OrySiPOS.Views.Dialogs
         {
             this.DialogResult = false;
             this.Close();
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left) this.DragMove();
         }
     }
 }

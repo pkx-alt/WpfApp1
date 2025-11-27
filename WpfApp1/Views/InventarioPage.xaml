@@ -20,8 +20,7 @@
 
             <Separator/>
 
-            <MenuItem Command="{Binding DataContext.CambiarEstadoProductoCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-              CommandParameter="{Binding}">
+            <MenuItem Click="Deshabilitar_Click">
                 <MenuItem.Style>
                     <Style TargetType="MenuItem">
                         <Setter Property="Header" Value="🚫 Deshabilitar"/>
@@ -98,16 +97,16 @@
                   Margin="0,0,20,10"/>
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,10">
-                        <CheckBox x:Name="ChkActivos" 
-                      Content="Activos" 
-                      IsChecked="{Binding VerActivos}" 
-                      Margin="0,0,15,0"/>
+                        <CheckBox x:Name="ChkActivos" Content="Activos" IsChecked="{Binding VerActivos}" Margin="0,0,15,0"/>
+                        <CheckBox Content="Inactivos" IsChecked="{Binding VerInactivos}" Margin="0,0,15,0" Foreground="{StaticResource TextSecondary}"/>
 
-                        <CheckBox x:Name="ChkBajoStock" 
-                      Content="Bajo Stock" 
-                      IsChecked="{Binding VerBajoStock}" 
-                      Foreground="{StaticResource WarningColor}"
-                      FontWeight="SemiBold"/>
+                        <CheckBox x:Name="ChkBajoStock" Content="Bajo Stock" IsChecked="{Binding VerBajoStock}" Foreground="{StaticResource WarningColor}" FontWeight="SemiBold" Margin="0,0,15,0"/>
+
+                        <CheckBox Content="Falta SAT" 
+              IsChecked="{Binding VerPendientesSat}" 
+              Foreground="{StaticResource DangerColor}" 
+              FontWeight="Bold"
+              ToolTip="Muestra productos con clave SAT genérica (01010101)"/>
                     </StackPanel>
 
                     <Button Content="Limpiar filtros" 
@@ -196,6 +195,30 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
+                <DataGridTemplateColumn Header="SAT" Width="60">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid HorizontalAlignment="Center">
+                                <TextBlock Text="✔️" Foreground="{StaticResource SuccessColor}" 
+                           Visibility="{Binding TieneDatosFiscales, Converter={StaticResource BooleanToVisibilityConverter}}"
+                           ToolTip="Listo para facturar"/>
+
+                                <TextBlock Text="⚠️" Foreground="{StaticResource WarningColor}" ToolTip="Clave Genérica (01010101)">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding TieneDatosFiscales}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="Acciones" Width="120">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>

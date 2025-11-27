@@ -253,6 +253,46 @@ namespace OrySiPOS.Views
             }
         }
 
+        // 1. Abre el menú al dar clic en "..."
+        private void BtnOpciones_Click(object sender, RoutedEventArgs e)
+        {
+            var boton = sender as Button;
+            if (boton?.ContextMenu != null)
+            {
+                // Pasamos el "Cliente" de la fila al menú para que sepa con quién trabajar
+                boton.ContextMenu.DataContext = boton.DataContext;
+                boton.ContextMenu.PlacementTarget = boton;
+                boton.ContextMenu.IsOpen = true;
+            }
+        }
+
+        // 2. Ejecuta el comando de Editar del ViewModel
+        private void MenuEditarCliente_Click(object sender, RoutedEventArgs e)
+        {
+            // Recuperamos el cliente y el ViewModel
+            if (sender is MenuItem menuItem && menuItem.DataContext is Cliente cliente)
+            {
+                if (this.DataContext is ClientesViewModel vm)
+                {
+                    if (vm.EditarClienteCommand.CanExecute(cliente))
+                        vm.EditarClienteCommand.Execute(cliente);
+                }
+            }
+        }
+
+        // 3. Ejecuta el comando de Cambiar Estado del ViewModel
+        private void MenuCambiarEstado_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem && menuItem.DataContext is Cliente cliente)
+            {
+                if (this.DataContext is ClientesViewModel vm)
+                {
+                    if (vm.CambiarEstadoClienteCommand.CanExecute(cliente))
+                        vm.CambiarEstadoClienteCommand.Execute(cliente);
+                }
+            }
+        }
+
         // 1. MÉTODO AYUDANTE (Hace el trabajo real)
         // Este método recibe el Cliente directamente y abre la ventana.
         private void AbrirDetallesCliente(Cliente cliente)

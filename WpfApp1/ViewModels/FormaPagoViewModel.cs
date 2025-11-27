@@ -1,11 +1,12 @@
 ﻿// ViewModels/FormaPagoViewModel.cs
+using OrySiPOS.Data;
+using OrySiPOS.Enums;
+using OrySiPOS.Models;
+using OrySiPOS.Views.Dialogs;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows; // Para MessageBox
 using System.Windows.Input;
-using OrySiPOS.Data;
-using OrySiPOS.Enums;
-using OrySiPOS.Models;
 namespace OrySiPOS.ViewModels
 {
     // Usamos nuestra clase base para poder notificar cambios
@@ -149,6 +150,8 @@ namespace OrySiPOS.ViewModels
         // --- 2. Comandos ---
         public ICommand FinalizarVentaCommand { get; }
         public ICommand CerrarVentanaCommand { get; }
+        // ... en la sección de Comandos ...
+        public ICommand NuevoClienteRapidoCommand { get; }
 
         // --- 3. Constructor ---
         public FormaPagoViewModel()
@@ -176,6 +179,8 @@ namespace OrySiPOS.ViewModels
             MetodoPagoSeleccionado = MetodoPago.Efectivo;
 
             ImprimirTicket = OrySiPOS.Properties.Settings.Default.ImprimirTicketDefault;
+            // ¡NUEVO! Conectamos el botón
+            NuevoClienteRapidoCommand = new RelayCommand(EjecutarNuevoClienteRapido);
 
             // (Opcional) Si quieres que la vista se entere inmediatamente si usas INotify en esta propiedad:
             OnPropertyChanged(nameof(ImprimirTicket));
@@ -316,6 +321,40 @@ namespace OrySiPOS.ViewModels
                 }
             }
         }
+
+        private void EjecutarNuevoClienteRapido(object parameter)
+        {
+            // 1. Abrimos la ventana que ya creaste para ClientesPage
+            // (Asegúrate de agregar: using OrySiPOS.Views.Dialogs;)
+            var ventanaRegistro = new NuevoClienteWindow();
+
+            // La mostramos como diálogo modal (bloquea la de atrás hasta que cierres esta)
+            ventanaRegistro.Owner = Application.Current.Windows.OfType<Window>().SingleOrDefault(x => x.IsActive);
+            bool? resultado = ventanaRegistro.ShowDialog();
+
+            // 2. Si el usuario guardó (resultado == true)
+            if (resultado == true)
+            {
+                // Recargamos la lista para que aparezca el nuevo
+                CargarClientesParaCombo();
+
+                // 3. ¡TRUCO DE EXPERIENCIA! 
+                // Seleccionamos automáticamente el último cliente creado (el que tiene el ID más alto)
+                // para que el cajero no tenga que buscarlo.
+
+                // Buscamos en la lista que acabamos de recargar (exceptuando el dummy de "Público General" que tiene ID 0)
+                var nuevoCliente = ListaClientes
+                                    .Where(c => c.ID > 0)
+                                    .OrderByDescending(c => c.ID)
+                                    .FirstOrDefault();
+
+                if (nuevoCliente != null)
+                {
+                    ClienteSeleccionado = nuevoCliente;
+                }
+            }
+        }
+
 
         // Bandera recibida desde VentaViewModel
         private bool _esModoCotizacion;

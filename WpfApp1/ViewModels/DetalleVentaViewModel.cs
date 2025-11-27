@@ -147,24 +147,28 @@ namespace OrySiPOS.ViewModels
                 Cambio = venta.Cambio;
 
                 // Pie Izquierdo (Cálculo de Ganancia)
-                // OJO: ¡Esto asume que tu 'Producto' tiene una propiedad 'Costo'!
                 try
                 {
-                    decimal costoTotal = venta.Detalles.Sum(d => (d.Producto.Costo * d.Cantidad));
+                    // Usamos detalle.Costo (histórico). Si es 0 (venta vieja), usamos detalle.Producto.Costo (actual)
+                    decimal costoTotal = venta.Detalles.Sum(d =>
+                        (d.Costo > 0 ? d.Costo : (d.Producto?.Costo ?? 0)) * d.Cantidad
+                    );
+
                     Ganancia = venta.Total - costoTotal;
                 }
-                catch (Exception)
-                {
-                    Ganancia = 0; // Pasa si un producto no tiene costo
-                }
+                catch { Ganancia = 0; }
 
-                // Llenamos el DataGrid
-                foreach (var detalle in venta.Detalles.OrderBy(d => d.Producto.Descripcion))
+                foreach (var detalle in venta.Detalles)
                 {
                     DetallesVenta.Add(new VentaDetalleGridItem
                     {
-                        ID = detalle.Producto.ID.ToString(), // O el Cód. de Barras
-                        Descripcion = detalle.Producto.Descripcion,
+                        ID = detalle.ProductoId.ToString(),
+
+                        // --- CAMBIO CLAVE ---
+                        // Antes: detalle.Producto.Descripcion
+                        // Ahora: detalle.Descripcion (Si es nulo por ser venta vieja, usamos el del producto como respaldo)
+                        Descripcion = detalle.Descripcion ?? detalle.Producto?.Descripcion ?? "(Producto eliminado)",
+
                         UD = detalle.Cantidad,
                         Precio = detalle.PrecioUnitario,
                         Subtotal = detalle.PrecioUnitario * detalle.Cantidad

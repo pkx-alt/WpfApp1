@@ -13,7 +13,7 @@ namespace OrySiPOS.Views.Dialogs
         public decimal PagoRecibidoEnModal { get; private set; }
         public string FormaPagoSATEnModal { get; private set; }
         public string MetodoPagoSATEnModal { get; private set; }
-
+        public decimal AjusteRedondeoEnModal { get; private set; }
         public FormaPagoModal()
         {
             InitializeComponent();
@@ -45,7 +45,8 @@ namespace OrySiPOS.Views.Dialogs
                     this.PagoRecibidoEnModal = vm.PagoRecibido;
                     this.FormaPagoSATEnModal = vm.FormaPagoSAT;
                     this.MetodoPagoSATEnModal = vm.MetodoPagoSAT;
-
+                    // 2. ¡AGREGA ESTA LÍNEA! Guardamos el ajuste que calculó el ViewModel
+                    this.AjusteRedondeoEnModal = vm.AjusteRedondeo;
                     this.DialogResult = result;
                     this.Close();
                 };

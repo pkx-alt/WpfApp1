@@ -12,14 +12,13 @@
     <Page.Resources>
         <ContextMenu x:Key="MenuAccionesCliente">
             <MenuItem Header="✏️ Editar Cliente" 
-                  Command="{Binding DataContext.EditarClienteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                  CommandParameter="{Binding}" />
+              Click="MenuEditarCliente_Click" />
 
             <MenuItem Header="📄 Ver Detalles" Click="VerDetallesMenu_Click"/>
+
             <Separator/>
 
-            <MenuItem Command="{Binding DataContext.CambiarEstadoClienteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                  CommandParameter="{Binding}">
+            <MenuItem Click="MenuCambiarEstado_Click">
                 <MenuItem.Style>
                     <Style TargetType="MenuItem">
                         <Setter Property="Header" Value="🚫 Deshabilitar"/>
@@ -170,15 +169,39 @@
 
                 <DataGridTextColumn Header="Teléfono" Binding="{Binding Telefono}" Width="110"/>
 
-                <DataGridTextColumn Header="Venta Acum." Binding="{Binding Venta, StringFormat=C}" Width="110" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="HorizontalAlignment" Value="Right"/>
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-                            <Setter Property="Padding" Value="0,0,10,0"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                <DataGridTemplateColumn Header="Estado" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border CornerRadius="4" Padding="8,2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#D4EDDA"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Activo}" Value="False">
+                                                <Setter Property="Background" Value="#F8D7DA"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+
+                                <TextBlock FontWeight="Bold" FontSize="11">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="ACTIVO"/>
+                                            <Setter Property="Foreground" Value="#155724"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Activo}" Value="False">
+                                                    <Setter Property="Text" Value="INACTIVO"/>
+                                                    <Setter Property="Foreground" Value="#721C24"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
 
                 <DataGridTextColumn Header="Registro" Binding="{Binding Creado, StringFormat='dd/MM/yy'}" Width="90" Foreground="{StaticResource TextSecondary}">
                     <DataGridTextColumn.ElementStyle>
@@ -207,28 +230,16 @@
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn Header="Acciones" Width="230">
+                <DataGridTemplateColumn Header="Acciones" Width="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Content="Info" Margin="2" Padding="8,4" FontSize="11" Style="{StaticResource BtnSecondary}"/>
-                                <Button Content="Editar" Margin="2" Padding="8,4" FontSize="11" Style="{StaticResource BtnSecondary}"/>
-
-                                <Button x:Name="btnCambiarEstado" Margin="2" Padding="8,4" FontSize="11" Click="btnCambiarEstado_Click">
-                                    <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                            <Setter Property="Content" Value="Desactivar"/>
-                                            <Setter Property="Background" Value="{StaticResource DangerColor}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Activo}" Value="False">
-                                                    <Setter Property="Content" Value="Activar"/>
-                                                    <Setter Property="Background" Value="{StaticResource SuccessColor}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
-                            </StackPanel>
+                            <Button Content="..." 
+                    Width="30" Height="30" Padding="0" 
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource BtnSecondary}"
+                    Click="BtnOpciones_Click"
+                    ToolTip="Más acciones"
+                    ContextMenu="{StaticResource MenuAccionesCliente}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

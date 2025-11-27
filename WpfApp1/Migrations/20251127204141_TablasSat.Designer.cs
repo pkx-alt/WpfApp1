@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OrySiPOS.Data;
 
@@ -10,9 +11,11 @@ using OrySiPOS.Data;
 namespace OrySiPOS.Migrations
 {
     [DbContext(typeof(InventarioDbContext))]
-    partial class InventarioDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251127204141_TablasSat")]
+    partial class TablasSat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
@@ -260,28 +263,6 @@ namespace OrySiPOS.Migrations
                     b.ToTable("Gastos");
                 });
 
-            modelBuilder.Entity("OrySiPOS.Models.HistorialImportacion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Archivo")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("FechaProcesado")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UUID")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("HistorialImportaciones");
-                });
-
             modelBuilder.Entity("OrySiPOS.Models.Ingreso", b =>
                 {
                     b.Property<int>("Id")
@@ -504,13 +485,6 @@ namespace OrySiPOS.Migrations
 
                     b.Property<int>("Cantidad")
                         .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Costo")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("PrecioUnitario")
                         .HasColumnType("TEXT");

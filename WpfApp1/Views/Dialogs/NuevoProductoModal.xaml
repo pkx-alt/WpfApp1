@@ -26,6 +26,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,20">
@@ -33,7 +34,7 @@
                 <TextBlock Text="Alta de mercancía en inventario" FontSize="13" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center" Margin="0,5,0,0"/>
             </StackPanel>
 
-            <Grid Grid.Row="1" Margin="0,0,0,25">
+            <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="30"/>
@@ -73,23 +74,34 @@
                 <StackPanel Grid.Column="2">
                     <TextBlock Text="PRECIOS Y STOCK" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SuccessColor}" Margin="0,0,0,10"/>
 
-                    <Grid Margin="0,0,0,15">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="10"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,15">
                             <TextBlock Text="Costo ($)" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
                             <TextBox x:Name="txtCosto" Height="35" FontSize="14" HorizontalContentAlignment="Right"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="2">
+                        <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,15">
                             <TextBlock Text="Precio Venta ($)" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimary}" Margin="0,0,0,5"/>
-                            <TextBox x:Name="txtPrecio" Height="35" FontSize="14" FontWeight="Bold" HorizontalContentAlignment="Right" BorderBrush="{StaticResource SuccessColor}"/>
+                            <TextBox x:Name="txtPrecio" Height="35" FontSize="14" FontWeight="Bold" HorizontalContentAlignment="Right" BorderBrush="{StaticResource SuccessColor}" BorderThickness="1.5"/>
+                        </StackPanel>
 
-                            <TextBlock Text="Tasa de Impuesto (IVA)" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,10,0,5"/>
+                        <StackPanel Grid.Row="1" Grid.Column="0">
+                            <TextBlock Text="Stock Inicial" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                            <TextBox x:Name="txtStock" Height="35" FontSize="14" Text="1" HorizontalContentAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="2">
+                            <TextBlock Text="Tasa de Impuesto (IVA)" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
                             <ComboBox x:Name="CmbIVA" Height="35" FontSize="14" SelectedIndex="0">
                                 <ComboBoxItem Content="16% - General" Tag="0.16"/>
                                 <ComboBoxItem Content="0% - Libros/Revistas" Tag="0.00"/>
@@ -98,46 +110,63 @@
                             </ComboBox>
                         </StackPanel>
                     </Grid>
-
-                    <StackPanel Margin="0,0,0,20">
-                        <TextBlock Text="Stock Inicial" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
-                        <TextBox x:Name="txtStock" Height="35" FontSize="14" Width="100" HorizontalAlignment="Left" Text="1" HorizontalContentAlignment="Center"/>
-                    </StackPanel>
-
-                    <TextBlock Text="DATOS SAT (CFDI)" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,10"/>
-
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="Clave Prod/Serv" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
-                            <TextBox x:Name="txtClaveSat" Height="35" Text="01010101" ToolTip="8 dígitos"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Text="Clave Unidad" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
-                            <TextBox x:Name="txtClaveUnidad" Height="35" Text="H87" ToolTip="Ej: H87, E48"/>
-                        </StackPanel>
-                    </Grid>
                 </StackPanel>
             </Grid>
 
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <StackPanel Grid.Row="2" Margin="0,25,0,25">
+                <TextBlock Text="DATOS SAT (CFDI)" FontSize="11" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,10"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="15"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Clave Prod/Serv" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+
+                        <ComboBox x:Name="CmbClaveSat" 
+                          Height="35" FontSize="12"
+                          IsEditable="True"
+                          StaysOpenOnEdit="True"
+                          IsTextSearchEnabled="False"
+                          DisplayMemberPath="Display"
+                          SelectedValuePath="Clave"
+                          KeyUp="CmbClaveSat_KeyUp"
+                          ToolTip="Escribe para buscar..."/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Clave Unidad" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+
+                        <ComboBox x:Name="CmbClaveUnidad" 
+                          Height="35" FontSize="12"
+                          IsEditable="True"
+                          StaysOpenOnEdit="True"
+                          IsTextSearchEnabled="False"
+                          DisplayMemberPath="Display"
+                          SelectedValuePath="Clave"
+                          KeyUp="CmbClaveUnidad_KeyUp"
+                          ToolTip="Ej: H87 (Pieza)"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="btnCancelar" 
-                        Content="Cancelar" 
-                        Style="{StaticResource BtnSecondary}" 
-                        Click="Cancelar_Click" 
-                        IsCancel="True"
-                        Width="100" Margin="0,0,10,0"/>
+                Content="Cancelar" 
+                Style="{StaticResource BtnSecondary}" 
+                Click="Cancelar_Click" 
+                IsCancel="True"
+                Width="100" Margin="0,0,10,0"/>
 
                 <Button x:Name="btnGuardar" 
-                        Content="Guardar Producto" 
-                        Style="{StaticResource BtnSuccess}" 
-                        Click="Guardar_Click" 
-                        IsDefault="True"
-                        Width="150">
+                Content="Guardar Producto" 
+                Style="{StaticResource BtnSuccess}" 
+                Click="Guardar_Click" 
+                IsDefault="True"
+                Width="150">
                     <Button.Effect>
                         <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>
                     </Button.Effect>
