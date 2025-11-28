@@ -39,15 +39,25 @@ namespace OrySiPOS.ViewModels
             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
         };
 
-        
+
         // En el constructor:
-        
+
+
+        // En FacturacionViewModel.cs
 
         private int _indicePeriodoGlobal;
         public int IndicePeriodoGlobal
         {
             get => _indicePeriodoGlobal;
-            set { _indicePeriodoGlobal = value; OnPropertyChanged(); }
+            set
+            {
+                _indicePeriodoGlobal = value;
+                OnPropertyChanged();
+
+                // ¡AGREGA ESTO!
+                // Al cambiar "Diario/Semanal/Mensual", recargamos la lista
+                CargarPendientes();
+            }
         }
 
         private string _mesSeleccionadoHistorial;
@@ -154,7 +164,7 @@ namespace OrySiPOS.ViewModels
         public ICommand BuscarHistorialCommand { get; }
         public ICommand AsignarClaveCommand { get; } // <--- Nuevo comando SAT
         public ICommand AbrirPdfCommand { get; }
-
+        public ICommand CancelarFacturaCommand { get; }
         // ==========================================
         // 4. CONSTRUCTOR
         // ==========================================
@@ -176,7 +186,7 @@ namespace OrySiPOS.ViewModels
             BuscarHistorialCommand = new RelayCommand(p => CargarHistorial());
             AsignarClaveCommand = new RelayCommand(AsignarClave, PuedeAsignarClave);
             AbrirPdfCommand = new RelayCommand(AbrirPdfDesdeHistorial);
-
+            CancelarFacturaCommand = new RelayCommand(CancelarFactura);
             // Valores por defecto
             MesSeleccionadoHistorial = "Todos";
             EstadoSeleccionadoHistorial = "Todas";
@@ -213,26 +223,74 @@ namespace OrySiPOS.ViewModels
         {
             using (var db = new InventarioDbContext())
             {
-                var ventasFacturadasIds = db.Facturas.Select(f => f.VentaId).ToList();
+                // ---------------------------------------------------------
+                // 1. CALCULAR RANGO DE FECHAS (Según el ComboBox)
+                // ---------------------------------------------------------
+                DateTime fechaFin = DateTime.Now.Date.AddDays(1).AddTicks(-1); // Final del día de hoy
+                DateTime fechaInicio = DateTime.Today; // Inicio del día de hoy
+
+                switch (IndicePeriodoGlobal)
+                {
+                    case 0: // Diario
+                        fechaInicio = DateTime.Today;
+                        break;
+                    case 1: // Semanal (Últimos 7 días)
+                        fechaInicio = DateTime.Today.AddDays(-7);
+                        break;
+                    case 2: // Mensual (Desde el día 1 del mes actual)
+                        fechaInicio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+                        break;
+                }
+
+                // ---------------------------------------------------------
+                // 2. FILTRAR VENTAS YA FACTURADAS
+                // ---------------------------------------------------------
+                // (Solo ignoramos las que tienen factura VIGENTE, si está cancelada vuelve a salir)
+                var ventasFacturadasIds = db.Facturas
+                                            .Where(f => f.Estado != "Cancelada")
+                                            .Select(f => f.VentaId)
+                                            .ToList();
 
                 var query = db.Ventas
                     .Include(v => v.Cliente)
                     .Where(v => !ventasFacturadasIds.Contains(v.VentaId))
+                    // AQUI APLICAMOS EL FILTRO DE FECHAS
+                    .Where(v => v.Fecha >= fechaInicio && v.Fecha <= fechaFin)
                     .AsQueryable();
 
-                // Filtros
+                // ---------------------------------------------------------
+                // 3. FILTRO POR FOLIO (Búsqueda manual)
+                // ---------------------------------------------------------
                 if (!string.IsNullOrWhiteSpace(TextoBusquedaPendiente) && TextoBusquedaPendiente != "Buscar folio...")
                 {
                     if (int.TryParse(TextoBusquedaPendiente, out int folio))
                         query = query.Where(v => v.VentaId == folio);
                 }
 
+                // ---------------------------------------------------------
+                // 4. FILTRO POR CLIENTE (Con corrección de Público Gral)
+                // ---------------------------------------------------------
                 if (ClienteFiltroPendiente != null && ClienteFiltroPendiente.ID != 0)
                 {
-                    query = query.Where(v => v.ClienteId == ClienteFiltroPendiente.ID);
+                    bool esPublicoGeneral = ClienteFiltroPendiente.ID == 1 ||
+                                            ClienteFiltroPendiente.RFC == "XAXX010101000";
+
+                    if (esPublicoGeneral)
+                    {
+                        // ID 1 O Nulos
+                        query = query.Where(v => v.ClienteId == ClienteFiltroPendiente.ID || v.ClienteId == null);
+                    }
+                    else
+                    {
+                        // Búsqueda exacta para clientes registrados
+                        query = query.Where(v => v.ClienteId == ClienteFiltroPendiente.ID);
+                    }
                 }
 
-                var ventasDb = query.OrderByDescending(v => v.Fecha).Take(50).ToList();
+                // ---------------------------------------------------------
+                // 5. EJECUTAR Y LLENAR LISTA
+                // ---------------------------------------------------------
+                var ventasDb = query.OrderByDescending(v => v.Fecha).ToList();
 
                 ListaPendientes.Clear();
                 foreach (var v in ventasDb)
@@ -441,11 +499,16 @@ namespace OrySiPOS.ViewModels
                     }
 
                     // 2. Buscar ventas NO facturadas
-                    var ventasFacturadasIds = db.Facturas.Select(f => f.VentaId).ToList();
+                    var ventasFacturadasIds = db.Facturas
+                            .Where(f => f.Estado != "Cancelada") // Solo las vigentes cuentan
+                            .Select(f => f.VentaId)
+                            .ToList();
+
                     var ventasParaGlobal = db.Ventas
                         .Where(v => v.Fecha >= fechaInicio && v.Fecha <= fechaFin)
-                        .Where(v => !ventasFacturadasIds.Contains(v.VentaId))
-                        .Where(v => v.ClienteId == null || v.ClienteId == 1) // Público General
+                        .Where(v => !ventasFacturadasIds.Contains(v.VentaId)) //
+                                                                              // ❌ BORRA O COMENTA ESTA LÍNEA:
+                                                                              // .Where(v => v.ClienteId == null || v.ClienteId == 1) 
                         .ToList();
 
                     if (ventasParaGlobal.Count == 0)
@@ -582,6 +645,35 @@ namespace OrySiPOS.ViewModels
                     else
                     {
                         MessageBox.Show("El archivo PDF no se encuentra en la ruta guardada.");
+                    }
+                }
+            }
+        }
+
+        // Método:
+        private void CancelarFactura(object param)
+        {
+            if (param is FacturaHistorialItem item)
+            {
+                if (MessageBox.Show("¿Seguro que deseas cancelar esta factura (Internamente)?", "Confirmar", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    using (var db = new InventarioDbContext())
+                    {
+                        var factura = db.Facturas.FirstOrDefault(f => f.UUID == item.UUID);
+                        if (factura != null)
+                        {
+                            factura.Estado = "Cancelada";
+
+                            // IMPORTANTE: Si es una factura individual, liberar la venta original
+                            // para que se pueda volver a facturar.
+                            // (Esto solo si NO usas la lógica de Global, pero como ya vimos, 
+                            //  la individual liga por VentaId, así que al cancelar, 
+                            //  basta con que tu filtro de pendientes cheque el estado de la factura).
+
+                            db.SaveChanges();
+                            CargarHistorial();
+                            CargarPendientes(); // Para que la venta vuelva a aparecer disponible
+                        }
                     }
                 }
             }

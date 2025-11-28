@@ -37,6 +37,8 @@ namespace OrySiPOS.Services
                         row.RelativeItem().Column(col =>
                         {
                             // AQUI USAMOS LAS VARIABLES
+                            // En tu FacturaPdfService.cs, donde pones el encabezado:
+                            col.Item().Text("PRE-FACTURA / REMISIÓN").Bold().FontSize(20).FontColor(Colors.Red.Medium);                                                                                                                        
                             col.Item().Text(nombreEmpresa).Bold().FontSize(20).FontColor(Colors.Blue.Medium);
                             col.Item().Text($"RFC: {rfcEmpresa}");
                             col.Item().Text($"Dirección: {direccionEmpresa}");
@@ -45,7 +47,7 @@ namespace OrySiPOS.Services
                         row.ConstantItem(150).Column(col =>
                         {
                             col.Item().Text($"Folio: {factura.SerieFolio}").Bold();
-                            col.Item().Text($"UUID: {factura.UUID.Substring(0, 8)}...");
+                            col.Item().Text($"UUID: {factura.UUID.Substring(0, 8)}... (SIN VALOR FISCAL)");
                             col.Item().Text($"Fecha: {factura.FechaEmision:dd/MM/yyyy}");
                             col.Item().Text("TIPO: INGRESO");
                         });

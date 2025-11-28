@@ -19,6 +19,7 @@ namespace OrySiPOS.Models
         public decimal IVA { get; set; }
         public decimal Total { get; set; }
 
+        public bool ProcesadaEnGlobal { get; set; } = false;
 
         // --- ¡AÑADE ESTAS 3 LÍNEAS! ---
 
