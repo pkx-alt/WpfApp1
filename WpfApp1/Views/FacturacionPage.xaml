@@ -357,10 +357,12 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Clave" Binding="{Binding Clave}" Width="80" FontWeight="Bold" Foreground="#007ACC"/>
 
-                                    <DataGridTextColumn Header="Descripción Oficial" Binding="{Binding Descripcion}" Width="Auto">
+                                    <DataGridTextColumn Header="Descripción Oficial" Binding="{Binding Descripcion}" Width="*">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="TextWrapping" Value="NoWrap"/>
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                                <Setter Property="ToolTip" Value="{Binding Descripcion}"/>
                                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                                 <Setter Property="Margin" Value="5,0"/>
                                             </Style>
