@@ -177,7 +177,10 @@ namespace OrySiPOS.ViewModels
                 // --- Cargar Clientes (Esto ya lo tenías) ---
                 var todosLosClientes = new Cliente { ID = 0, RazonSocial = "Todos los clientes" };
                 ListaClientes.Add(todosLosClientes);
-
+                // --- AGREGAMOS ESTO ---
+                // 2. Opción "Público en General" (Representa los NULOS)
+                ListaClientes.Add(new Cliente { ID = -999, RazonSocial = "Público en General (Ventas rápidas)" });
+                // ----------------------
                 var clientesDb = db.Clientes.Where(c => c.Activo).OrderBy(c => c.RazonSocial).ToList();
                 foreach (var cliente in clientesDb)
                 {
@@ -281,9 +284,15 @@ namespace OrySiPOS.ViewModels
             {
                 var query = db.Ventas.AsQueryable();
 
-                // --- 1. FILTRO CLIENTE ---
-                if (ClienteSeleccionado.ID != 0) // (Ya no necesitamos checar '!= null')
+                // --- CORRECCIÓN DEL FILTRO CLIENTE ---
+                if (ClienteSeleccionado.ID == -999)
                 {
+                    // Si eligió "Público General", buscamos los que tienen NULL
+                    query = query.Where(v => v.ClienteId == null);
+                }
+                else if (ClienteSeleccionado.ID != 0)
+                {
+                    // Si es un cliente normal, buscamos por su ID
                     query = query.Where(v => v.ClienteId == ClienteSeleccionado.ID);
                 }
 

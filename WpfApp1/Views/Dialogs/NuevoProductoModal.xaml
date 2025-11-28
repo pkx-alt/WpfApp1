@@ -126,15 +126,22 @@
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="Clave Prod/Serv" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
 
-                        <ComboBox x:Name="CmbClaveSat" 
-                          Height="35" FontSize="12"
-                          IsEditable="True"
-                          StaysOpenOnEdit="True"
-                          IsTextSearchEnabled="False"
-                          DisplayMemberPath="Display"
-                          SelectedValuePath="Clave"
-                          KeyUp="CmbClaveSat_KeyUp"
-                          ToolTip="Escribe para buscar..."/>
+                        <ComboBox x:Name="CmbClaveSat"
+                            Height="35" FontSize="12"
+                            IsEditable="True"
+                            StaysOpenOnEdit="True"
+                            IsTextSearchEnabled="False"
+                            DisplayMemberPath="Display"
+                            SelectedValuePath="Clave"
+                            KeyUp="CmbClaveSat_KeyUp"
+                            ToolTip="Escribe para buscar...">         
+
+                            <ComboBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel VirtualizationMode="Recycling" />
+                                </ItemsPanelTemplate>
+                            </ComboBox.ItemsPanel>
+                        </ComboBox>
                     </StackPanel>
 
                     <StackPanel Grid.Column="2">
@@ -165,7 +172,6 @@
                 Content="Guardar Producto" 
                 Style="{StaticResource BtnSuccess}" 
                 Click="Guardar_Click" 
-                IsDefault="True"
                 Width="150">
                     <Button.Effect>
                         <DropShadowEffect Color="#28A745" BlurRadius="10" Opacity="0.3"/>

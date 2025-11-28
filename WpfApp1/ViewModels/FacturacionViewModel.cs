@@ -534,10 +534,10 @@ namespace OrySiPOS.ViewModels
                             sb.AppendLine($"{v.VentaId},{v.Fecha:dd/MM},{v.Subtotal:F2},{v.IVA:F2},{v.Total:F2}");
                         File.WriteAllText(saveDialog.FileName, sb.ToString(), Encoding.UTF8);
 
-                        // 4. Registrar Venta Agrupadora en BD
+                        // CORRECCIÓN SUGERIDA:
                         decimal totalGlobal = ventasParaGlobal.Sum(v => v.Total);
-                        decimal subtotalGlobal = totalGlobal / 1.16m;
-                        decimal ivaGlobal = totalGlobal - subtotalGlobal;
+                        decimal subtotalGlobal = ventasParaGlobal.Sum(v => v.Subtotal); // Suma directa de subtotales
+                        decimal ivaGlobal = ventasParaGlobal.Sum(v => v.IVA);           // Suma directa de IVAs
 
                         var ventaGlobal = new Venta
                         {

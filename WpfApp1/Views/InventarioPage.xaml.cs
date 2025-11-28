@@ -230,7 +230,7 @@ namespace OrySiPOS.Views
 
         private void BtnImportarXML_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openDialog = new OpenFileDialog
+            Microsoft.Win32.OpenFileDialog openDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Factura XML (*.xml)|*.xml",
                 Title = "Selecciona la factura de compra (CFDI)"
@@ -240,18 +240,27 @@ namespace OrySiPOS.Views
             {
                 try
                 {
-                    // Lista maestra de IDs que cambiaron (nuevos o editados)
+                    // Lista maestra de IDs que cambiaron (nuevos o editados) para sincronizar
                     var idsAfectados = new System.Collections.Generic.List<int>();
 
-                    using (var db = new InventarioDbContext())
+                    using (var db = new OrySiPOS.Data.InventarioDbContext())
                     {
+                        // 1. Obtener Subcategoría por defecto (Blindaje)
                         var subcatPorDefecto = db.Subcategorias.FirstOrDefault(s => s.Nombre == "General")
                                                ?? db.Subcategorias.FirstOrDefault();
 
-                        if (subcatPorDefecto == null) { MessageBox.Show("Necesitas subcategorías...", "Error"); return; }
+                        if (subcatPorDefecto == null)
+                        {
+                            MessageBox.Show("Error: No tienes subcategorías creadas. Crea una primero.", "Falta configuración");
+                            return;
+                        }
 
-                        XDocument doc = XDocument.Load(openDialog.FileName);
-                        XNamespace cfdi = doc.Root.Name.Namespace;
+                        // 2. Cargar XML con Namespace correcto
+                        System.Xml.Linq.XDocument doc = System.Xml.Linq.XDocument.Load(openDialog.FileName);
+
+                        // Usamos el namespace del nodo raíz, que suele ser el correcto para CFDI 4.0
+                        System.Xml.Linq.XNamespace cfdi = doc.Root.Name.Namespace;
+
                         var conceptos = doc.Descendants(cfdi + "Concepto").ToList();
 
                         int nuevos = 0;
@@ -259,22 +268,40 @@ namespace OrySiPOS.Views
 
                         foreach (var concepto in conceptos)
                         {
+                            // DATOS BÁSICOS
                             string descripcion = concepto.Attribute("Descripcion")?.Value;
-                            decimal cantDec = decimal.Parse(concepto.Attribute("Cantidad")?.Value ?? "0");
-                            int cantidad = (int)Math.Round(cantDec);
-                            decimal costo = decimal.Parse(concepto.Attribute("ValorUnitario")?.Value ?? "0");
-                            decimal precioSugerido = costo * 1.30m;
 
+                            // DATOS SAT (¡AQUÍ ESTABA EL FALTANTE!)
+                            string claveSat = concepto.Attribute("ClaveProdServ")?.Value;
+                            string claveUnidad = concepto.Attribute("ClaveUnidad")?.Value;
+
+                            // Si vienen vacíos, ponemos los genéricos para no romper la BD
+                            if (string.IsNullOrEmpty(claveSat)) claveSat = "01010101";
+                            if (string.IsNullOrEmpty(claveUnidad)) claveUnidad = "H87";
+
+                            decimal cantDec = decimal.Parse(concepto.Attribute("Cantidad")?.Value ?? "0");
+                            int cantidad = (int)System.Math.Round(cantDec);
+
+                            decimal costo = decimal.Parse(concepto.Attribute("ValorUnitario")?.Value ?? "0");
+                            decimal precioSugerido = costo * 1.30m; // Margen del 30%
+
+                            // BUSCAR SI YA EXISTE
                             var productoExistente = db.Productos
                                 .FirstOrDefault(p => p.Descripcion.ToLower() == descripcion.ToLower());
 
                             if (productoExistente != null)
                             {
-                                // --- YA EXISTE ---
+                                // --- YA EXISTE: ACTUALIZAR ---
                                 productoExistente.Stock += cantidad;
                                 productoExistente.Costo = costo;
 
-                                // Guardamos su ID en la lista para sincronizar
+                                // Opcional: Actualizamos también los datos SAT si el producto viejo no los tenía
+                                if (productoExistente.ClaveSat == "01010101" || string.IsNullOrEmpty(productoExistente.ClaveSat))
+                                {
+                                    productoExistente.ClaveSat = claveSat;
+                                    productoExistente.ClaveUnidad = claveUnidad;
+                                }
+
                                 if (!idsAfectados.Contains(productoExistente.ID))
                                     idsAfectados.Add(productoExistente.ID);
 
@@ -282,8 +309,8 @@ namespace OrySiPOS.Views
                             }
                             else
                             {
-                                // --- NUEVO ---
-                                var nuevoProd = new Producto
+                                // --- NUEVO: CREAR ---
+                                var nuevoProd = new OrySiPOS.Models.Producto
                                 {
                                     Descripcion = descripcion,
                                     Costo = costo,
@@ -291,46 +318,39 @@ namespace OrySiPOS.Views
                                     Stock = cantidad,
                                     Activo = true,
                                     SubcategoriaId = subcatPorDefecto.Id,
-                                    ImagenUrl = "https://via.placeholder.com/150"
+                                    ImagenUrl = "https://via.placeholder.com/150",
+
+                                    // ¡ESTAS SON LAS LÍNEAS QUE FALTABAN!
+                                    ClaveSat = claveSat,
+                                    ClaveUnidad = claveUnidad
                                 };
 
                                 db.Productos.Add(nuevoProd);
-                                // Nota: Aquí 'nuevoProd.ID' aún es 0, pero EF Core es listo.
-                                // Lo rastrearemos después de SaveChanges si mantenemos la referencia,
-                                // o más fácil: haremos el sync DESPUÉS de guardar.
                                 nuevos++;
+
+                                // Nota: El ID se genera al guardar, así que lo capturaremos después
                             }
                         }
 
-                        db.SaveChanges(); // Guardamos todo
+                        db.SaveChanges(); // Guardamos en SQLite
 
-                        // --- CAPTURAR IDs DE LOS NUEVOS ---
-                        // Como acabamos de guardar, buscamos los productos NUEVOS que no teníamos ID antes.
-                        // Un truco simple es volver a buscar por descripción los que acabamos de insertar,
-                        // pero para no complicar el código, haremos esto:
-                        // En este punto 'db.ChangeTracker' ya limpió el estado, así que lo mejor
-                        // es usar la lógica que pusimos en 'ProcesarArchivoXML' abajo, que es más robusta.
-                        // Pero para este botón simple, vamos a re-escanear los productos recién tocados.
-
-                        // (Para simplificar tu aprendizaje: El método 'ProcesarArchivoXML' de abajo es el "pro"
-                        // que usaremos para el correo. Este botón manual lo dejaremos simple y delegaremos
-                        // la lógica "pro" al método que ya tienes 'ProcesarArchivoXML' si quisieras unificarlo,
-                        // pero aquí te dejo la versión corregida con sync).
-
-                        // TRUCO RÁPIDO: Sincronizar TODO lo que coincida con los nombres del XML
+                        // --- 3. SINCRONIZACIÓN NUBE (Supabase) ---
+                        // Recuperamos los productos recién guardados buscando por descripción
+                        // (Ya que los IDs de los nuevos apenas se generaron)
                         var nombresEnXml = conceptos.Select(c => c.Attribute("Descripcion")?.Value.ToLower()).ToList();
 
-                        Task.Run(async () =>
+                        System.Threading.Tasks.Task.Run(async () =>
                         {
                             try
                             {
-                                using (var dbSync = new InventarioDbContext())
+                                using (var dbSync = new OrySiPOS.Data.InventarioDbContext())
                                 {
-                                    // Buscamos todos los productos que coincidan con las descripciones del XML
-                                    var productosASincronizar = await dbSync.Productos
+                                    // Buscamos todos los productos involucrados en este XML
+                                    var productosASincronizar = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+                                        dbSync.Productos
                                         .Include(p => p.Subcategoria).ThenInclude(s => s.Categoria)
                                         .Where(p => nombresEnXml.Contains(p.Descripcion.ToLower()))
-                                        .ToListAsync();
+                                    );
 
                                     var srv = new OrySiPOS.Services.SupabaseService();
                                     foreach (var prod in productosASincronizar)
@@ -339,16 +359,23 @@ namespace OrySiPOS.Views
                                     }
                                 }
                             }
-                            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error sync XML: " + ex.Message); }
+                            catch (System.Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine("Error sync XML: " + ex.Message);
+                            }
                         });
 
-                        var vm = this.DataContext as InventarioViewModel;
+                        // Refrescar la tabla visual
+                        var vm = this.DataContext as OrySiPOS.ViewModels.InventarioViewModel;
                         vm?.CargarProductos();
 
-                        MessageBox.Show($"Proceso terminado.\nNuevos: {nuevos}\nActualizados: {actualizados}");
+                        MessageBox.Show($"Importación Completada.\n\nNuevos: {nuevos}\nActualizados: {actualizados}\n\nLos datos del SAT (Claves) se guardaron correctamente.", "Éxito");
                     }
                 }
-                catch (Exception ex) { MessageBox.Show("Error: " + ex.Message); }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show("Error crítico al importar: " + ex.Message, "Error");
+                }
             }
         }
 

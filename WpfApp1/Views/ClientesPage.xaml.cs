@@ -154,15 +154,7 @@ namespace OrySiPOS.Views
             // Mostramos u ocultamos el panel de acciones
             spAccionesSeleccion.Visibility = (conteo > 0) ? Visibility.Visible : Visibility.Collapsed;
 
-            // (Extra) Sincronizamos el check de "seleccionar todo"
-            if (conteo == viewModel.Clientes.Count && conteo > 0)
-            {
-                chkSeleccionarTodo.IsChecked = true;
-            }
-            else
-            {
-                chkSeleccionarTodo.IsChecked = false;
-            }
+            
         }
 
         private void ClienteCheckBox_Changed(object sender, RoutedEventArgs e)

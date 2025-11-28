@@ -124,16 +124,7 @@
           ItemsSource="{Binding ListaPendientes}"
           MouseDoubleClick="Pendientes_MouseDoubleClick">
                         <DataGrid.Columns>
-                            <DataGridCheckBoxColumn Width="50" 
-                                                    Binding="{Binding Seleccionado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                <DataGridCheckBoxColumn.ElementStyle>
-                                    <Style TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
-                                        <Setter Property="HorizontalAlignment" Value="Center"/>
-                                        <Setter Property="VerticalAlignment" Value="Center"/>
-                                    </Style>
-                                </DataGridCheckBoxColumn.ElementStyle>
-                            </DataGridCheckBoxColumn>
-
+                    
                             <DataGridTextColumn Header="Ticket" Binding="{Binding Folio}" Width="80" FontWeight="Bold"/>
                             <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat='dd/MM/yy HH:mm'}" Width="140" Foreground="{StaticResource TextSecondary}"/>
 

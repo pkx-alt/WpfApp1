@@ -10,6 +10,8 @@ using System.Threading.Tasks; // Para el Sync
 using System.ComponentModel;   // Para ICollectionView
 using System.Windows.Data;     // Para CollectionViewSource
 using System.Collections.Generic;
+using System.Windows.Threading; // <--- Necesario para el Timer
+using System.Threading.Tasks;
 
 namespace OrySiPOS.Views.Dialogs
 {
@@ -17,7 +19,7 @@ namespace OrySiPOS.Views.Dialogs
     {
         public Producto ProductoRegistrado { get; private set; }
         private Producto _productoEdicion; // Guardamos el producto si es edición
-
+                                           // Declaramos el temporizador
         // Listas en memoria para el filtrado rápido (Modelo de Base de Datos)
         private List<SatProducto> _listaSatProductos;
         private List<SatUnidad> _listaSatUnidades;
@@ -77,23 +79,64 @@ namespace OrySiPOS.Views.Dialogs
             }
         }
 
+        private void TxtBusquedaSat_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            
+        }
+
+        // Método exclusivo para buscar cuando tú lo ordenes
+        private async void EjecutarBusquedaSat()
+        {
+            string textoABuscar = CmbClaveSat.Text.Trim();
+
+            if (string.IsNullOrEmpty(textoABuscar) || textoABuscar.Length < 3) return;
+
+            try
+            {
+                // Indicador visual opcional (cambiar el cursor a relojito)
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                var resultados = await Task.Run(() =>
+                {
+                    return OrySiPOS.Helpers.CatalogosSAT.BuscarPorDescripcion(textoABuscar);
+                });
+
+                CmbClaveSat.ItemsSource = resultados;
+
+                // Abrimos la lista automáticamente si encontramos algo
+                if (resultados.Count > 0)
+                {
+                    CmbClaveSat.IsDropDownOpen = true;
+                }
+                else
+                {
+                    // Opcional: Avisar que no hubo suerte
+                    CmbClaveSat.IsDropDownOpen = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error SAT: " + ex.Message);
+            }
+            finally
+            {
+                // Regresamos el cursor a la normalidad
+                Mouse.OverrideCursor = null;
+            }
+        }
         private void CargarCatalogosSat()
         {
+            // NO cargamos los 50,000 productos al inicio, eso congela la flechita.
+            // Solo cargamos una lista vacía o los más comunes si quieres.
+            CmbClaveSat.ItemsSource = new List<SatProducto>();
+
             using (var db = new InventarioDbContext())
             {
-                // Traemos los catálogos de la BD a la memoria
-                // (Como son pocos registros, es rápido)
-                _listaSatProductos = db.SatProductos.OrderBy(x => x.Descripcion).ToList();
+                // Para unidades son poquitas (unas 200), esas SÍ las podemos cargar todas
                 _listaSatUnidades = db.SatUnidades.OrderBy(x => x.Descripcion).ToList();
+                _vistaUnidades = CollectionViewSource.GetDefaultView(_listaSatUnidades);
+                CmbClaveUnidad.ItemsSource = _vistaUnidades;
             }
-
-            // Creamos las vistas filtrables
-            _vistaClavesSat = CollectionViewSource.GetDefaultView(_listaSatProductos);
-            _vistaUnidades = CollectionViewSource.GetDefaultView(_listaSatUnidades);
-
-            // Asignamos al XAML
-            CmbClaveSat.ItemsSource = _vistaClavesSat;
-            CmbClaveUnidad.ItemsSource = _vistaUnidades;
         }
 
         private void CargarDatosEnFormulario()
@@ -176,7 +219,27 @@ namespace OrySiPOS.Views.Dialogs
 
         private void CmbClaveSat_KeyUp(object sender, KeyEventArgs e)
         {
-            FiltarCombos(CmbClaveSat, _vistaClavesSat);
+            // 1. Teclas de Navegación:
+            // Si el usuario solo se está moviendo con flechas por la lista YA abierta, no hacemos nada.
+            if (e.Key == Key.Down || e.Key == Key.Up || e.Key == Key.Left || e.Key == Key.Right)
+                return;
+
+            // 2. Tecla de Acción (ENTER):
+            // Aquí es donde lanzamos la búsqueda nueva y abrimos la lista.
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                EjecutarBusquedaSat();
+                return;
+            }
+
+            // 3. Cualquier otra tecla (Letras, Números, Borrar):
+            // Significa que el usuario está editando el texto.
+            // CERRAMOS la lista inmediatamente para no mostrar resultados "viejos" o falsos.
+            CmbClaveSat.IsDropDownOpen = false;
+
+            // Opcional: Si quieres limpiar la selección interna para evitar comportamientos raros:
+            // CmbClaveSat.SelectedItem = null; 
         }
 
         private void CmbClaveUnidad_KeyUp(object sender, KeyEventArgs e)

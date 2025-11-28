@@ -136,16 +136,6 @@ namespace OrySiPOS.Data
             {
                 var listaClientes = new List<Cliente>
         {
-            // Cliente Genérico
-            new Cliente {
-                RFC = "XAXX010101000",
-                RazonSocial = "Público en General",
-                Telefono = "000-000-0000",
-                Activo = true,
-                CodigoPostal = "00000",
-                RegimenFiscal = "616",
-                UsoCFDI = "S01"
-            },
             // Clientes de Prueba
             new Cliente {
                 RFC = "GOME900101HDF",

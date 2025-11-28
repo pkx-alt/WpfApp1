@@ -131,12 +131,15 @@ namespace OrySiPOS.ViewModels
                 var clientes = db.Clientes.Where(c => c.Activo).OrderBy(c => c.RazonSocial).ToList();
                 ListaClientes.Clear();
 
-                // Agregamos un cliente "filtro vacío"
+                // Filtro "Todos" (Tú usabas -1 aquí)
                 ListaClientes.Add(new Cliente { ID = -1, RazonSocial = "Todos los clientes" });
+
+                // --- AGREGAR ESTO ---
+                ListaClientes.Add(new Cliente { ID = -999, RazonSocial = "Público en General" });
+                // --------------------
 
                 foreach (var c in clientes) ListaClientes.Add(c);
 
-                // Seleccionamos "Todos" por defecto
                 _clienteSeleccionado = ListaClientes.First();
                 OnPropertyChanged(nameof(ClienteSeleccionado));
             }
@@ -165,15 +168,19 @@ namespace OrySiPOS.ViewModels
                 // ----------------------------------
 
                 // 2. Filtro de Cliente
-                if (ClienteSeleccionado != null && ClienteSeleccionado.ID != -1)
+                // 2. Filtro de Cliente (CORREGIDO)
+                if (ClienteSeleccionado != null)
                 {
-                    query = query.Where(c => c.ClienteId == ClienteSeleccionado.ID);
-                }
-
-                if (!string.IsNullOrEmpty(OrigenSeleccionado) && OrigenSeleccionado != "Todos")
-                {
-                    // Filtramos: Que el campo Origen de la BD coincida con lo seleccionado
-                    query = query.Where(c => c.Origen == OrigenSeleccionado);
+                    if (ClienteSeleccionado.ID == -999)
+                    {
+                        // Buscar Cotizaciones sin cliente asignado
+                        query = query.Where(c => c.ClienteId == null);
+                    }
+                    else if (ClienteSeleccionado.ID != -1)
+                    {
+                        // Buscar por ID específico
+                        query = query.Where(c => c.ClienteId == ClienteSeleccionado.ID);
+                    }
                 }
 
                 // 3. Filtro de Texto (Buscador)
