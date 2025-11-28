@@ -39,6 +39,10 @@ namespace OrySiPOS.ViewModels
             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
         };
 
+        
+        // En el constructor:
+        
+
         private int _indicePeriodoGlobal;
         public int IndicePeriodoGlobal
         {
@@ -149,6 +153,7 @@ namespace OrySiPOS.ViewModels
         public ICommand RefrescarCommand { get; }
         public ICommand BuscarHistorialCommand { get; }
         public ICommand AsignarClaveCommand { get; } // <--- Nuevo comando SAT
+        public ICommand AbrirPdfCommand { get; }
 
         // ==========================================
         // 4. CONSTRUCTOR
@@ -170,6 +175,7 @@ namespace OrySiPOS.ViewModels
             RefrescarCommand = new RelayCommand(p => CargarDatosIniciales());
             BuscarHistorialCommand = new RelayCommand(p => CargarHistorial());
             AsignarClaveCommand = new RelayCommand(AsignarClave, PuedeAsignarClave);
+            AbrirPdfCommand = new RelayCommand(AbrirPdfDesdeHistorial);
 
             // Valores por defecto
             MesSeleccionadoHistorial = "Todos";
@@ -340,8 +346,8 @@ namespace OrySiPOS.ViewModels
         {
             if (parameter is TicketPendienteItem ticket)
             {
-                var confirm = MessageBox.Show($"¿Generar factura para el ticket #{ticket.Folio}?\n\nCliente: {ticket.ClienteNombre}\nTotal: {ticket.Total:C}",
-                                              "Confirmar Facturación", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                var confirm = MessageBox.Show($"¿Generar factura para el ticket #{ticket.Folio}?",
+                                              "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
                 if (confirm != MessageBoxResult.Yes) return;
 
@@ -349,11 +355,25 @@ namespace OrySiPOS.ViewModels
                 {
                     using (var db = new InventarioDbContext())
                     {
-                        var ventaExiste = db.Ventas.FirstOrDefault(v => v.VentaId == ticket.VentaId);
-                        if (ventaExiste == null) return;
+                        // 1. RECUPERAR LA VENTA COMPLETA (Con detalles y productos)
+                        // Usamos .Include para traer las tablas relacionadas "pegadas" a la consulta
+                        var ventaCompleta = db.Ventas
+                                              .Include(v => v.Detalles)
+                                              .ThenInclude(d => d.Producto) // Por si necesitas datos del producto como la clave SAT
+                                              .FirstOrDefault(v => v.VentaId == ticket.VentaId);
 
-                        string uuidSimulado = Guid.NewGuid().ToString().ToUpper();
+                        if (ventaCompleta == null) return;
+
+                        // 2. Preparar datos de la Factura
                         string folioInterno = "F-" + (db.Facturas.Count() + 1).ToString("D4");
+                        string uuidSimulado = Guid.NewGuid().ToString().ToUpper();
+
+                        // 3. Crear carpeta si no existe
+                        string carpetaFacturas = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Facturas");
+                        if (!Directory.Exists(carpetaFacturas)) Directory.CreateDirectory(carpetaFacturas);
+
+                        string nombreArchivo = $"Factura_{folioInterno}.pdf";
+                        string rutaCompleta = Path.Combine(carpetaFacturas, nombreArchivo);
 
                         var nuevaFactura = new Factura
                         {
@@ -365,15 +385,32 @@ namespace OrySiPOS.ViewModels
                             Estado = "Vigente",
                             UUID = uuidSimulado,
                             SerieFolio = folioInterno,
-                            ArchivoXml = "ruta/ficticia/factura.xml",
-                            ArchivoPdf = "ruta/ficticia/factura.pdf"
+                            ArchivoXml = "N/A", // Por ahora sin XML real
+                            ArchivoPdf = rutaCompleta // <--- ¡AQUÍ GUARDAMOS LA RUTA REAL!
                         };
 
+                        // 4. GENERAR EL PDF FISICAMENTE USANDO EL SERVICIO
+                        var pdfService = new OrySiPOS.Services.FacturaPdfService();
+                        pdfService.GenerarPdf(ventaCompleta, nuevaFactura, rutaCompleta);
+
+                        // 5. Guardar en BD
                         db.Facturas.Add(nuevaFactura);
                         db.SaveChanges();
 
-                        MessageBox.Show($"¡Factura Generada Exitosamente!\nFolio: {folioInterno}\nUUID: {uuidSimulado}", "Éxito");
+                        // 6. Preguntar si quiere abrirla
+                        var abrir = MessageBox.Show("Factura generada. ¿Deseas abrirla ahora?", "Éxito", MessageBoxButton.YesNo);
+                        if (abrir == MessageBoxResult.Yes)
+                        {
+                            // Truco para abrir archivos en .NET Core / .NET 5+
+                            var p = new System.Diagnostics.Process();
+                            p.StartInfo = new System.Diagnostics.ProcessStartInfo(rutaCompleta)
+                            {
+                                UseShellExecute = true
+                            };
+                            p.Start();
+                        }
 
+                        // Refrescar las listas
                         CargarPendientes();
                         CargarHistorial();
                     }
@@ -391,65 +428,61 @@ namespace OrySiPOS.ViewModels
             {
                 using (var db = new InventarioDbContext())
                 {
-                    // 1. Definir rango
+                    // 1. Definir rango de fechas
                     DateTime fechaFin = DateTime.Now.Date.AddDays(1).AddTicks(-1);
                     DateTime fechaInicio = DateTime.Today;
 
+                    string periodoTexto = "Del Día";
                     switch (IndicePeriodoGlobal)
                     {
-                        case 0: fechaInicio = DateTime.Today; break;
-                        case 1: fechaInicio = DateTime.Today.AddDays(-7); break;
-                        case 2: fechaInicio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1); break;
+                        case 0: fechaInicio = DateTime.Today; periodoTexto = "Del Día"; break;
+                        case 1: fechaInicio = DateTime.Today.AddDays(-7); periodoTexto = "Semanal"; break;
+                        case 2: fechaInicio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1); periodoTexto = "Mensual"; break;
                     }
 
-                    // 2. Buscar ventas NO facturadas de Público General
+                    // 2. Buscar ventas NO facturadas
                     var ventasFacturadasIds = db.Facturas.Select(f => f.VentaId).ToList();
                     var ventasParaGlobal = db.Ventas
                         .Where(v => v.Fecha >= fechaInicio && v.Fecha <= fechaFin)
                         .Where(v => !ventasFacturadasIds.Contains(v.VentaId))
-                        .Where(v => v.ClienteId == null || v.ClienteId == 1) // Ajusta ID si tienes uno específico
+                        .Where(v => v.ClienteId == null || v.ClienteId == 1) // Público General
                         .ToList();
 
                     if (ventasParaGlobal.Count == 0)
                     {
-                        MessageBox.Show("No se encontraron ventas pendientes de facturar en este periodo.", "Sin datos");
+                        MessageBox.Show("No se encontraron ventas pendientes para el global.", "Sin datos");
                         return;
                     }
 
-                    // 3. Exportar CSV para el Contador
+                    // 3. Exportar CSV (Mantenemos tu lógica original, es muy útil)
                     Microsoft.Win32.SaveFileDialog saveDialog = new Microsoft.Win32.SaveFileDialog
                     {
                         Filter = "Excel (CSV)|*.csv",
-                        FileName = $"PARA_CONTADOR_Global_{DateTime.Now:yyyy-MM-dd}.csv",
-                        Title = "Guardar desglose para Factura Global"
+                        FileName = $"GLOBAL_{DateTime.Now:yyyy-MM-dd}.csv",
+                        Title = "Guardar desglose para Contador"
                     };
 
                     if (saveDialog.ShowDialog() == true)
                     {
+                        // ... (Tu código de generación de CSV se queda igual aquí) ...
                         var sb = new StringBuilder();
-                        sb.AppendLine("Folio Ticket,Fecha Hora,Forma Pago,Subtotal,IVA,Total");
-
-                        foreach (var venta in ventasParaGlobal)
-                        {
-                            sb.AppendLine($"{venta.VentaId},{venta.Fecha:yyyy-MM-dd HH:mm},{venta.FormaPagoSAT},{venta.Subtotal:F2},{venta.IVA:F2},{venta.Total:F2}");
-                        }
-
-                        sb.AppendLine(",,,,,,");
-                        sb.AppendLine($",,TOTALES,{ventasParaGlobal.Sum(v => v.Subtotal):F2},{ventasParaGlobal.Sum(v => v.IVA):F2},{ventasParaGlobal.Sum(v => v.Total):F2}");
-
+                        sb.AppendLine("Folio,Fecha,Monto,IVA,Total");
+                        foreach (var v in ventasParaGlobal)
+                            sb.AppendLine($"{v.VentaId},{v.Fecha:dd/MM},{v.Subtotal:F2},{v.IVA:F2},{v.Total:F2}");
                         File.WriteAllText(saveDialog.FileName, sb.ToString(), Encoding.UTF8);
 
-                        // 4. Registrar en Sistema (Cerrar ventas)
+                        // 4. Registrar Venta Agrupadora en BD
                         decimal totalGlobal = ventasParaGlobal.Sum(v => v.Total);
+                        decimal subtotalGlobal = totalGlobal / 1.16m;
+                        decimal ivaGlobal = totalGlobal - subtotalGlobal;
 
-                        // Creamos Venta Agrupadora (Contenedor)
                         var ventaGlobal = new Venta
                         {
                             Fecha = DateTime.Now,
                             Total = totalGlobal,
-                            Subtotal = totalGlobal / 1.16m,
-                            IVA = totalGlobal - (totalGlobal / 1.16m),
-                            ClienteId = null,
+                            Subtotal = subtotalGlobal,
+                            IVA = ivaGlobal,
+                            ClienteId = null, // Público General
                             PagoRecibido = totalGlobal,
                             Cambio = 0,
                             FormaPagoSAT = "01",
@@ -458,11 +491,15 @@ namespace OrySiPOS.ViewModels
                         };
 
                         db.Ventas.Add(ventaGlobal);
-                        db.SaveChanges();
+                        db.SaveChanges(); // Guardamos para obtener el ID
 
-                        // Creamos Factura (Simulada)
+                        // 5. Preparar PDF de la Global
                         string folioInterno = "FG-" + (db.Facturas.Count() + 1).ToString("D4");
                         string uuidSimulado = Guid.NewGuid().ToString().ToUpper();
+
+                        string carpetaFacturas = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Facturas");
+                        if (!Directory.Exists(carpetaFacturas)) Directory.CreateDirectory(carpetaFacturas);
+                        string rutaPdf = Path.Combine(carpetaFacturas, $"Global_{folioInterno}.pdf");
 
                         var nuevaFactura = new Factura
                         {
@@ -475,13 +512,46 @@ namespace OrySiPOS.ViewModels
                             SerieFolio = folioInterno,
                             UUID = uuidSimulado,
                             ArchivoXml = "N/A",
-                            ArchivoPdf = "N/A"
+                            ArchivoPdf = rutaPdf // <--- ¡Ahora sí guardamos la ruta!
                         };
 
+                        // TRUCO: Creamos una venta "falsa" en memoria solo para que el PDF salga bonito
+                        // (No la guardamos en BD, solo se la pasamos al generador)
+                        var ventaParaPdf = new Venta
+                        {
+                            Subtotal = ventaGlobal.Subtotal,
+                            IVA = ventaGlobal.IVA,
+                            Total = ventaGlobal.Total,
+                            Detalles = new System.Collections.Generic.List<VentaDetalle>
+                    {
+                        new VentaDetalle
+                        {
+                            Cantidad = 1,
+                            Descripcion = $"Venta Global ({periodoTexto}) - {ventasParaGlobal.Count} Tickets",
+                            PrecioUnitario = ventaGlobal.Subtotal
+                        }
+                    }
+                        };
+
+                        // Generar el PDF
+                        var pdfService = new OrySiPOS.Services.FacturaPdfService();
+                        pdfService.GenerarPdf(ventaParaPdf, nuevaFactura, rutaPdf);
+
+                        // Guardar Factura en BD
                         db.Facturas.Add(nuevaFactura);
                         db.SaveChanges();
 
-                        MessageBox.Show($"¡Proceso completado!\n\n1. Archivo generado: {saveDialog.FileName}\n2. Ventas marcadas como facturadas (Folio {folioInterno}).", "Éxito");
+                        // 6. Mensaje final y abrir archivos
+                        var result = MessageBox.Show($"¡Global Generada!\n\nSe creó el CSV y el PDF.\n¿Deseas abrir el PDF ahora?",
+                                                     "Éxito", MessageBoxButton.YesNo);
+
+                        if (result == MessageBoxResult.Yes)
+                        {
+                            new System.Diagnostics.Process
+                            {
+                                StartInfo = new System.Diagnostics.ProcessStartInfo(rutaPdf) { UseShellExecute = true }
+                            }.Start();
+                        }
 
                         CargarPendientes();
                         CargarHistorial();
@@ -490,10 +560,37 @@ namespace OrySiPOS.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ocurrió un error: {ex.Message}", "Error");
+                MessageBox.Show($"Error: {ex.Message}", "Error");
             }
         }
+
+        private void AbrirPdfDesdeHistorial(object param)
+        {
+            if (param is FacturaHistorialItem item)
+            {
+                // Necesitamos buscar la ruta en la BD porque el item del historial es ligero
+                using (var db = new InventarioDbContext())
+                {
+                    var factura = db.Facturas.FirstOrDefault(f => f.UUID == item.UUID);
+                    if (factura != null && File.Exists(factura.ArchivoPdf))
+                    {
+                        new System.Diagnostics.Process
+                        {
+                            StartInfo = new System.Diagnostics.ProcessStartInfo(factura.ArchivoPdf) { UseShellExecute = true }
+                        }.Start();
+                    }
+                    else
+                    {
+                        MessageBox.Show("El archivo PDF no se encuentra en la ruta guardada.");
+                    }
+                }
+            }
+        }
+
+
     }
+
+
 
     // ==========================================
     // 6. CLASES AUXILIARES (Items Visuales)

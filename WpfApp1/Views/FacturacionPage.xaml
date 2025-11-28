@@ -267,7 +267,10 @@
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                             <Button Content="XML" Margin="2" Padding="8,2" FontSize="11" Style="{StaticResource BtnSecondary}"/>
-                                            <Button Content="PDF" Margin="2" Padding="8,2" FontSize="11" Style="{StaticResource BtnSecondary}"/>
+                                            <Button Content="PDF" 
+        Command="{Binding DataContext.AbrirPdfCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+        CommandParameter="{Binding}"
+        Margin="2" Padding="8,2" FontSize="11" Style="{StaticResource BtnSecondary}"/>
                                             <Button Content="✉" Margin="2" Padding="8,2" FontSize="11" Style="{StaticResource BtnSecondary}" ToolTip="Reenviar"/>
                                         </StackPanel>
                                     </DataTemplate>
