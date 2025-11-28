@@ -201,18 +201,19 @@ namespace OrySiPOS.Views
         private void Historial_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var grid = sender as DataGrid;
-            // Ojo: La clase FacturaHistorialItem está dentro del ViewModel
-            if (grid?.SelectedItem is OrySiPOS.ViewModels.FacturacionViewModel.FacturaHistorialItem item)
+
+            // CORRECCIÓN: Quitamos ".FacturacionViewModel" porque la clase ya no está anidada
+            if (grid?.SelectedItem is FacturaHistorialItem item)
             {
                 var listaDetalles = new List<ReporteItem>
-                {
-                    new ReporteItem { Propiedad = "Folio Interno", Valor = item.SerieFolio },
-                    new ReporteItem { Propiedad = "UUID Fiscal", Valor = item.UUID },
-                    new ReporteItem { Propiedad = "Receptor", Valor = item.Receptor },
-                    new ReporteItem { Propiedad = "Monto Total", Valor = item.Total.ToString("C") },
-                    new ReporteItem { Propiedad = "Estado SAT", Valor = item.Estado },
-                    new ReporteItem { Propiedad = "Nota", Valor = "Para ver el XML o PDF, use los botones de la fila." }
-                };
+        {
+            new ReporteItem { Propiedad = "Folio Interno", Valor = item.SerieFolio },
+            new ReporteItem { Propiedad = "UUID Fiscal", Valor = item.UUID },
+            new ReporteItem { Propiedad = "Receptor", Valor = item.Receptor },
+            new ReporteItem { Propiedad = "Monto Total", Valor = item.Total.ToString("C") },
+            new ReporteItem { Propiedad = "Estado SAT", Valor = item.Estado },
+            new ReporteItem { Propiedad = "Nota", Valor = "Para ver el XML o PDF, use los botones de la fila." }
+        };
 
                 var visor = new VisorReporteWindow($"Detalle Factura: {item.SerieFolio}", listaDetalles);
                 visor.Owner = Window.GetWindow(this);
@@ -220,22 +221,18 @@ namespace OrySiPOS.Views
             }
         }
 
-        // En Views/FacturacionPage.xaml.cs
-
-        // ... (dentro de la clase FacturacionPage) ...
-
         private void Pendientes_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var grid = sender as DataGrid;
 
-            // Verificamos si lo que se seleccionó es un ticket pendiente
-            if (grid?.SelectedItem is OrySiPOS.ViewModels.FacturacionViewModel.TicketPendienteItem ticket)
+            // CORRECCIÓN: Quitamos ".FacturacionViewModel"
+            if (grid?.SelectedItem is TicketPendienteItem ticket)
             {
                 // Preparamos la lista para el visor
                 var listaDetalles = new List<ReporteItem>
         {
             new ReporteItem { Propiedad = "Ticket #", Valor = ticket.Folio },
-            new ReporteItem { Propiedad = "Fecha Venta", Valor = ticket.Fecha.ToString("F") }, // Formato largo (fecha y hora)
+            new ReporteItem { Propiedad = "Fecha Venta", Valor = ticket.Fecha.ToString("F") },
             new ReporteItem { Propiedad = "Cliente", Valor = ticket.ClienteNombre },
             new ReporteItem { Propiedad = "RFC Receptor", Valor = ticket.RFC },
             new ReporteItem { Propiedad = "Monto Total", Valor = ticket.Total.ToString("C") },

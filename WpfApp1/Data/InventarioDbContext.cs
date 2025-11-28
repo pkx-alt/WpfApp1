@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq; // Necesario para .Any()
 using System.Reflection;
+using System.Text;
 using System.Windows;
 
 namespace OrySiPOS.Data
@@ -42,6 +43,67 @@ namespace OrySiPOS.Data
                 "inventario_v3.db"
             );
             optionsBuilder.UseSqlite($"Data Source={dbPath}");
+        }
+
+        // Asegúrate de tener arriba: using System.IO; y using System.Text;
+
+        public void ImportarCatalogoSAT(string rutaArchivo)
+        {
+            // Usamos UTF8 (o Latin1 si ves caracteres raros) para leer el archivo
+            var lineas = File.ReadAllLines(rutaArchivo, Encoding.UTF8);
+
+            var listaNuevos = new List<SatProducto>();
+
+            // Empezamos en i = 5 porque en tu archivo las primeras 5 líneas son encabezados/basura
+            //
+            for (int i = 5; i < lineas.Length; i++)
+            {
+                var linea = lineas[i];
+                if (string.IsNullOrWhiteSpace(linea)) continue;
+
+                // Separamos por comas
+                var partes = linea.Split(',');
+
+                // Validamos que la línea tenga datos útiles
+                if (partes.Length >= 2)
+                {
+                    string clave = partes[0].Trim();
+                    string descripcion = partes[1].Trim();
+
+                    // LIMPIEZA DE DATOS (Tips de Senior):
+                    // 1. Excel a veces agrega ".0" al final de los números convertidos a texto
+                    if (clave.EndsWith(".0")) clave = clave.Replace(".0", "");
+
+                    // 2. Quitamos comillas si las hubiera
+                    descripcion = descripcion.Replace("\"", "");
+
+                    // 3. Validamos que sea una clave real (8 dígitos)
+                    if (clave.Length >= 8)
+                    {
+                        // Cortamos a 8 por si acaso viene basura extra
+                        clave = clave.Substring(0, 8);
+
+                        listaNuevos.Add(new SatProducto
+                        {
+                            Clave = clave,
+                            Descripcion = descripcion
+                        });
+                    }
+                }
+            }
+
+            // Guardado Masivo (Bulk Insert)
+            if (listaNuevos.Count > 0)
+            {
+                // Limpiamos la tabla primero para no duplicar si re-importas
+                // (Ojo: Esto borra todo lo anterior en SatProductos)
+                this.SatProductos.RemoveRange(this.SatProductos);
+                this.SaveChanges();
+
+                // Insertamos los nuevos (AddRange es mucho más rápido que Add uno por uno)
+                this.SatProductos.AddRange(listaNuevos);
+                this.SaveChanges();
+            }
         }
 
         // --- SEMILLA DE DATOS (SEED DATA) ---

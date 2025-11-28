@@ -200,9 +200,20 @@ namespace OrySiPOS.Services
             {
                 await Inicializar();
 
-                // 1. Convertimos el modelo Local al modelo Web
-                // OJO: Necesitamos cargar la categoría si no viene cargada, 
-                // pero para simplificar, si es nula mandamos "General".
+                // --- PASO EXTRA: Calcular ventas totales desde tu BD Local ---
+                int totalVendido = 0;
+
+                // Abrimos una conexión rápida solo para contar
+                using (var db = new InventarioDbContext())
+                {
+                    // Sumamos la columna 'Cantidad' de la tabla 'VentasDetalle' para este producto
+                    totalVendido = db.VentasDetalle
+                                     .Where(d => d.ProductoId == productoLocal.ID)
+                                     .Sum(d => d.Cantidad);
+                }
+                // -------------------------------------------------------------
+
+                // 1. Preparamos el objeto para la nube
                 string nombreCategoria = "General";
                 if (productoLocal.Subcategoria != null && productoLocal.Subcategoria.Categoria != null)
                 {
@@ -211,7 +222,7 @@ namespace OrySiPOS.Services
 
                 var productoWeb = new ProductoWeb
                 {
-                    Sku = productoLocal.ID, // El vínculo sagrado
+                    Sku = productoLocal.ID,
                     Descripcion = productoLocal.Descripcion,
                     Precio = productoLocal.Precio,
                     Stock = productoLocal.Stock,
@@ -219,17 +230,19 @@ namespace OrySiPOS.Services
                     ImagenUrl = productoLocal.ImagenUrl,
                     PorcentajeIVA = productoLocal.PorcentajeIVA,
                     Categoria = nombreCategoria,
+
+                    // ¡AQUÍ VA EL DATO CLAVE!
+                    VentasTotales = totalVendido,
+
                     UltimaActualizacion = DateTime.Now
                 };
 
-                // 2. ¡Upsert! (Insertar o Actualizar)
+                // 2. ¡Upsert!
                 await _client.From<ProductoWeb>().Upsert(productoWeb);
             }
             catch (Exception ex)
             {
-                // En un sistema real, aquí guardaríamos un log de "Sincronización fallida"
-                // Por ahora, lo escribimos en la consola de depuración para que no truene la app.
-                System.Diagnostics.Debug.WriteLine($"Error al subir producto a Supabase: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error al subir producto: {ex.Message}");
             }
         }
 
