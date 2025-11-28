@@ -50,6 +50,14 @@ namespace OrySiPOS.ViewModels
             }
         }
 
+        // --- PROPIEDAD NUEVA ---
+        private bool _imprimirCotizacion = true; // Iniciamos en true para que por defecto imprima
+        public bool ImprimirCotizacion
+        {
+            get { return _imprimirCotizacion; }
+            set { _imprimirCotizacion = value; OnPropertyChanged(); }
+        }
+
         // Propiedades visuales (Bindings)
         public string TituloPagina => EsModoCotizacion ? "Nueva Cotización 📝" : "Realizar Venta 🛒";
         public string TextoBotonFinalizar => EsModoCotizacion ? "Guardar Cotización" : "Finalizar Venta (F12)";
@@ -92,7 +100,17 @@ namespace OrySiPOS.ViewModels
                 OnPropertyChanged();
             }
         }
-
+        // --- PROPIEDAD FALTANTE ---
+        private Cliente _clienteSeleccionado;
+        public Cliente ClienteSeleccionado
+        {
+            get { return _clienteSeleccionado; }
+            set
+            {
+                _clienteSeleccionado = value;
+                OnPropertyChanged();
+            }
+        }
         // ... El resto de tus propiedades (como _searchText) ...
 
         private decimal _iva;
@@ -146,6 +164,8 @@ namespace OrySiPOS.ViewModels
         public ICommand RealizarDescuentoCommand { get; }
         public ICommand CancelarDescuentoCommand { get; }
         public ICommand CrearProductoRapidoCommand { get; }
+        // En la sección de Comandos de VentaViewModel.cs
+        public ICommand ReimprimirUltimoTicketCommand { get; }
 
         // --- 3. Constructor (Donde "conectamos" todo) ---
         public VentaViewModel()
@@ -183,6 +203,9 @@ namespace OrySiPOS.ViewModels
             CancelarDescuentoCommand = new RelayCommand(EjecutarCancelarDescuento, PuedeCancelarDescuento);
             // ... otros comandos ...
             CrearProductoRapidoCommand = new RelayCommand(EjecutarCrearProductoRapido);
+            // En el constructor VentaViewModel()
+            // ... tus otros comandos ...
+            ReimprimirUltimoTicketCommand = new RelayCommand(EjecutarReimpresion);
             // Calcular totales al iniciar
             ActualizarTotales();
         }
@@ -393,14 +416,14 @@ namespace OrySiPOS.ViewModels
         // Esta es la lógica de tu "Mostrar Mensaje" (Button_Click)
         private void EjecutarFinalizarVenta(object parameter)
         {
-            // 1. Validar carrito vacío
+            // 1. Validaciones previas
             if (!CarritoItems.Any())
             {
                 MessageBox.Show("El carrito está vacío.");
                 return;
             }
 
-            // 2. Validación de Stock (Solo si es Venta real)
+            // Validación de Stock (Solo si es Venta normal)
             if (!this.EsModoCotizacion)
             {
                 string productosSinStock = "";
@@ -431,84 +454,107 @@ namespace OrySiPOS.ViewModels
                 }
             }
 
-            // 3. Preparar y mostrar el Modal de Pago
+            // 2. Preparar y mostrar el Modal de Pago
             var modalPago = new FormaPagoModal();
             modalPago.Owner = Application.Current.MainWindow;
-            modalPago.TotalAPagar = this.Total; // Pasamos el total actual
+            modalPago.TotalAPagar = this.Total;
 
-            // Pasamos el modo al ViewModel del modal para que sepa si es Cotización
+            // Configuramos el modal según el modo
             if (modalPago.DataContext is FormaPagoViewModel vmDelModal)
             {
                 vmDelModal.EsModoCotizacion = this.EsModoCotizacion;
+                // Opcional: Podrías pre-cargar aquí si el usuario ya tiene un cliente seleccionado
+                if (this.ClienteSeleccionado != null)
+                    vmDelModal.ClienteSeleccionado = this.ClienteSeleccionado;
             }
 
             bool? resultado = modalPago.ShowDialog();
 
-            // 4. Procesar Resultado
+            // 3. Procesar Resultado
             if (resultado == true)
             {
                 try
                 {
-                    // Recuperamos los datos que el usuario eligió en el modal
+                    // Recuperamos datos del modal
                     var cliente = modalPago.ClienteSeleccionadoEnModal;
                     decimal pago = modalPago.PagoRecibidoEnModal;
                     string formaPagoSat = modalPago.FormaPagoSATEnModal;
                     string metodoPagoSat = modalPago.MetodoPagoSATEnModal;
-
-                    // ============================================================
-                    // [CORRECCIÓN] AJUSTE POR REDONDEO (EVITAR DEUDAS FALSAS)
-                    // ============================================================
-
-                    // Leemos el ajuste que calculó el modal (Ej: -0.40)
                     decimal ajuste = modalPago.AjusteRedondeoEnModal;
 
-                    // Si el ajuste es negativo (se cobró menos por falta de monedas),
-                    // lo aplicamos como un descuento para bajar el Total de la venta.
+                    // --- NUEVO: Recuperar el estado del CheckBox "Imprimir Ticket" ---
+                    bool deseaImprimir = false;
+                    if (modalPago.DataContext is FormaPagoViewModel vmFinal)
+                    {
+                        deseaImprimir = vmFinal.ImprimirTicket;
+                    }
+
+                    // --- Lógica de Ajuste por Redondeo (Solo afecta ventas en efectivo) ---
                     if (ajuste < 0)
                     {
                         this.MontoDescuento += Math.Abs(ajuste);
-
-                        if (string.IsNullOrEmpty(this.TipoDescuento))
-                            this.TipoDescuento = "Ajuste Redondeo";
-
-                        // ¡CRÍTICO! Recalculamos para que 'this.Total' baje y sea igual a 'pago'
-                        ActualizarTotales();
+                        if (string.IsNullOrEmpty(this.TipoDescuento)) this.TipoDescuento = "Ajuste Redondeo";
+                        ActualizarTotales(); // Esto iguala el Total con el Pago
                     }
-                    // ============================================================
-
 
                     if (this.EsModoCotizacion)
                     {
-                        // --- CAMINO A: COTIZACIÓN ---
-                        GuardarCotizacionEnBD(cliente);
+                        // ==========================================
+                        // CAMINO A: COTIZACIÓN
+                        // ==========================================
+
+                        // 1. Guardar y obtener el objeto (con su nuevo ID)
+                        var cotizacionNueva = GuardarCotizacionEnBD(cliente);
+
                         MessageBox.Show("Cotización guardada correctamente.", "Éxito");
+
+                        // 2. Imprimir si el usuario lo pidió
+                        if (deseaImprimir)
+                        {
+                            var itemsParaImprimir = new List<OrySiPOS.Services.ItemTicket>();
+                            foreach (var item in this.CarritoItems)
+                            {
+                                itemsParaImprimir.Add(new OrySiPOS.Services.ItemTicket
+                                {
+                                    Nombre = item.Description,
+                                    Cantidad = item.Quantity,
+                                    Precio = item.Price
+                                });
+                            }
+
+                            string nombreCliente = (cliente != null) ? cliente.RazonSocial : "Público General";
+
+                            // Usamos el formato especial de COTIZACIÓN
+                            OrySiPOS.Services.TicketPrintingService.ImprimirCotizacion(
+                                productos: itemsParaImprimir,
+                                subtotal: this.Subtotal,
+                                iva: this.Iva,
+                                total: this.Total,
+                                cliente: nombreCliente,
+                                folio: cotizacionNueva.ID.ToString(),
+                                vigencia: cotizacionNueva.FechaVencimiento
+                            );
+                        }
                     }
                     else
                     {
-                        // --- CAMINO B: VENTA REAL ---
+                        // ==========================================
+                        // CAMINO B: VENTA REAL
+                        // ==========================================
 
-                        // Calculamos el cambio. Como ya ajustamos el Total arriba, 
-                        // si fue redondeo exacto, el cambio será 0.00.
                         decimal cambio = pago - this.Total;
 
-                        // Guardamos en BD
+                        // 1. Guardar Venta
                         var ventaGuardada = GuardarVentaEnBD(this.Subtotal, this.Iva, this.Total, cliente, pago, cambio, formaPagoSat, metodoPagoSat);
 
-                        // Validamos si quedó deuda real (usamos tolerancia pequeña)
                         if (cambio < -0.01m)
-                        {
-                            decimal deuda = Math.Abs(cambio);
-                            MessageBox.Show($"Venta a CRÉDITO registrada. Adeudo: {deuda:C}", "Crédito Autorizado");
-                        }
+                            MessageBox.Show($"Venta a CRÉDITO registrada. Adeudo: {Math.Abs(cambio):C}", "Crédito Autorizado");
                         else
-                        {
                             MessageBox.Show("Venta realizada con éxito.", "Venta Finalizada");
-                        }
 
-                        // --- IMPRESIÓN DE TICKET ---
-                        if (modalPago.DataContext is FormaPagoViewModel vmFinal && vmFinal.ImprimirTicket)
+                        // 2. Imprimir si el usuario lo pidió
+                        if (deseaImprimir)
                         {
-                            // Convertimos items para el servicio de impresión
                             var listaParaImprimir = new List<OrySiPOS.Services.ItemTicket>();
                             foreach (var item in this.CarritoItems)
                             {
@@ -521,9 +567,8 @@ namespace OrySiPOS.ViewModels
                             }
 
                             string nombreCliente = (cliente != null) ? cliente.RazonSocial : "Público General";
-                            string folioString = ventaGuardada.VentaId.ToString();
 
-                            // Mandamos a imprimir
+                            // Usamos el formato normal de TICKET DE VENTA
                             OrySiPOS.Services.TicketPrintingService.ImprimirTicket(
                                 productos: listaParaImprimir,
                                 subtotal: this.Subtotal,
@@ -533,17 +578,17 @@ namespace OrySiPOS.ViewModels
                                 pago: pago,
                                 cambio: cambio,
                                 cliente: nombreCliente,
-                                folio: folioString
+                                folio: ventaGuardada.VentaId.ToString()
                             );
                         }
                     }
 
-                    // 5. Limpiar todo para la siguiente venta
+                    // 4. Limpieza final
                     LimpiarSesion();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Ocurrió un error al procesar la venta: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Ocurrió un error al procesar: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -851,14 +896,15 @@ namespace OrySiPOS.ViewModels
         #endregion
 
         //COTIZACIONES
-        private void GuardarCotizacionEnBD(Cliente clienteSeleccionado)
+        // Cambiamos 'void' por 'Cotizacion'
+        private Cotizacion GuardarCotizacionEnBD(Cliente clienteSeleccionado)
         {
             using (var db = new InventarioDbContext())
             {
                 var nuevaCot = new Cotizacion
                 {
                     FechaEmision = DateTime.Now,
-                    FechaVencimiento = DateTime.Now.AddDays(15), // Vence en 15 días por defecto
+                    FechaVencimiento = DateTime.Now.AddDays(15),
                     ClienteId = (clienteSeleccionado != null && clienteSeleccionado.ID != 0) ? (int?)clienteSeleccionado.ID : null,
                     Subtotal = this.Subtotal,
                     IVA = this.Iva,
@@ -870,7 +916,7 @@ namespace OrySiPOS.ViewModels
                 {
                     var detalle = new CotizacionDetalle
                     {
-                        ProductoId = int.Parse(item.ID), // Asumiendo que tu ID es int
+                        ProductoId = int.Parse(item.ID),
                         Descripcion = item.Description,
                         Cantidad = item.Quantity,
                         PrecioUnitario = item.Price,
@@ -880,7 +926,9 @@ namespace OrySiPOS.ViewModels
                 }
 
                 db.Cotizaciones.Add(nuevaCot);
-                db.SaveChanges();
+                db.SaveChanges(); // Aquí se genera el ID
+
+                return nuevaCot; // <--- ¡ESTO ES LO IMPORTANTE! Devolvemos el objeto con el ID
             }
         }
 
@@ -928,6 +976,78 @@ namespace OrySiPOS.ViewModels
                 // Si usas el modal de cobro para elegir cliente, este paso es opcional,
                 // pero ayuda para que el usuario sepa de quién es.
                 // (Opcional: Guardar referencia del cliente en una variable temporal si gustas)
+            }
+        }
+
+        private void EjecutarReimpresion(object obj)
+        {
+            try
+            {
+                using (var db = new InventarioDbContext())
+                {
+                    // 1. Buscamos la última venta
+                    var ultimaVenta = db.Ventas
+                                        .Include(v => v.Detalles)
+                                        .Include(v => v.Cliente)
+                                        .OrderByDescending(v => v.VentaId)
+                                        .FirstOrDefault();
+
+                    if (ultimaVenta == null)
+                    {
+                        MessageBox.Show("No hay ventas registradas en el historial.", "Aviso");
+                        return;
+                    }
+
+                    // --- NUEVO: PREGUNTAR ANTES DE IMPRIMIR ---
+                    var respuesta = MessageBox.Show(
+                        $"¿Deseas reimprimir el último ticket?\n\n" +
+                        $"Folio: {ultimaVenta.VentaId}\n" +
+                        $"Fecha: {ultimaVenta.Fecha:dd/MM/yyyy HH:mm}\n" +
+                        $"Total: {ultimaVenta.Total:C}",
+                        "Confirmar Reimpresión",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    // Si el usuario dice "No", nos salimos y no pasa nada.
+                    if (respuesta != MessageBoxResult.Yes) return;
+                    // ------------------------------------------
+
+                    // 2. Si dijo que SÍ, preparamos los datos...
+                    var productosParaTicket = new List<OrySiPOS.Services.ItemTicket>();
+
+                    foreach (var detalle in ultimaVenta.Detalles)
+                    {
+                        string nombreProducto = detalle.Descripcion ?? "Producto sin nombre";
+
+                        productosParaTicket.Add(new OrySiPOS.Services.ItemTicket
+                        {
+                            Nombre = nombreProducto,
+                            Cantidad = detalle.Cantidad,
+                            Precio = detalle.PrecioUnitario
+                        });
+                    }
+
+                    string nombreCliente = ultimaVenta.Cliente != null
+                                           ? ultimaVenta.Cliente.RazonSocial
+                                           : "Público en General";
+
+                    // 3. ... y mandamos a imprimir
+                    OrySiPOS.Services.TicketPrintingService.ImprimirTicket(
+                        productos: productosParaTicket,
+                        subtotal: ultimaVenta.Subtotal,
+                        iva: ultimaVenta.IVA,
+                        descuento: 0,
+                        total: ultimaVenta.Total,
+                        pago: ultimaVenta.PagoRecibido,
+                        cambio: ultimaVenta.Cambio,
+                        cliente: nombreCliente,
+                        folio: ultimaVenta.VentaId.ToString()
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al reimprimir: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

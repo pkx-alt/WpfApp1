@@ -332,7 +332,11 @@
                     </Button.Style>
                 </Button>
 
-                <Button Style="{StaticResource PosActionButton}" Background="White" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
+                <Button Style="{StaticResource PosActionButton}" 
+        Background="White" 
+        BorderThickness="1" 
+        BorderBrush="{StaticResource BorderBrush}"
+        Command="{Binding ReimprimirUltimoTicketCommand}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="50"/>
@@ -342,20 +346,6 @@
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                             <TextBlock Text="Reimprimir Ticket" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
                             <TextBlock Text="Última venta" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
-                        </StackPanel>
-                    </Grid>
-                </Button>
-
-                <Button Style="{StaticResource PosActionButton}" Background="White" BorderThickness="1" BorderBrush="{StaticResource BorderBrush}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="50"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="📄" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="Realizar Factura" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
-                            <TextBlock Text="Factura de la venta actual" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                         </StackPanel>
                     </Grid>
                 </Button>
