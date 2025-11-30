@@ -433,7 +433,7 @@ namespace OrySiPOS.ViewModels
                     {
                         int id = int.Parse(item.ID);
                         var prod = db.Productos.AsNoTracking().FirstOrDefault(p => p.ID == id);
-                        if (prod != null && prod.Stock < item.Quantity)
+                        if (prod != null && !prod.EsServicio && prod.Stock < item.Quantity)
                         {
                             productosSinStock += $"- {prod.Descripcion} (Tienes: {prod.Stock}, Vendes: {item.Quantity})\n";
                         }
@@ -668,7 +668,11 @@ namespace OrySiPOS.ViewModels
                     // --- CAMBIO IMPORTANTE AQUÍ ---
                     // Eliminamos el 'throw Exception' de stock insuficiente.
                     // Permitimos que la resta ocurra, incluso si da negativo.
-                    productoEnDb.Stock -= item.Quantity;
+                    // CAMBIO AQUÍ: Solo restamos si NO es servicio
+                    if (!productoEnDb.EsServicio)
+                    {
+                        productoEnDb.Stock -= item.Quantity;
+                    }
                     // ------------------------------
                     var detalle = new VentaDetalle
                     {

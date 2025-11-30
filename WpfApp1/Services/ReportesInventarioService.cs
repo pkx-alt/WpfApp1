@@ -41,7 +41,7 @@ namespace OrySiPOS.Services
             {
                 var datos = db.Productos
                     .Include(p => p.Subcategoria)
-                    .Where(p => p.Activo && p.Stock <= limite) // Filtro crítico
+                    .Where(p => p.Activo && p.Stock <= limite && !p.EsServicio) // Filtro crítico
                     .Select(p => new
                     {
                         ID = p.ID,

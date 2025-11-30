@@ -156,29 +156,70 @@
                             <TextBlock Text="Base de Datos y Respaldo" Style="{StaticResource SectionTitle}" Margin="0"/>
                         </StackPanel>
 
-                        <TextBlock Text="Es recomendable realizar respaldos periódicos de tu inventario y ventas." 
-                                   Foreground="Gray" Margin="0,0,0,15" TextWrapping="Wrap"/>
+                        <TextBlock Text="Es recomendable realizar respaldos periódicos de tu inventario y ventas para evitar pérdida de información." 
+                   Foreground="Gray" Margin="0,0,0,15" TextWrapping="Wrap"/>
 
                         <StackPanel Orientation="Horizontal">
                             <Button Content="Crear Respaldo" 
-                                    Background="#007ACC" Foreground="White" FontWeight="Bold"
-                                    Padding="15,8" BorderThickness="0" Cursor="Hand"
-                                    Margin="0,0,10,0">
+                    Command="{Binding ExportarBaseDatosCommand}"
+                    Background="#007ACC" Foreground="White" FontWeight="Bold"
+                    Padding="15,8" BorderThickness="0" Cursor="Hand"
+                    Margin="0,0,10,0">
                                 <Button.Resources>
                                     <Style TargetType="Border">
                                         <Setter Property="CornerRadius" Value="4"/>
                                     </Style>
                                 </Button.Resources>
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Opacity" Value="0.9"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsPressed" Value="True">
+                                                            <Setter Property="Opacity" Value="0.7"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
                             </Button>
 
                             <Button Content="Restaurar Datos" 
-                                    Background="#6c757d" Foreground="White" FontWeight="Bold"
-                                    Padding="15,8" BorderThickness="0" Cursor="Hand">
+                    Command="{Binding ImportarBaseDatosCommand}"
+                    Background="#6c757d" Foreground="White" FontWeight="Bold"
+                    Padding="15,8" BorderThickness="0" Cursor="Hand">
                                 <Button.Resources>
                                     <Style TargetType="Border">
                                         <Setter Property="CornerRadius" Value="4"/>
                                     </Style>
                                 </Button.Resources>
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Opacity" Value="0.9"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
                             </Button>
                         </StackPanel>
                     </StackPanel>

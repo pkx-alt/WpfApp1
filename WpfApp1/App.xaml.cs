@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Markup; // <--- ¡NUEVO! Necesario para XmlLanguage
 using OrySiPOS.Data;
 using QuestPDF.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace OrySiPOS
 {
@@ -37,6 +39,36 @@ namespace OrySiPOS
             using (var context = new InventarioDbContext())
             {
                 context.SeedData();
+            }
+
+            // 1. PRIMERO: Preparamos la Base de Datos
+            InicializarBaseDeDatos();
+
+            // 2. LUEGO: Abrimos la ventana manualmente
+            MainWindow ventanaPrincipal = new MainWindow();
+            ventanaPrincipal.Show();
+        }
+
+        private void InicializarBaseDeDatos()
+        {
+            using (var db = new InventarioDbContext())
+            {
+                // Esto crea las tablas si no existen
+                db.Database.Migrate();
+
+                // Seed básico de seguridad (solo si está vacío)
+                if (!db.Categorias.Any())
+                {
+                    db.Categorias.Add(new OrySiPOS.Models.Categoria { Nombre = "General" });
+                    db.SaveChanges();
+                }
+
+                if (!db.Subcategorias.Any())
+                {
+                    var catId = db.Categorias.First().Id;
+                    db.Subcategorias.Add(new OrySiPOS.Models.Subcategoria { Nombre = "General", CategoriaId = catId });
+                    db.SaveChanges();
+                }
             }
         }
     }

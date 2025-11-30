@@ -5,6 +5,7 @@ using System.Text; // Necesario para StringBuilder
 using ESCPOS_NET;
 using ESCPOS_NET.Emitters;
 using ESCPOS_NET.Utilities;
+using OrySiPOS.Properties;
 // Asegúrate de tener acceso a las propiedades. Si da error, agrega: using OrySiPOS.Properties;
 
 namespace OrySiPOS.Services
@@ -22,7 +23,6 @@ namespace OrySiPOS.Services
         // CONSEJO PRO: También podrías leer esto de Settings si el usuario cambia de impresora
         // private static string NOMBRE_IMPRESORA => OrySiPOS.Properties.Settings.Default.ImpresoraSeleccionada; 
         // Pero por ahora lo dejamos constante como pediste en el código original o fijo.
-        private const string NOMBRE_IMPRESORA = "XP-58";
 
         public static void ImprimirTicket(List<ItemTicket> productos, decimal subtotal, decimal iva, decimal descuento, decimal total, decimal pago, decimal cambio, string cliente, string folio)
         {
@@ -136,7 +136,7 @@ namespace OrySiPOS.Services
                 byte[] bytes = ByteSplicer.Combine(commands.ToArray());
 
                 // Aquí podrías también usar Settings.Default.ImpresoraSeleccionada si quisieras hacerlo dinámico
-                RawPrinterHelper.SendBytesToPrinter(NOMBRE_IMPRESORA, bytes);
+                RawPrinterHelper.SendBytesToPrinter(Settings.Default.Impresora, bytes);
             }
             catch (Exception ex)
             {
@@ -225,7 +225,7 @@ namespace OrySiPOS.Services
 
                 // Enviar a impresora
                 byte[] bytes = ESCPOS_NET.Utilities.ByteSplicer.Combine(commands.ToArray());
-                RawPrinterHelper.SendBytesToPrinter("XP-58", bytes); // Ojo: Usa tu variable de nombre de impresora
+                RawPrinterHelper.SendBytesToPrinter(Settings.Default.Impresora, bytes); // Ojo: Usa tu variable de nombre de impresora
             }
             catch (Exception ex)
             {

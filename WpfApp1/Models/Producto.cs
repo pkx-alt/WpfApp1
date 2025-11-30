@@ -55,6 +55,18 @@ namespace OrySiPOS.Models
             set { _activo = value; OnPropertyChanged(); }
         }
 
+        private bool _esServicio;
+        public bool EsServicio
+        {
+            get => _esServicio;
+            set
+            {
+                _esServicio = value;
+                OnPropertyChanged();
+                // Si es servicio, podríamos querer avisar para cambiar validaciones visuales
+            }
+        }
+
         public int SubcategoriaId { get; set; }
 
         // --- AQUÍ ESTÁ LA MAGIA PARA EL SAT ---

@@ -68,8 +68,17 @@
                     <StackPanel>
                         <TextBlock Text="URL de Imagen (Opcional)" FontSize="12" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
                         <TextBox x:Name="txtImagenUrl" Height="35" FontSize="12" FontStyle="Italic" Text="https://"/>
+
+                        <CheckBox x:Name="chkEsServicio" 
+          Content="Es un Servicio (No usa inventario)"
+          FontSize="12" 
+          Foreground="{StaticResource TextPrimary}"
+          Margin="0,10,0,10"
+          Checked="ChkEsServicio_Checked"
+          Unchecked="ChkEsServicio_Unchecked" Height="26"/>
                     </StackPanel>
                 </StackPanel>
+                
 
                 <StackPanel Grid.Column="2">
                     <TextBlock Text="PRECIOS Y STOCK" FontSize="11" FontWeight="Bold" Foreground="{StaticResource SuccessColor}" Margin="0,0,0,10"/>

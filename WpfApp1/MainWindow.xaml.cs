@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using System.Windows.Navigation; // <-- ¡Puede que necesites este!
+using System.Linq; // <--- ¡ESTA ES LA LÍNEA QUE FALTA!
 
 namespace OrySiPOS
 {

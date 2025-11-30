@@ -155,7 +155,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ID" Binding="{Binding ID}" Width="80"/>
                     <DataGridTextColumn Header="Descripción" Binding="{Binding Description}" Width="*"/>
-                    <DataGridTemplateColumn Header="UD" Width="140">
+                    <DataGridTemplateColumn Header="Cant." Width="140">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -176,12 +176,18 @@
                                         </Button.Resources>
                                     </Button>
 
-                                    <TextBlock Text="{Binding Quantity}" 
-                           FontWeight="Bold" 
-                           FontSize="15" 
-                           VerticalAlignment="Center" 
-                           Width="30" 
-                           TextAlignment="Center"/>
+                                    <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" 
+                                         Width="45" 
+                                         Height="30"
+                                         VerticalContentAlignment="Center"
+                                         HorizontalContentAlignment="Center"
+                                         FontSize="15" 
+                                         FontWeight="Bold"
+                                         BorderThickness="0,0,0,1"
+                                         BorderBrush="Gray"
+                                         Background="Transparent"
+                                         PreviewTextInput="ValidarSoloNumeros"
+                                         GotFocus="SeleccionarTextoAlEnfocar"/>
 
                                     <Button Content="+" Width="30" Height="30" Padding="0" Margin="5,0,0,0"
                         Command="{Binding DataContext.IncreaseQuantityCommand, RelativeSource={RelativeSource AncestorType=Page}}"

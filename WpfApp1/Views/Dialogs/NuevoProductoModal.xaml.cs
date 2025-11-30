@@ -147,7 +147,7 @@ namespace OrySiPOS.Views.Dialogs
             txtCosto.Text = _productoEdicion.Costo.ToString();
             txtStock.Text = _productoEdicion.Stock.ToString();
             txtImagenUrl.Text = _productoEdicion.ImagenUrl;
-
+            chkEsServicio.IsChecked = _productoEdicion.EsServicio;
             // 2. Datos SAT
             // Intentamos seleccionar de la lista
             CmbClaveSat.SelectedValue = _productoEdicion.ClaveSat;
@@ -281,6 +281,45 @@ namespace OrySiPOS.Views.Dialogs
             cmb.GetBindingExpression(ComboBox.TextProperty)?.UpdateSource();
         }
 
+        // En Views/Dialogs/NuevoProductoModal.xaml.cs
+
+        private void ChkEsServicio_Checked(object sender, RoutedEventArgs e)
+        {
+            // 1. Bloquear Stock visualmente
+            txtStock.Text = "0"; // O puedes poner "∞" si cambias validaciones, pero 0 o 1 funciona internamente
+            txtStock.IsEnabled = false;
+            txtStock.ToolTip = "Los servicios tienen stock infinito.";
+
+            // 2. Asignar Clave Unidad SAT para Servicios (E48 - Unidad de servicio)
+            // Buscamos en la lista de unidades si existe E48 y la seleccionamos
+            CmbClaveUnidad.Text = "E48"; // Valor visual rápido
+
+            // Intentar seleccionarlo del combo si ya está cargado
+            if (CmbClaveUnidad.ItemsSource is ICollectionView vista)
+            {
+                // Lógica simple para seleccionar el objeto si existe en tu lista cargada
+                foreach (var item in _listaSatUnidades)
+                {
+                    if (item.Clave == "E48")
+                    {
+                        CmbClaveUnidad.SelectedItem = item;
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void ChkEsServicio_Unchecked(object sender, RoutedEventArgs e)
+        {
+            // Restaurar comportamiento normal
+            txtStock.IsEnabled = true;
+            txtStock.Text = "1";
+            txtStock.ToolTip = null;
+
+            // Regresar a Pieza (H87) por defecto
+            CmbClaveUnidad.Text = "H87";
+        }
+
         // --- GUARDADO ---
 
         private void Guardar_Click(object sender, RoutedEventArgs e)
@@ -340,9 +379,11 @@ namespace OrySiPOS.Views.Dialogs
                         ProductoRegistrado = new Producto
                         {
                             Descripcion = txtDescripcion.Text,
+                            EsServicio = chkEsServicio.IsChecked == true,
+                            // Si es servicio, guardamos stock 0 o 1, da igual, la lógica de venta lo ignorará.
+                            Stock = (chkEsServicio.IsChecked == true) ? 0 : stock,
                             Precio = precio,
                             Costo = costo,
-                            Stock = stock,
                             ImagenUrl = img,
                             SubcategoriaId = subcat.Id,
                             PorcentajeIVA = ivaSeleccionado,
@@ -369,6 +410,8 @@ namespace OrySiPOS.Views.Dialogs
                             prodDb.SubcategoriaId = subcat.Id;
                             prodDb.ClaveSat = claveSatFinal;
                             prodDb.ClaveUnidad = unidadFinal;
+                            prodDb.EsServicio = chkEsServicio.IsChecked == true;
+                            if (prodDb.EsServicio) prodDb.Stock = 0; // Opcional: resetear stock
 
                             db.Productos.Update(prodDb);
                             db.SaveChanges();
@@ -384,6 +427,8 @@ namespace OrySiPOS.Views.Dialogs
                             _productoEdicion.ClaveSat = claveSatFinal;     // <--- Dispara cambio de icono
                             _productoEdicion.ClaveUnidad = unidadFinal;    // <--- Dispara cambio de icono
                             _productoEdicion.Subcategoria = subcat; // Para que se vea el nombre de subcategoría
+                                                                    // Actualizar objeto en memoria
+                            _productoEdicion.EsServicio = chkEsServicio.IsChecked == true;
                         }
                     }
                 }
@@ -423,5 +468,7 @@ namespace OrySiPOS.Views.Dialogs
             this.DialogResult = false;
             this.Close();
         }
+
+
     }
 }

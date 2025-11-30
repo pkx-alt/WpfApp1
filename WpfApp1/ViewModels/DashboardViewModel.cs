@@ -2,6 +2,7 @@
 using System.Linq;
 using OrySiPOS.Data;
 using OrySiPOS.ViewModels; // Para usar tu ViewModelBase
+using OrySiPOS.Properties;
 
 namespace OrySiPOS.ViewModels
 {
@@ -58,8 +59,7 @@ namespace OrySiPOS.ViewModels
 
                 // 3. CONTAR PRODUCTOS CON BAJO STOCK
                 // Contamos productos activos que tengan 5 o menos unidades
-                ProductosBajoStock = db.Productos
-                                       .Count(p => p.Activo && p.Stock <= 5);
+                ProductosBajoStock = db.Productos.Count(p => p.Activo && p.Stock <= Settings.Default.NivelBajoStock && !p.EsServicio);
             }
         }
     }

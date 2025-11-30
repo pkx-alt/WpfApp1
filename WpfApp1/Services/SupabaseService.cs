@@ -198,6 +198,8 @@ namespace OrySiPOS.Services
         {
             try
             {
+                // NUEVO: Si es servicio, abortamos la misión. No se sube nada.
+                if (productoLocal.EsServicio) return;
                 await Inicializar();
 
                 // --- PASO EXTRA: Calcular ventas totales desde tu BD Local ---

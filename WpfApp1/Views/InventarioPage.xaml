@@ -4,6 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:OrySiPOS.Views"
+      xmlns:cv="clr-namespace:OrySiPOS.Converters"
       xmlns:vm="clr-namespace:OrySiPOS.ViewModels"
       mc:Ignorable="d" 
       d:DesignHeight="600" d:DesignWidth="900"
@@ -12,14 +13,13 @@
       d:DataContext="{d:DesignInstance Type=vm:InventarioViewModel, IsDesignTimeCreatable=False}">
 
     <Page.Resources>
+        <cv:StockVisualConverter x:Key="StockVisualConverter"/>
+
         <ContextMenu x:Key="MenuAccionesProducto">
-            <MenuItem Header="✏️ Editar Producto" 
-              Click="MenuEditar_Click" />
+            <MenuItem Header="✏️ Editar Producto" Click="MenuEditar_Click" />
             <MenuItem Header="📄 Ver detalles" Click="VerDetalles_Click"/>
             <MenuItem Header="📊 Historial de movimientos" Click="Historial_Click"/>
-
             <Separator/>
-
             <MenuItem Click="Deshabilitar_Click">
                 <MenuItem.Style>
                     <Style TargetType="MenuItem">
@@ -151,7 +151,7 @@
                 <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="*"/>
 
                 <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=C}" Width="100" FontWeight="Bold"/>
-                <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="80">
+                <DataGridTextColumn Header="Stock" Binding="{Binding Converter={StaticResource StockVisualConverter}}" SortMemberPath="Stock" Width="80">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
                             <Setter Property="HorizontalAlignment" Value="Center"/>
