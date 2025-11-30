@@ -1,11 +1,9 @@
 ﻿using System.Globalization; // Necesario
-using System.Threading;     // Necesario
 using System.Windows;
 using System.Windows.Markup; // <--- ¡NUEVO! Necesario para XmlLanguage
 using OrySiPOS.Data;
 using QuestPDF.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace OrySiPOS
 {
@@ -24,25 +22,52 @@ namespace OrySiPOS
             CultureInfo.DefaultThreadCurrentCulture = cultura;
             CultureInfo.DefaultThreadCurrentUICulture = cultura;
 
-            // 2. ¡EL TRUCO PARA EL XAML! (Para {Binding StringFormat...})
-            // Esto le dice a todos los controles visuales (WPF) que usen el idioma que acabamos de configurar
+            // 2. ¡EL TRUCO PARA EL XAML! 
             FrameworkElement.LanguageProperty.OverrideMetadata(
                 typeof(FrameworkElement),
                 new FrameworkPropertyMetadata(
                     XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
 
-            // --- Tu código de inicio original ---
             base.OnStartup(e);
+
 
             QuestPDF.Settings.License = LicenseType.Community;
 
-            using (var context = new InventarioDbContext())
-            {
-                context.SeedData();
-            }
-
             // 1. PRIMERO: Preparamos la Base de Datos
             InicializarBaseDeDatos();
+
+            // 2. ¡NUEVO! VERIFICACIÓN DE CAJA
+            // Antes de abrir la ventana principal, revisamos si hay turno abierto.
+            bool cajaAbierta = false;
+
+            using (var db = new InventarioDbContext())
+            {
+                // Buscamos si existe algún registro en CortesCaja que NO tenga fecha de cierre
+                cajaAbierta = db.CortesCaja.Any(c => c.FechaCierre == null);
+            }
+            /*
+            if (!cajaAbierta)
+            {
+                // Si NO hay caja abierta, forzamos la apertura
+                AperturaCajaWindow ventanaApertura = new AperturaCajaWindow();
+
+                // Mostramos la ventana como diálogo (bloquea el código hasta que se cierre)
+                bool? resultado = ventanaApertura.ShowDialog();
+
+                if (resultado == true)
+                {
+                    // ¡Éxito! El usuario abrió la caja correctamente.
+                    // Podemos continuar hacia la ventana principal.
+                }
+                else
+                {
+                    // El usuario cerró la ventana o le dio Cancelar sin abrir la caja.
+                    // En este caso, NO debemos dejarlo entrar al sistema.
+                    Application.Current.Shutdown();
+                    return; // Salimos del método para que no ejecute lo de abajo
+                }
+            }
+            */
 
             // 2. LUEGO: Abrimos la ventana manualmente
             MainWindow ventanaPrincipal = new MainWindow();

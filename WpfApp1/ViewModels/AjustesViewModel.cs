@@ -1,12 +1,14 @@
-﻿using OrySiPOS.Helpers; // Para el RelayCommand
+﻿using Microsoft.Win32; // Para SaveFileDialog
+using OrySiPOS.Helpers; // Para el RelayCommand
 using OrySiPOS.Properties; // ¡Importante! Para acceder a Settings
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;       // Para File.Copy
 using System.Printing; // <-- ¡Nuevo! Para hablar con el servicio de impresión de Windows
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.Win32; // Para SaveFileDialog
-using System.IO;       // Para File.Copy
+using OrySiPOS.Data; // Asegúrate de tener este using para llamar al DbContext
+using Microsoft.EntityFrameworkCore; // Para ExecuteSqlRaw
 
 namespace OrySiPOS.ViewModels
 {
@@ -234,38 +236,44 @@ namespace OrySiPOS.ViewModels
         {
             try
             {
-                // Nombre de tu base de datos (según tu DbContext)
-                string nombreArchivoDb = "BaseDeDatos.db";
-
-                // Buscamos la ruta real donde está corriendo la app
-                string rutaOrigen = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nombreArchivoDb);
+                string rutaOrigen = ObtenerRutaBaseDatos();
 
                 if (!File.Exists(rutaOrigen))
                 {
-                    MessageBox.Show("No se encuentra el archivo de base de datos original.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("No se encuentra la base de datos para respaldar.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                // Configurar el diálogo para guardar
+                // TRUCO DE SENIOR: Forzar el "Checkpoint"
+                // Esto obliga a SQLite a pasar los datos de la memoria temporal (WAL) al archivo .db
+                using (var db = new InventarioDbContext())
+                {
+                    // Este comando SQL mágico fusiona los archivos temporales
+                    db.Database.ExecuteSqlRaw("PRAGMA wal_checkpoint(FULL);");
+                }
+
+                // Damos un respiro al sistema de archivos
+                Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
                 saveFileDialog.Filter = "Base de Datos SQLite (*.db)|*.db";
-                saveFileDialog.FileName = $"Respaldo_OrySiPOS_{DateTime.Now:yyyy_MM_dd}.db";
+                // Le ponemos fecha y hora para que no se confundan
+                saveFileDialog.FileName = $"Respaldo_OrySiPOS_{DateTime.Now:yyyy-MM-dd_HH-mm}.db";
                 saveFileDialog.Title = "Guardar copia de seguridad";
 
-                // Mostrar diálogo
                 if (saveFileDialog.ShowDialog() == true)
                 {
                     string rutaDestino = saveFileDialog.FileName;
 
-                    // ¡COPIAR EL ARCHIVO!
+                    // Copiamos el archivo ya "compactado"
                     File.Copy(rutaOrigen, rutaDestino, true);
 
-                    MessageBox.Show($"Respaldo creado con éxito en:\n{rutaDestino}", "Copia de Seguridad", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"Respaldo creado con éxito.\nGuardado en: {rutaDestino}", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al exportar: {ex.Message}\n\nAsegúrate de que nadie más esté usando el archivo.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error al exportar: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         // 3. La Lógica de Restauración
@@ -274,20 +282,22 @@ namespace OrySiPOS.ViewModels
             var openFileDialog = new OpenFileDialog
             {
                 Filter = "Base de Datos SQLite (*.db)|*.db",
-                Title = "Seleccionar archivo de respaldo"
+                Title = "Seleccionar archivo de respaldo para restaurar"
             };
 
             if (openFileDialog.ShowDialog() == true)
             {
                 string rutaRespaldo = openFileDialog.FileName;
-                string rutaDestino = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "inventario.db");
+                string rutaDestino = ObtenerRutaBaseDatos();
 
-                // PREGUNTA DE SEGURIDAD
+                // Archivos fantasma que debemos eliminar
+                string rutaWal = rutaDestino + "-wal";
+                string rutaShm = rutaDestino + "-shm";
+
                 var confirmacion = MessageBox.Show(
-                    "⚠️ ¡ATENCIÓN! ⚠️\n\n" +
-                    "Al restaurar este respaldo, SE BORRARÁN todos los datos actuales y serán reemplazados por los del archivo seleccionado.\n\n" +
-                    "Esta acción no se puede deshacer.\n\n" +
-                    "¿Estás 100% seguro de continuar?",
+                    "⚠️ ¡PELIGRO! ⚠️\n\n" +
+                    "Se borrarán TODOS los datos actuales y se pondrán los del respaldo.\n" +
+                    "¿Estás seguro?",
                     "Confirmar Restauración",
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Warning);
@@ -296,44 +306,50 @@ namespace OrySiPOS.ViewModels
                 {
                     try
                     {
-                        // Intentamos forzar la liberación de archivos (truco para SQLite)
+                        // 1. Cortar conexiones
                         Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
 
-                        // Reemplazamos el archivo
+                        // 2. ELIMINAR LOS 3 ARCHIVOS (DB + WAL + SHM)
+                        // Si no borras el WAL, SQLite se hará un lío al arrancar con la nueva DB
+                        if (File.Exists(rutaDestino)) File.Delete(rutaDestino);
+                        if (File.Exists(rutaWal)) File.Delete(rutaWal);
+                        if (File.Exists(rutaShm)) File.Delete(rutaShm);
+
+                        // 3. Copiar el respaldo en su lugar
                         File.Copy(rutaRespaldo, rutaDestino, true);
 
                         MessageBox.Show(
-                            "La base de datos se restauró correctamente.\n\n" +
-                            "La aplicación se cerrará para aplicar los cambios. Por favor, ábrela de nuevo.",
-                            "Restauración Exitosa",
+                            "Restauración exitosa.\nLa aplicación se cerrará para aplicar cambios.",
+                            "Éxito",
                             MessageBoxButton.OK,
                             MessageBoxImage.Information);
 
-                        // REINICIAR LA APLICACIÓN
-                        // Opción A: Cerrar y que el usuario abra
                         Application.Current.Shutdown();
-
-                        // Opción B: Intentar reiniciar automáticamente (opcional)
-                        // Process.Start(Environment.ProcessPath);
-                        // Application.Current.Shutdown();
                     }
                     catch (IOException)
                     {
                         MessageBox.Show(
-                            "No se pudo reemplazar el archivo porque está en uso.\n\n" +
-                            "Intenta cerrar y abrir la aplicación nuevamente, y realiza la restauración inmediatamente antes de hacer cualquier venta.",
-                            "Archivo Bloqueado",
+                            "El archivo está bloqueado por Windows.\n" +
+                            "Cierra la app, espera 10 segundos y vuelve a intentarlo nada más abrirla.",
+                            "Error de Archivo",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show("Error al restaurar: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("Ocurrió un error inesperado: " + ex.Message);
                     }
                 }
             }
+        }
+        private string ObtenerRutaBaseDatos()
+        {
+            // Usamos la misma lógica que suele usar EF Core por defecto o la que definiste en tu Context
+            // Si en tu DbContext usaste Assembly.GetExecutingAssembly().Location, hagamos lo mismo aquí
+            string carpeta = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            return System.IO.Path.Combine(carpeta, "BaseDeDatos.db");
         }
     }
 }
