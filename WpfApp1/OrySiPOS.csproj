@@ -8,6 +8,33 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+	<ItemGroup>
+		<None Remove="Assets\billete100.png" />
+		<None Remove="Assets\billete1000.png" />
+		<None Remove="Assets\billete20.png" />
+		<None Remove="Assets\billete200.png" />
+		<None Remove="Assets\billete50.png" />
+		<None Remove="Assets\billete500.png" />
+		<None Remove="Assets\moneda.jpg" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="Assets\moneda.jpg" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Resource Include="Assets\billete100.png" />
+		<Resource Include="Assets\billete1000.png" />
+		<Resource Include="Assets\billete20.png" />
+		<Resource Include="Assets\billete200.png" />
+		<Resource Include="Assets\billete50.png" />
+		<Resource Include="Assets\billete500.png" />
+	</ItemGroup>
+	<ItemGroup>
+		<Resource Include="Assets\billete.jpg" />
+	</ItemGroup>
+
+
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="ESCPOS_NET" Version="3.0.0" />
@@ -24,6 +51,16 @@
     <PackageReference Include="Supabase" Version="1.1.1" />
     <PackageReference Include="Supabase.Postgrest" Version="4.1.0" />
     <PackageReference Include="Supabase.Realtime" Version="7.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\billete.jpg" />
+    <Resource Include="Assets\billete100.png" />
+    <Resource Include="Assets\billete1000.png" />
+    <Resource Include="Assets\billete20.png" />
+    <Resource Include="Assets\billete200.png" />
+    <Resource Include="Assets\billete50.png" />
+    <Resource Include="Assets\billete500.png" />
   </ItemGroup>
 
   <ItemGroup>

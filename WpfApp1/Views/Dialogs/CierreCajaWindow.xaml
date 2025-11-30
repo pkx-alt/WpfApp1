@@ -75,7 +75,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <Image Source="/Assets/billete20.png" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="$20 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
@@ -93,7 +93,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <Image Source="/Assets/billete50.png" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="$50 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
@@ -111,7 +111,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <Image Source="/Assets/billete100.png" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="$100 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
@@ -129,7 +129,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <Image Source="/Assets/billete200.png" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="$200 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
@@ -147,7 +147,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <Image Source="/Assets/billete500.png" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="$500 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
@@ -165,7 +165,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Image Source="/Assets/billete.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
+                                <Image Source="/Assets/billete1000.png" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="$1000 Pesos" FontSize="11" Foreground="{StaticResource TextSecondary}"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
@@ -183,9 +183,9 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="🪙" FontSize="30" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                                <Image Source="/Assets/moneda.jpg" Width="50" Margin="0,0,10,0" Opacity="0.8"/>
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Total en Monedas (Suma manual)" FontSize="12" FontWeight="SemiBold" Foreground="#F57F17"/>
+                                    <TextBlock Text="Total en Monedas" FontSize="12" FontWeight="SemiBold" Foreground="#F57F17"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                                         <TextBox x:Name="TxtMonedas" Text="0" Width="100" Padding="4" TextAlignment="Center" FontSize="16" FontWeight="Bold" TextChanged="Denominacion_TextChanged"/>
                                         <TextBlock Text=" MXN" VerticalAlignment="Center" Margin="5,0,0,0" Foreground="{StaticResource TextSecondary}"/>
