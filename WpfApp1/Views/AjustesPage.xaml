@@ -255,25 +255,48 @@
                             <TextBlock Text="Sincronización Nube (Supabase)" Style="{StaticResource SectionTitle}" Margin="0"/>
                         </StackPanel>
 
-                        <TextBlock Text="Esta herramienta fuerza la subida de TODOS los datos locales (Clientes, Productos, Categorías) a la nube. Úsala para reparar inconsistencias."
-                                   Foreground="#555" Margin="0,0,0,15" TextWrapping="Wrap"/>
+                        <TextBlock Text="Usa estas herramientas para sincronizar manualmente. 'Subir' envía tus datos locales a la nube. 'Bajar' trae lo de la nube a tu PC."
+                   Foreground="#555" Margin="0,0,0,15" TextWrapping="Wrap"/>
 
-                        <Button Content="⚠️ FORZAR SUBIDA DE TODO (MASTER SYNC)" 
-                                Click="BtnForzarSubida_Click"
-                                Background="OrangeRed" Foreground="White"
-                                FontWeight="Bold" FontSize="14"
-                                HorizontalAlignment="Left"
-                                Padding="20,10"
-                                Height="45">
-                            <Button.Resources>
-                                <Style TargetType="Border">
-                                    <Setter Property="CornerRadius" Value="6"/>
-                                </Style>
-                            </Button.Resources>
-                            <Button.Effect>
-                                <DropShadowEffect Color="#FF4500" BlurRadius="10" Opacity="0.3"/>
-                            </Button.Effect>
-                        </Button>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0" 
+                    Content="⬆️ SUBIR TODO A NUBE" 
+                    Click="BtnForzarSubida_Click"
+                    Background="OrangeRed" Foreground="White"
+                    FontWeight="Bold" FontSize="12"
+                    Padding="10,10" Height="45">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="6"/>
+                                    </Style>
+                                </Button.Resources>
+                                <Button.Effect>
+                                    <DropShadowEffect Color="#FF4500" BlurRadius="10" Opacity="0.3"/>
+                                </Button.Effect>
+                            </Button>
+
+                            <Button Grid.Column="2" 
+                    Content="⬇️ BAJAR TODO DE NUBE" 
+                    Click="BtnForzarBajada_Click"
+                    Background="#007ACC" Foreground="White"
+                    FontWeight="Bold" FontSize="12"
+                    Padding="10,10" Height="45">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="6"/>
+                                    </Style>
+                                </Button.Resources>
+                                <Button.Effect>
+                                    <DropShadowEffect Color="#007ACC" BlurRadius="10" Opacity="0.3"/>
+                                </Button.Effect>
+                            </Button>
+                        </Grid>
                     </StackPanel>
                 </Border>
 

@@ -46,6 +46,7 @@ namespace OrySiPOS.Views.Dialogs
         {
             txtRazonSocial.Text = _clienteEdicion.RazonSocial;
             txtTelefono.Text = _clienteEdicion.Telefono;
+            txtCorreo.Text = _clienteEdicion.Correo;
             chkEsFactura.IsChecked = _clienteEdicion.EsFactura;
             txtRfc.Text = _clienteEdicion.RFC;
             txtCodigoPostal.Text = _clienteEdicion.CodigoPostal;

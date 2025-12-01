@@ -82,6 +82,7 @@
                 </StackPanel>
 
                 <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,0,15">
+                    <TextBlock Text="RFC:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
                     <TextBox x:Name="txtRfc" Text="XAXX010101000" Height="35" MaxLength="13" CharacterCasing="Upper" FontSize="14" FontWeight="Bold" Padding="5,0"/>
                 </StackPanel>
 

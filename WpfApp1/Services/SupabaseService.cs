@@ -269,12 +269,17 @@ namespace OrySiPOS.Services
                     Stock = productoLocal.Stock,
                     Activo = productoLocal.Activo,
                     ImagenUrl = productoLocal.ImagenUrl,
+
+                    // --- AQUÍ MAPEA LOS NUEVOS DATOS ---
+                    Costo = productoLocal.Costo,
+                    ClaveSat = productoLocal.ClaveSat ?? "01010101", // Default por si es nulo
+                    ClaveUnidad = productoLocal.ClaveUnidad ?? "H87",
+                    EsServicio = productoLocal.EsServicio,
                     PorcentajeIVA = productoLocal.PorcentajeIVA,
+                    // -----------------------------------
+
                     Categoria = nombreCategoria,
-
-                    // ¡AQUÍ VA EL DATO CLAVE!
                     VentasTotales = totalVendido,
-
                     UltimaActualizacion = DateTime.Now
                 };
 
@@ -376,6 +381,112 @@ namespace OrySiPOS.Services
             {
                 System.Diagnostics.Debug.WriteLine("Error sync Cliente: " + ex.Message);
             }
+        }
+
+        // ==========================================
+        //  SECCIÓN DE BAJADA (DESCARGAR DE LA NUBE)
+        // ==========================================
+
+        /// <summary>
+        /// Baja las categorías de Supabase y las convierte a tu modelo local.
+        /// </summary>
+        public async Task<List<Categoria>> ObtenerCategoriasDeNube()
+        {
+            await Inicializar();
+
+            // 1. Bajamos la lista cruda de la web
+            var response = await _client.From<CategoriaWeb>().Get();
+            var listaWeb = response.Models;
+
+            var listaLocal = new List<Categoria>();
+
+            // 2. Convertimos cada objeto "Web" a objeto "Local"
+            foreach (var itemWeb in listaWeb)
+            {
+                listaLocal.Add(new Categoria
+                {
+                    // Tratamos de mantener el mismo ID para que coincidan
+                    Id = (int)itemWeb.Id,
+                    Nombre = itemWeb.Nombre,
+                });
+            }
+
+            return listaLocal;
+        }
+
+        /// <summary>
+        /// Baja las subcategorías. Importante bajarlas antes que los productos.
+        /// </summary>
+        public async Task<List<Subcategoria>> ObtenerSubcategoriasDeNube()
+        {
+            await Inicializar();
+
+            var response = await _client.From<SubcategoriaWeb>().Get();
+            var listaWeb = response.Models;
+
+            var listaLocal = new List<Subcategoria>();
+
+            foreach (var itemWeb in listaWeb)
+            {
+                listaLocal.Add(new Subcategoria
+                {
+                    Id = (int)itemWeb.Id,
+                    Nombre = itemWeb.Nombre,
+                    CategoriaId = (int)itemWeb.CategoriaId, // Relación con el padre
+                });
+            }
+
+            return listaLocal;
+        }
+
+        /// <summary>
+        /// Baja los clientes de la nube.
+        /// </summary>
+        public async Task<List<Cliente>> ObtenerClientesDeNube()
+        {
+            await Inicializar();
+
+            var response = await _client.From<ClienteWeb>().Get();
+            var listaWeb = response.Models;
+
+            var listaLocal = new List<Cliente>();
+
+            foreach (var w in listaWeb)
+            {
+                listaLocal.Add(new Cliente
+                {
+                    // Si el ID web es muy grande y tu ID local es int, 
+                    // aquí podría haber conflicto, pero por ahora asumimos que caben.
+                    // Lo ideal es buscar por RFC o Correo antes de insertar.
+                    RazonSocial = w.RazonSocial,
+                    RFC = w.Rfc,
+                    Correo = w.Correo,
+                    Telefono = w.Telefono,
+                    CodigoPostal = w.CodigoPostal,
+                    RegimenFiscal = w.RegimenFiscal,
+                    UsoCFDI = w.UsoCfdi,
+                    Activo = w.Activo,
+                    EsFactura = w.EsFactura,
+                    Creado = w.Creado
+                });
+            }
+
+            return listaLocal;
+        }
+
+        /// <summary>
+        /// OJO ALUMNO: Este devuelve el objeto WEB directo.
+        /// ¿Por qué? Porque para convertirlo a Local necesitamos buscar la Subcategoría ID
+        /// usando la base de datos, y este servicio NO tiene acceso a la BD local directa.
+        /// Esa conversión la haremos en el botón (en el archivo .xaml.cs).
+        /// </summary>
+        public async Task<List<ProductoWeb>> ObtenerProductosDeNube()
+        {
+            await Inicializar();
+
+            // Traemos todo. Si son miles, aquí deberíamos paginar, pero para empezar está bien.
+            var response = await _client.From<ProductoWeb>().Get();
+            return response.Models;
         }
     }
 }

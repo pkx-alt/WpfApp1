@@ -295,6 +295,8 @@ namespace OrySiPOS.Views
         new ReporteItem { Propiedad = "ID Cliente", Valor = cliente.ID.ToString() },
         new ReporteItem { Propiedad = "Razón Social", Valor = cliente.RazonSocial },
         new ReporteItem { Propiedad = "RFC", Valor = cliente.RFC },
+        new ReporteItem { Propiedad = "Email", Valor = cliente.Correo ?? "Sin correo" }, 
+        // (Asegúrate de que en tu Modelo 'Cliente' la propiedad se llame 'Correo' o 'Email')
         new ReporteItem { Propiedad = "Teléfono", Valor = cliente.Telefono },
         new ReporteItem { Propiedad = "Código Postal", Valor = cliente.CodigoPostal },
         new ReporteItem { Propiedad = "Régimen Fiscal", Valor = cliente.RegimenFiscal },

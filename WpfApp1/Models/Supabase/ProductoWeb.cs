@@ -1,5 +1,5 @@
-﻿using Supabase.Postgrest.Models;
-using Supabase.Postgrest.Attributes;
+﻿using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 using System;
 
 namespace OrySiPOS.Models.Supabase
@@ -7,8 +7,7 @@ namespace OrySiPOS.Models.Supabase
     [Table("productos_web")]
     public class ProductoWeb : BaseModel
     {
-        // Mapeamos 'sku' a nuestro ID local
-        [PrimaryKey("sku", false)] // 'false' significa que no es autoincremental en la nube, nosotros le damos el valor
+        [PrimaryKey("sku", false)]
         public long Sku { get; set; }
 
         [Column("descripcion")]
@@ -28,14 +27,25 @@ namespace OrySiPOS.Models.Supabase
 
         [Column("activo")]
         public bool Activo { get; set; }
-        // AGREGA ESTE NUEVO CAMPO:
-        [Column("ventas_totales")]
-        public int VentasTotales { get; set; }
 
-        // --- ¡NUEVO CAMPO! ---
-        // Mapeamos a la columna 'porcentaje_iva' en Postgres
+        // --- NUEVOS CAMPOS ---
+        [Column("costo")]
+        public decimal Costo { get; set; }
+
+        [Column("clave_sat")]
+        public string ClaveSat { get; set; }
+
+        [Column("clave_unidad")]
+        public string ClaveUnidad { get; set; }
+
+        [Column("es_servicio")]
+        public bool EsServicio { get; set; }
+
         [Column("porcentaje_iva")]
         public decimal PorcentajeIVA { get; set; }
+
+        [Column("ventas_totales")]
+        public int VentasTotales { get; set; }
 
         [Column("updated_at")]
         public DateTime UltimaActualizacion { get; set; }
