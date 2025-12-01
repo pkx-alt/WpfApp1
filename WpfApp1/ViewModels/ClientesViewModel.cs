@@ -1,10 +1,11 @@
 ﻿using OrySiPOS.Data;
 using OrySiPOS.Models;
+using OrySiPOS.Services;
 using OrySiPOS.Views.Dialogs;
 using System.Collections.ObjectModel; // Para ObservableCollection
 using System.Linq; // Para .ToList()
-using System.Windows.Input;
 using System.Windows;
+using System.Windows.Input;
 
 
 namespace OrySiPOS.ViewModels
@@ -89,22 +90,25 @@ namespace OrySiPOS.ViewModels
             }
         }
 
+        // Cambiamos "void" por "async void" para poder usar await
+        // En ClientesViewModel.cs
+
         private void OnEditarCliente(object parametro)
         {
             if (parametro is Cliente clienteSeleccionado)
             {
-                // Pasamos el cliente al constructor que acabamos de modificar
+                // Pasamos el cliente (que tiene datos viejos en memoria) solo para llenar los campos iniciales
                 var ventana = new NuevoClienteWindow(clienteSeleccionado);
 
-                // Centramos la ventana sobre la principal
                 ventana.Owner = Application.Current.MainWindow;
 
                 bool? resultado = ventana.ShowDialog();
 
                 if (resultado == true)
                 {
-                    // Si guardó cambios, recargamos la lista para verlos reflejados
-                    CargarClientes(); // (Ojo: asegúrate de mantener tus filtros actuales si los usas)
+                    // SOLO recargamos la lista para traer los datos nuevos desde SQLite.
+                    // La sincronización con la nube YA LA HIZO la ventana internamente.
+                    CargarClientes();
                 }
             }
         }
