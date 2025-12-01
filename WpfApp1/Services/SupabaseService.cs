@@ -43,10 +43,10 @@ namespace OrySiPOS.Services
         {
             await Inicializar();
 
-            // 1. Traer cabeceras PENDIENTES
+            // 1. Traer cabeceras PENDIENTES de la nube
             var response = await _client.From<CotizacionWeb>()
-                            .Where(x => x.Estado == "PENDIENTE") // <--- IMPORTANTE: Asegúrate que en la nube diga 'PENDIENTE'
-                            .Get();
+                                        .Where(x => x.Estado == "PENDIENTE")
+                                        .Get();
 
             var cotizacionesNube = response.Models;
             int importadas = 0;
@@ -55,13 +55,13 @@ namespace OrySiPOS.Services
 
             using (var db = new InventarioDbContext())
             {
-                // Buscar (o crear si no existe) un producto comodín para ítems no encontrados
+                // ---------------------------------------------------------
+                // PASO A: Asegurar Producto Comodín (Para ítems no encontrados)
+                // ---------------------------------------------------------
                 var productoComodin = db.Productos.FirstOrDefault(p => p.Descripcion == "ITEM WEB NO ENCONTRADO");
 
                 if (productoComodin == null)
                 {
-                    // Creamos uno por defecto si no existe, para no perder la venta
-                    // (Necesitamos una subcategoría válida, agarramos la primera)
                     var subcat = db.Subcategorias.FirstOrDefault();
                     if (subcat != null)
                     {
@@ -81,23 +81,62 @@ namespace OrySiPOS.Services
                     }
                 }
 
+                // ---------------------------------------------------------
+                // PASO B: Procesar cada cotización
+                // ---------------------------------------------------------
                 foreach (var cotWeb in cotizacionesNube)
                 {
-                    // Validar si ya existe localmente para no duplicar (por seguridad)
-                    // (Esto asume que podríamos guardar el ID web en algún lado, pero por ahora lo omitimos para simplificar)
+                    // --- NUEVA LÓGICA: SINCRONIZACIÓN DE CLIENTE ---
+                    int? clienteIdFinal = null;
 
+                    // Verificamos si la cotización trae correo para identificar al cliente
+                    // (Asegúrate de que 'ClienteEmail' exista en tu modelo CotizacionWeb)
+                    if (!string.IsNullOrEmpty(cotWeb.ClienteEmail))
+                    {
+                        // 1. Buscar si ya existe localmente por correo
+                        var clienteExistente = db.Clientes.FirstOrDefault(c => c.Correo == cotWeb.ClienteEmail);
+
+                        if (clienteExistente != null)
+                        {
+                            // ¡Existe! Usamos su ID
+                            clienteIdFinal = clienteExistente.ID;
+                        }
+                        else
+                        {
+                            // 2. No existe: Lo creamos al vuelo
+                            var nuevoCliente = new Cliente
+                            {
+                                RazonSocial = cotWeb.ClienteNombre ?? "Cliente Web Nuevo",
+                                Correo = cotWeb.ClienteEmail,
+                                RFC = "XAXX010101000", // RFC genérico si no viene de la web
+                                Activo = true,
+                                Creado = DateTime.Now,
+                                EsFactura = false,
+                                // Puedes mapear más datos si vienen de la web (Teléfono, Dirección, etc.)
+                                Telefono = "0000000000"
+                            };
+
+                            db.Clientes.Add(nuevoCliente);
+                            db.SaveChanges(); // Guardamos INMEDIATAMENTE para obtener el nuevo ID
+
+                            clienteIdFinal = nuevoCliente.ID;
+                        }
+                    }
+                    // -------------------------------------------------------
+
+                    // Crear la cabecera de la cotización local
                     var nuevaCotLocal = new Cotizacion
                     {
                         FechaEmision = cotWeb.FechaCreacion,
                         FechaVencimiento = cotWeb.FechaCreacion.AddDays(15),
                         Origen = "Web",
-                        ClienteId = null, // Dejamos null o podrías buscar al cliente por nombre
+                        ClienteId = clienteIdFinal, // <--- Aquí asignamos el cliente encontrado o creado
                         Subtotal = 0,
                         IVA = 0,
                         Total = 0
                     };
 
-                    // Traer detalles
+                    // Traer detalles de esta cotización desde Supabase
                     var detallesResponse = await _client.From<DetalleWeb>()
                                                         .Where(x => x.CotizacionId == cotWeb.Id)
                                                         .Get();
@@ -106,19 +145,18 @@ namespace OrySiPOS.Services
 
                     foreach (var detWeb in detallesResponse.Models)
                     {
-                        // Buscamos producto local
+                        // Buscamos producto local por nombre
                         var productoLocal = db.Productos.FirstOrDefault(p => p.Descripcion == detWeb.Descripcion);
 
-                        // Si no existe, usamos el comodín. Si aun así no hay comodín (caso raro), saltamos.
+                        // Si no existe, usamos el comodín
                         int idProductoFinal = (productoLocal != null) ? productoLocal.ID : (productoComodin?.ID ?? 0);
 
-                        if (idProductoFinal == 0) continue; // No hay forma de ligarlo
+                        if (idProductoFinal == 0) continue;
 
                         var nuevoDetalle = new CotizacionDetalle
                         {
                             ProductoId = idProductoFinal,
-                            // Guardamos la descripción original de la web, aunque usemos el ID del comodín
-                            Descripcion = detWeb.Descripcion,
+                            Descripcion = detWeb.Descripcion, // Mantenemos la descripción original de la web
                             Cantidad = detWeb.Cantidad,
                             PrecioUnitario = detWeb.Precio,
                             Cotizacion = nuevaCotLocal
@@ -128,11 +166,11 @@ namespace OrySiPOS.Services
                         sumaSubtotal += (detWeb.Cantidad * detWeb.Precio);
                     }
 
-                    // Si se agregaron detalles, guardamos
+                    // Guardar solo si tiene detalles
                     if (nuevaCotLocal.Detalles.Count > 0)
                     {
                         nuevaCotLocal.Total = sumaSubtotal;
-                        nuevaCotLocal.Subtotal = sumaSubtotal / 1.16m; // Ajusta según tu lógica de impuestos
+                        nuevaCotLocal.Subtotal = sumaSubtotal / 1.16m;
                         nuevaCotLocal.IVA = sumaSubtotal - nuevaCotLocal.Subtotal;
 
                         db.Cotizaciones.Add(nuevaCotLocal);
@@ -146,6 +184,7 @@ namespace OrySiPOS.Services
                         importadas++;
                     }
                 }
+                // Guardamos todos los cambios en la BD local (Cotizaciones y Detalles)
                 db.SaveChanges();
             }
 
@@ -302,6 +341,8 @@ namespace OrySiPOS.Services
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error delete Categoria: " + ex.Message); }
         }
 
+        // En OrySiPOS.Services.SupabaseService.cs
+
         public async Task SincronizarCliente(Cliente local)
         {
             try
@@ -314,6 +355,12 @@ namespace OrySiPOS.Services
                     Rfc = local.RFC,
                     RazonSocial = local.RazonSocial,
                     Telefono = local.Telefono,
+
+                    // --- ¡ESTA LÍNEA FALTABA! ---
+                    // Asegúrate de que tu modelo ClienteWeb tenga la propiedad 'Correo' o 'ClienteEmail'
+                    Correo = local.Correo,
+                    // ----------------------------
+
                     Activo = local.Activo,
                     EsFactura = local.EsFactura,
                     CodigoPostal = local.CodigoPostal,

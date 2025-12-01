@@ -13,6 +13,11 @@ namespace OrySiPOS.Models.Supabase
         [Column("cliente_nombre")]
         public string ClienteNombre { get; set; }
 
+        // --- AGREGA ESTO ---
+        [Column("cliente_email")]
+        public string ClienteEmail { get; set; }
+        // -------------------
+
         [Column("total")]
         public decimal Total { get; set; }
 

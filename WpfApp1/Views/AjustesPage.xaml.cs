@@ -1,8 +1,9 @@
-﻿using System.Windows;
+﻿using Microsoft.EntityFrameworkCore;
+using OrySiPOS.ViewModels;
+using System.Text.RegularExpressions; // Para Regex
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Text.RegularExpressions; // Para Regex
-using OrySiPOS.ViewModels;
 
 namespace OrySiPOS.Views
 {
@@ -105,6 +106,97 @@ namespace OrySiPOS.Views
         private void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
             // Si el botón usa Command="{Binding...}" esto no se ejecuta, pero lo dejamos por si acaso.
+        }
+
+        // En WpfApp1/Views/AjustesPage.xaml.cs
+
+        private async void BtnForzarSubida_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            btn.IsEnabled = false;
+            btn.Content = "Sincronizando todo el sistema...";
+
+            try
+            {
+                var servicioNube = new OrySiPOS.Services.SupabaseService();
+
+                // Contadores para el reporte final
+                int cats = 0, subcats = 0, prods = 0, clientes = 0;
+
+                await Task.Run(async () =>
+                {
+                    using (var db = new OrySiPOS.Data.InventarioDbContext())
+                    {
+                        // -------------------------------------------------------
+                        // FASE 1: CATEGORÍAS (Para que se arme el menú web)
+                        // -------------------------------------------------------
+                        var listaCategorias = db.Categorias.ToList();
+                        foreach (var cat in listaCategorias)
+                        {
+                            Dispatcher.Invoke(() => btn.Content = $"Subiendo Categ: {cat.Nombre}...");
+                            await servicioNube.SincronizarCategoria(cat);
+                            cats++;
+                        }
+
+                        // -------------------------------------------------------
+                        // FASE 2: SUBCATEGORÍAS
+                        // -------------------------------------------------------
+                        var listaSubcategorias = db.Subcategorias.ToList();
+                        foreach (var sub in listaSubcategorias)
+                        {
+                            Dispatcher.Invoke(() => btn.Content = $"Subiendo Subcat: {sub.Nombre}...");
+                            await servicioNube.SincronizarSubcategoria(sub);
+                            subcats++;
+                        }
+
+                        // -------------------------------------------------------
+                        // FASE 3: PRODUCTOS (Ahora sí, con sus categorías listas)
+                        // -------------------------------------------------------
+                        // Usamos Include para asegurarnos de que el producto sepa cuál es su categoría
+                        var listaProductos = db.Productos
+                                               .Include(p => p.Subcategoria)
+                                               .ThenInclude(s => s.Categoria)
+                                               .ToList();
+
+                        foreach (var prod in listaProductos)
+                        {
+                            Dispatcher.Invoke(() => btn.Content = $"Subiendo Prod: {prod.Descripcion}...");
+                            // Filtro opcional: subir solo activos o excluir servicios
+                            await servicioNube.SincronizarProducto(prod);
+                            prods++;
+                        }
+
+                        // -------------------------------------------------------
+                        // FASE 4: CLIENTES (Lo que ya tenías)
+                        // -------------------------------------------------------
+                        var listaClientes = db.Clientes.ToList();
+                        foreach (var cliente in listaClientes)
+                        {
+                            Dispatcher.Invoke(() => btn.Content = $"Subiendo Cliente: {cliente.RazonSocial}...");
+                            await servicioNube.SincronizarCliente(cliente);
+                            clientes++;
+                        }
+                    }
+                });
+
+                MessageBox.Show(
+                    $"✅ ¡SINCRONIZACIÓN TOTAL COMPLETADA!\n\n" +
+                    $"📂 Categorías: {cats}\n" +
+                    $"file_folder Subcategorías: {subcats}\n" +
+                    $"📦 Productos: {prods}\n" +
+                    $"👥 Clientes: {clientes}\n\n" +
+                    "Tu base de datos local y la nube ahora están comunicadas.",
+                    "Operación Exitosa", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("❌ Ocurrió un error:\n" + ex.Message);
+            }
+            finally
+            {
+                btn.IsEnabled = true;
+                btn.Content = "⚠️ FORZAR SUBIDA DE TODO (MASTER SYNC)";
+            }
         }
     }
 }

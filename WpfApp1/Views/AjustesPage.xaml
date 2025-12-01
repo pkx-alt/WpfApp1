@@ -120,17 +120,17 @@
                                     </Grid.ColumnDefinitions>
 
                                     <ComboBox Grid.Column="0" Height="30"
-                  ItemsSource="{Binding ListaImpresoras}"
-                  SelectedItem="{Binding ImpresoraSeleccionada}"/>
+                                              ItemsSource="{Binding ListaImpresoras}"
+                                              SelectedItem="{Binding ImpresoraSeleccionada}"/>
 
                                     <Button Grid.Column="1" 
-                Content="⚙️ Configurar" 
-                ToolTip="Abrir propiedades de Windows para quitar la cola de impresión"
-                Command="{Binding AbrirPropiedadesImpresoraCommand}"
-                Style="{StaticResource BtnSecondary}"
-                Height="30" 
-                Margin="10,0,0,0" 
-                Padding="10,0"/>
+                                            Content="⚙️ Configurar" 
+                                            ToolTip="Abrir propiedades de Windows para quitar la cola de impresión"
+                                            Command="{Binding AbrirPropiedadesImpresoraCommand}"
+                                            Style="{StaticResource BtnSecondary}"
+                                            Height="30" 
+                                            Margin="10,0,0,0" 
+                                            Padding="10,0"/>
                                 </Grid>
                             </StackPanel>
 
@@ -153,110 +153,36 @@
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
                             <TextBlock Text="💾" FontSize="20" Margin="0,0,10,0"/>
-                            <TextBlock Text="Base de Datos y Respaldo" Style="{StaticResource SectionTitle}" Margin="0"/>
+                            <TextBlock Text="Base de Datos y Respaldo Local" Style="{StaticResource SectionTitle}" Margin="0"/>
                         </StackPanel>
 
                         <TextBlock Text="Es recomendable realizar respaldos periódicos de tu inventario y ventas para evitar pérdida de información." 
-                   Foreground="Gray" Margin="0,0,0,15" TextWrapping="Wrap"/>
+                                   Foreground="Gray" Margin="0,0,0,15" TextWrapping="Wrap"/>
 
                         <StackPanel Orientation="Horizontal">
-                            <Button Content="Crear Respaldo" 
-                    Command="{Binding ExportarBaseDatosCommand}"
-                    Background="#007ACC" Foreground="White" FontWeight="Bold"
-                    Padding="15,8" BorderThickness="0" Cursor="Hand"
-                    Margin="0,0,10,0">
+                            <Button Content="Crear Respaldo Local" 
+                                    Command="{Binding ExportarBaseDatosCommand}"
+                                    Background="#007ACC" Foreground="White" FontWeight="Bold"
+                                    Padding="15,8" BorderThickness="0" Cursor="Hand"
+                                    Margin="0,0,10,0">
                                 <Button.Resources>
                                     <Style TargetType="Border">
                                         <Setter Property="CornerRadius" Value="4"/>
                                     </Style>
                                 </Button.Resources>
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Border>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="Opacity" Value="0.9"/>
-                                                        </Trigger>
-                                                        <Trigger Property="IsPressed" Value="True">
-                                                            <Setter Property="Opacity" Value="0.7"/>
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </Button.Style>
                             </Button>
 
                             <Button Content="Restaurar Datos" 
-                    Command="{Binding ImportarBaseDatosCommand}"
-                    Background="#6c757d" Foreground="White" FontWeight="Bold"
-                    Padding="15,8" BorderThickness="0" Cursor="Hand">
+                                    Command="{Binding ImportarBaseDatosCommand}"
+                                    Background="#6c757d" Foreground="White" FontWeight="Bold"
+                                    Padding="15,8" BorderThickness="0" Cursor="Hand">
                                 <Button.Resources>
                                     <Style TargetType="Border">
                                         <Setter Property="CornerRadius" Value="4"/>
                                     </Style>
                                 </Button.Resources>
-                                <Button.Style>
-                                    <Style TargetType="Button">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Border>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="Opacity" Value="0.9"/>
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </Button.Style>
                             </Button>
                         </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <Border Style="{StaticResource SettingsCard}">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                            <TextBlock Text="🎛️" FontSize="20" Margin="0,0,10,0"/>
-                            <TextBlock Text="Parámetros del Sistema" Style="{StaticResource SectionTitle}" Margin="0"/>
-                        </StackPanel>
-
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="20"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Alerta de Bajo Stock (Unidades):" Style="{StaticResource FieldLabel}"/>
-                                <TextBox Text="{Binding NivelBajoStock, UpdateSourceTrigger=PropertyChanged}" 
-                         PreviewTextInput="SoloNumeros_PreviewTextInput"/>
-                                <TextBlock Text="Cuando un producto tenga esta cantidad o menos, se marcará en rojo." 
-                           FontSize="11" Foreground="Gray" TextWrapping="Wrap"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="Porcentaje de IVA (%):" Style="{StaticResource FieldLabel}"/>
-                                <DockPanel LastChildFill="True">
-                                    <TextBlock Text="%" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="5,0,0,15" Foreground="Gray"/>
-                                    <TextBox Text="{Binding PorcentajeIVA, UpdateSourceTrigger=PropertyChanged}"/>
-                                </DockPanel>
-                                <TextBlock Text="Ejemplo: Escribe 16 para el 16%." 
-                           FontSize="11" Foreground="Gray" TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Grid>
                     </StackPanel>
                 </Border>
 
@@ -268,14 +194,14 @@
                         </StackPanel>
 
                         <TextBlock Text="Configura la cuenta de Gmail que recibe las facturas XML de proveedores."
-                   Foreground="Gray" Margin="0,0,0,15" TextWrapping="Wrap"/>
+                                   Foreground="Gray" Margin="0,0,0,15" TextWrapping="Wrap"/>
 
                         <StackPanel>
                             <TextBlock Text="Palabra Clave de Búsqueda:" Style="{StaticResource FieldLabel}"/>
                             <TextBox Text="{Binding EmailKeyword, UpdateSourceTrigger=PropertyChanged}" 
-             ToolTip="Ej: 'Factura', 'CFDI', 'XML'. El sistema buscará correos que contengan esta palabra en el asunto."/>
+                                     ToolTip="Ej: 'Factura', 'CFDI', 'XML'. El sistema buscará correos que contengan esta palabra en el asunto."/>
                             <TextBlock Text="El sistema buscará correos NO LEÍDOS que contengan esta palabra en el asunto." 
-               FontSize="11" Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,15"/>
+                                       FontSize="11" Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,15"/>
 
                             <TextBlock Text="Correo Electrónico (Gmail):" Style="{StaticResource FieldLabel}"/>
                         </StackPanel>
@@ -290,35 +216,64 @@
                             </Grid.ColumnDefinitions>
 
                             <PasswordBox x:Name="PassBoxSecret" 
-                 Grid.Column="0"
-                 Height="30"
-                 VerticalContentAlignment="Center"
-                 PasswordChanged="PassBoxSecret_PasswordChanged"
-                 Padding="5"/>
+                                         Grid.Column="0"
+                                         Height="30"
+                                         VerticalContentAlignment="Center"
+                                         PasswordChanged="PassBoxSecret_PasswordChanged"
+                                         Padding="5"/>
 
                             <TextBox x:Name="TxtPassVisible" 
-             Grid.Column="0"
-             Height="30"
-             Visibility="Collapsed"
-             TextChanged="TxtPassVisible_TextChanged"/>
+                                     Grid.Column="0"
+                                     Height="30"
+                                     Visibility="Collapsed"
+                                     TextChanged="TxtPassVisible_TextChanged"/>
 
                             <Button Grid.Column="1" 
-            x:Name="BtnTogglePass"
-            Click="BtnTogglePass_Click"
-            Style="{StaticResource BtnSecondary}"
-            BorderThickness="1" 
-            BorderBrush="{StaticResource BorderBrush}"
-            Background="White"
-            ToolTip="Mostrar/Ocultar contraseña"
-            Width="40" Height="30" 
-            Margin="5,0,0,0"
-            Padding="0">
+                                    x:Name="BtnTogglePass"
+                                    Click="BtnTogglePass_Click"
+                                    Style="{StaticResource BtnSecondary}"
+                                    BorderThickness="1" 
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    Background="White"
+                                    ToolTip="Mostrar/Ocultar contraseña"
+                                    Width="40" Height="30" 
+                                    Margin="5,0,0,0"
+                                    Padding="0">
                                 <TextBlock Text="👁️" FontSize="16" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             </Button>
                         </Grid>
 
                         <TextBlock Text="⚠️ Nota: Usa una 'Contraseña de Aplicación' de Google, no tu contraseña normal." 
-                   Foreground="{StaticResource WarningColor}" FontSize="11" FontStyle="Italic" Margin="0,-10,0,0"/>
+                                   Foreground="{StaticResource WarningColor}" FontSize="11" FontStyle="Italic" Margin="0,-10,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource SettingsCard}" BorderBrush="OrangeRed" BorderThickness="1">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="☁️" FontSize="20" Margin="0,0,10,0"/>
+                            <TextBlock Text="Sincronización Nube (Supabase)" Style="{StaticResource SectionTitle}" Margin="0"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Esta herramienta fuerza la subida de TODOS los datos locales (Clientes, Productos, Categorías) a la nube. Úsala para reparar inconsistencias."
+                                   Foreground="#555" Margin="0,0,0,15" TextWrapping="Wrap"/>
+
+                        <Button Content="⚠️ FORZAR SUBIDA DE TODO (MASTER SYNC)" 
+                                Click="BtnForzarSubida_Click"
+                                Background="OrangeRed" Foreground="White"
+                                FontWeight="Bold" FontSize="14"
+                                HorizontalAlignment="Left"
+                                Padding="20,10"
+                                Height="45">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                            <Button.Effect>
+                                <DropShadowEffect Color="#FF4500" BlurRadius="10" Opacity="0.3"/>
+                            </Button.Effect>
+                        </Button>
                     </StackPanel>
                 </Border>
 
@@ -326,7 +281,8 @@
                         Background="#28A745" Foreground="White" FontWeight="Bold" FontSize="16"
                         Padding="30,10" BorderThickness="0" Cursor="Hand"
                         Content="Guardar Cambios"
-                        Command="{Binding GuardarCommand}">
+                        Command="{Binding GuardarCommand}"
+                        Margin="0,10,0,50">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="5"/>

@@ -26,6 +26,9 @@ namespace OrySiPOS.Models
         [Required]
         public string RazonSocial { get; set; }
 
+        // En tu clase Cliente
+        public string Correo { get; set; } // <--- Agrega esto
+
         public string Telefono { get; set; }
 
         // Vamos a ponerle un valor por defecto

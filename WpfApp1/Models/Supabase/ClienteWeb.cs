@@ -16,6 +16,10 @@ namespace OrySiPOS.Models.Supabase
         [Column("razon_social")]
         public string RazonSocial { get; set; }
 
+        // En tu clase ClienteWeb
+        [Column("email")] // O como se llame en tu tabla de supabase
+        public string Correo { get; set; }
+
         [Column("telefono")]
         public string Telefono { get; set; }
 

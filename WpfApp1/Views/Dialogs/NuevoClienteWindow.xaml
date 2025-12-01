@@ -41,6 +41,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Grid.ColumnDefinitions>
@@ -65,42 +66,46 @@
                     <TextBox x:Name="txtRazonSocial" Height="35" FontSize="14" Padding="5,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,20">
+                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,15">
                     <TextBlock Text="Teléfono / Contacto:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
                     <TextBox x:Name="txtTelefono" Height="35" FontSize="14" Padding="5,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,0,0,15">
+                <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,20">
+                    <TextBlock Text="Correo Electrónico (opcional):" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtCorreo" Height="35" FontSize="14" Padding="5,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,0,0,15">
                     <TextBlock Text="Datos Fiscales (Opcional si no factura)" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
                     <Separator Margin="10,0,0,0" Width="250" VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,0,15">
-                    <TextBlock Text="RFC:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
+                <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,0,15">
                     <TextBox x:Name="txtRfc" Text="XAXX010101000" Height="35" MaxLength="13" CharacterCasing="Upper" FontSize="14" FontWeight="Bold" Padding="5,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="4" Grid.Column="2" Margin="0,0,0,15">
+                <StackPanel Grid.Row="5" Grid.Column="2" Margin="0,0,0,15">
                     <TextBlock Text="Código Postal (Fiscal):" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
                     <TextBox x:Name="txtCodigoPostal" Text="00000" Height="35" MaxLength="5" FontSize="14" Padding="5,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="5" Grid.Column="0" Margin="0,0,0,15">
+                <StackPanel Grid.Row="6" Grid.Column="0" Margin="0,0,0,15">
                     <TextBlock Text="Régimen Fiscal:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
                     <ComboBox x:Name="CmbRegimen" 
-              DisplayMemberPath="Display" 
-              SelectedValuePath="Clave"
-              Height="35" FontSize="13" Padding="5,0"
-              VerticalContentAlignment="Center"/>
+                              DisplayMemberPath="Display" 
+                              SelectedValuePath="Clave"
+                              Height="35" FontSize="13" Padding="5,0"
+                              VerticalContentAlignment="Center"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="5" Grid.Column="2" Margin="0,0,0,15">
+                <StackPanel Grid.Row="6" Grid.Column="2" Margin="0,0,0,15">
                     <TextBlock Text="Uso de CFDI:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,5"/>
                     <ComboBox x:Name="CmbUsoCfdi" 
-              DisplayMemberPath="Display" 
-              SelectedValuePath="Clave"
-              Height="35" FontSize="13" Padding="5,0"
-              VerticalContentAlignment="Center"/>
+                              DisplayMemberPath="Display" 
+                              SelectedValuePath="Clave"
+                              Height="35" FontSize="13" Padding="5,0"
+                              VerticalContentAlignment="Center"/>
                 </StackPanel>
             </Grid>
 
