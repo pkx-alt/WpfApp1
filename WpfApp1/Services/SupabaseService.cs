@@ -124,13 +124,17 @@ namespace OrySiPOS.Services
                     }
                     // -------------------------------------------------------
 
+
                     // Crear la cabecera de la cotización local
                     var nuevaCotLocal = new Cotizacion
                     {
                         FechaEmision = cotWeb.FechaCreacion,
-                        FechaVencimiento = cotWeb.FechaCreacion.AddDays(15),
+
+                        // BLINDAJE: Si viene nula, calculamos 15 días a partir de hoy o de la creación
+                        FechaVencimiento = cotWeb.FechaVencimiento ?? cotWeb.FechaCreacion.AddDays(15),
+
                         Origen = "Web",
-                        ClienteId = clienteIdFinal, // <--- Aquí asignamos el cliente encontrado o creado
+                        ClienteId = clienteIdFinal,
                         Subtotal = 0,
                         IVA = 0,
                         Total = 0

@@ -28,7 +28,7 @@ namespace OrySiPOS.Models.Supabase
         public string Estado { get; set; } // PENDIENTE, DESCARGADA
 
         [Column("fecha_vencimiento")]
-        public DateTime FechaVencimiento { get; set; }
+        public DateTime? FechaVencimiento { get; set; }
 
         // Relación con los detalles (opcional, pero útil si usas joins)
         [Reference(typeof(DetalleWeb))]
