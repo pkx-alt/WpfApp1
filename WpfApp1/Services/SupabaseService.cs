@@ -43,8 +43,7 @@ namespace OrySiPOS.Services
         {
             await Inicializar();
 
-            // 1. Traer cabeceras PENDIENTES
-            // Usamos Try-Catch por si falla la red, no el proceso lógico
+            // 1. Traer cabeceras PENDIENTES de la nube
             try
             {
                 var response = await _client.From<CotizacionWeb>()
@@ -84,79 +83,96 @@ namespace OrySiPOS.Services
                     // PASO B: Procesar CADA cotización
                     foreach (var cotWeb in cotizacionesNube)
                     {
-                        // 🔥 IMPORTANTE: Try-Catch DENTRO del ciclo para que una mala no detenga a las buenas
                         try
                         {
                             int? clienteIdFinal = null;
 
                             // --- 1. LÓGICA DE CLIENTE ---
+
+                            // A. Buscar por CORREO (Prioridad 1)
                             if (!string.IsNullOrEmpty(cotWeb.ClienteEmail))
                             {
                                 var clienteExistente = db.Clientes.FirstOrDefault(c => c.Correo == cotWeb.ClienteEmail);
-
                                 if (clienteExistente != null)
                                 {
                                     clienteIdFinal = clienteExistente.ID;
                                 }
+                            }
+
+                            // B. Buscar por NOMBRE (Prioridad 2, solo si no se encontró por correo)
+                            if (clienteIdFinal == null)
+                            {
+                                var clientePorNombre = db.Clientes.FirstOrDefault(c => c.RazonSocial.ToLower() == cotWeb.ClienteNombre.ToLower());
+                                if (clientePorNombre != null)
+                                {
+                                    clienteIdFinal = clientePorNombre.ID;
+                                    // Opcional: Actualizar correo si está vacío
+                                    if (string.IsNullOrEmpty(clientePorNombre.Correo)) clientePorNombre.Correo = cotWeb.ClienteEmail;
+                                }
+                            }
+
+                            // C. CREAR NUEVO (Si no existe ni por correo ni por nombre)
+                            if (clienteIdFinal == null)
+                            {
+                                // --- RECUPERACIÓN DE DATOS REALES DEL CLIENTE DESDE LA NUBE ---
+                                string rfcFinal = "XAXX010101000";
+                                string telefonoFinal = "0000000000";
+                                string cpFinal = "00000";
+                                string regimenFinal = "616";
+                                string usoCfdiFinal = "S01";
+                                bool esFacturaFinal = false;
+
+                                try
+                                {
+                                    // Hacemos una consulta extra a 'clientes_web' para obtener el teléfono y RFC real
+                                    var datosClienteNube = await _client.From<ClienteWeb>()
+                                                                .Where(c => c.Correo == cotWeb.ClienteEmail)
+                                                                .Single();
+
+                                    if (datosClienteNube != null)
+                                    {
+                                        if (!string.IsNullOrEmpty(datosClienteNube.Rfc)) rfcFinal = datosClienteNube.Rfc;
+                                        if (!string.IsNullOrEmpty(datosClienteNube.Telefono)) telefonoFinal = datosClienteNube.Telefono;
+                                        if (!string.IsNullOrEmpty(datosClienteNube.CodigoPostal)) cpFinal = datosClienteNube.CodigoPostal;
+                                        if (!string.IsNullOrEmpty(datosClienteNube.RegimenFiscal)) regimenFinal = datosClienteNube.RegimenFiscal;
+                                        if (!string.IsNullOrEmpty(datosClienteNube.UsoCfdi)) usoCfdiFinal = datosClienteNube.UsoCfdi;
+                                        esFacturaFinal = datosClienteNube.EsFactura;
+                                    }
+                                }
+                                catch
+                                {
+                                    // Si falla (ej: el cliente compró como invitado sin registrarse), usamos los defaults.
+                                }
+
+                                // --- LÓGICA DEL PORTERO (RFC DUPLICADO) ---
+                                bool esRfcGenerico = (rfcFinal == "XAXX010101000");
+                                var clienteConMismoRfc = db.Clientes.FirstOrDefault(c => c.RFC == rfcFinal);
+
+                                if (clienteConMismoRfc != null && !esRfcGenerico)
+                                {
+                                    // CASO: Ya existe una empresa con este RFC real. NO DUPLICAMOS.
+                                    clienteIdFinal = clienteConMismoRfc.ID;
+                                }
                                 else
                                 {
-                                    // Buscamos por nombre para no duplicar si el correo cambió
-                                    var clientePorNombre = db.Clientes.FirstOrDefault(c => c.RazonSocial.ToLower() == cotWeb.ClienteNombre.ToLower());
-
-                                    if (clientePorNombre != null)
+                                    // CASO: Es nuevo O es Público en General (permitimos duplicar genéricos)
+                                    var nuevoCliente = new Cliente
                                     {
-                                        clienteIdFinal = clientePorNombre.ID;
-                                        // Opcional: clientePorNombre.Correo = cotWeb.ClienteEmail;
-                                    }
-                                    else
-                                    {
-                                        // === AQUÍ ESTÁ LA SOLUCIÓN DEL RFC ===
-                                        string rfcAsignar = "XAXX010101000";
+                                        RazonSocial = cotWeb.ClienteNombre ?? "Cliente Web",
+                                        Correo = cotWeb.ClienteEmail,
+                                        RFC = rfcFinal, // RFC Real o Genérico
+                                        Activo = true,
+                                        Creado = DateTime.Now,
+                                        EsFactura = esFacturaFinal,
+                                        Telefono = telefonoFinal, // ¡Teléfono Real recuperado!
+                                        CodigoPostal = cpFinal,
+                                        RegimenFiscal = regimenFinal,
+                                        UsoCFDI = usoCfdiFinal
+                                    };
 
-                                        // Verificamos si el RFC genérico ya está usado por otro cliente (ej: Público General)
-                                        if (db.Clientes.Any(c => c.RFC == rfcAsignar))
-                                        {
-                                            // Si ya existe, generamos un RFC único para este cliente web
-                                            // Formato: WEB + AñoMesDia + Random (Total 12-13 chars)
-                                            var rnd = new Random();
-                                            rfcAsignar = "WEB" + DateTime.Now.ToString("yyMMdd") + rnd.Next(100, 999).ToString();
-                                        }
-
-                                        string telefonoReal = "0000000000"; // Valor por defecto
-                                        try
-                                        {
-                                            var clienteNube = await _client.From<ClienteWeb>()
-                                                                           .Where(c => c.Correo == cotWeb.ClienteEmail)
-                                                                           .Single();
-
-                                            if (clienteNube != null && !string.IsNullOrEmpty(clienteNube.Telefono))
-                                            {
-                                                telefonoReal = clienteNube.Telefono;
-                                            }
-                                        }
-                                        catch { /* Si falla o no existe, nos quedamos con los ceros */ }
-
-                                        // 2. Creamos el cliente usando el teléfono que encontramos
-                                        var nuevoCliente = new Cliente
-                                        {
-                                            RazonSocial = cotWeb.ClienteNombre ?? "Cliente Web",
-                                            Correo = cotWeb.ClienteEmail,
-                                            RFC = rfcAsignar,
-                                            Activo = true,
-                                            Creado = DateTime.Now,
-                                            EsFactura = false,
-
-                                            Telefono = telefonoReal, // <--- ¡AQUÍ USAMOS EL DATO REAL!
-
-                                            CodigoPostal = "00000",
-                                            RegimenFiscal = "616",
-                                            UsoCFDI = "S01"
-                                        };
-
-                                        db.Clientes.Add(nuevoCliente);
-                                        db.SaveChanges(); // Guardamos para obtener el ID
-                                        clienteIdFinal = nuevoCliente.ID;
-                                    }
+                                    db.Clientes.Add(nuevoCliente);
+                                    db.SaveChanges();
+                                    clienteIdFinal = nuevoCliente.ID;
                                 }
                             }
 
@@ -164,7 +180,6 @@ namespace OrySiPOS.Services
                             var nuevaCotLocal = new Cotizacion
                             {
                                 FechaEmision = cotWeb.FechaCreacion,
-                                // Blindaje de fecha nula
                                 FechaVencimiento = cotWeb.FechaVencimiento ?? cotWeb.FechaCreacion.AddDays(15),
                                 Origen = "Web",
                                 ClienteId = clienteIdFinal,
@@ -210,7 +225,7 @@ namespace OrySiPOS.Services
                                 nuevaCotLocal.IVA = sumaSubtotal - nuevaCotLocal.Subtotal;
 
                                 db.Cotizaciones.Add(nuevaCotLocal);
-                                db.SaveChanges(); // ¡Guardado individual!
+                                db.SaveChanges();
 
                                 // Marcar como descargada
                                 await _client.From<CotizacionWeb>()
@@ -223,7 +238,6 @@ namespace OrySiPOS.Services
                         }
                         catch (Exception ex)
                         {
-                            // Si falla UNA cotización (ej: datos corruptos), la saltamos y seguimos
                             System.Diagnostics.Debug.WriteLine($"Error importando cotización {cotWeb.Id}: {ex.Message}");
                             continue;
                         }
@@ -233,7 +247,6 @@ namespace OrySiPOS.Services
             }
             catch (Exception ex)
             {
-                // Error general de conexión
                 throw new Exception("Error al conectar con Supabase: " + ex.Message);
             }
         }
