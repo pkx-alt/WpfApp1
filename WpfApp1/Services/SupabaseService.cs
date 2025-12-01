@@ -122,15 +122,32 @@ namespace OrySiPOS.Services
                                             rfcAsignar = "WEB" + DateTime.Now.ToString("yyMMdd") + rnd.Next(100, 999).ToString();
                                         }
 
+                                        string telefonoReal = "0000000000"; // Valor por defecto
+                                        try
+                                        {
+                                            var clienteNube = await _client.From<ClienteWeb>()
+                                                                           .Where(c => c.Correo == cotWeb.ClienteEmail)
+                                                                           .Single();
+
+                                            if (clienteNube != null && !string.IsNullOrEmpty(clienteNube.Telefono))
+                                            {
+                                                telefonoReal = clienteNube.Telefono;
+                                            }
+                                        }
+                                        catch { /* Si falla o no existe, nos quedamos con los ceros */ }
+
+                                        // 2. Creamos el cliente usando el teléfono que encontramos
                                         var nuevoCliente = new Cliente
                                         {
                                             RazonSocial = cotWeb.ClienteNombre ?? "Cliente Web",
                                             Correo = cotWeb.ClienteEmail,
-                                            RFC = rfcAsignar, // <--- RFC SEGURO
+                                            RFC = rfcAsignar,
                                             Activo = true,
                                             Creado = DateTime.Now,
                                             EsFactura = false,
-                                            Telefono = "0000000000",
+
+                                            Telefono = telefonoReal, // <--- ¡AQUÍ USAMOS EL DATO REAL!
+
                                             CodigoPostal = "00000",
                                             RegimenFiscal = "616",
                                             UsoCFDI = "S01"
