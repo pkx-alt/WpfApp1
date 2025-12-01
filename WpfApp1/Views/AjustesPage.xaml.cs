@@ -114,88 +114,153 @@ namespace OrySiPOS.Views
         {
             var btn = sender as Button;
             btn.IsEnabled = false;
-            btn.Content = "Sincronizando todo el sistema...";
+            string textoOriginal = btn.Content.ToString();
+            btn.Content = "⚡ Preparando envío masivo...";
 
             try
             {
                 var servicioNube = new OrySiPOS.Services.SupabaseService();
 
-                // Contadores para el reporte final
-                int cats = 0, subcats = 0, prods = 0, clientes = 0;
-
                 await Task.Run(async () =>
                 {
                     using (var db = new OrySiPOS.Data.InventarioDbContext())
                     {
-                        // -------------------------------------------------------
-                        // FASE 1: CATEGORÍAS (Para que se arme el menú web)
-                        // -------------------------------------------------------
-                        var listaCategorias = db.Categorias.ToList();
-                        foreach (var cat in listaCategorias)
-                        {
-                            Dispatcher.Invoke(() => btn.Content = $"Subiendo Categ: {cat.Nombre}...");
-                            await servicioNube.SincronizarCategoria(cat);
-                            cats++;
-                        }
+                        // =======================================================
+                        // 1. PREPARAR CATEGORÍAS (Memoria)
+                        // =======================================================
+                        Dispatcher.Invoke(() => btn.Content = "📦 Empaquetando Categorías...");
 
-                        // -------------------------------------------------------
-                        // FASE 2: SUBCATEGORÍAS
-                        // -------------------------------------------------------
-                        var listaSubcategorias = db.Subcategorias.ToList();
-                        foreach (var sub in listaSubcategorias)
-                        {
-                            Dispatcher.Invoke(() => btn.Content = $"Subiendo Subcat: {sub.Nombre}...");
-                            await servicioNube.SincronizarSubcategoria(sub);
-                            subcats++;
-                        }
+                        var dbCategorias = db.Categorias.ToList();
+                        var loteCategorias = new List<OrySiPOS.Models.Supabase.CategoriaWeb>();
 
-                        // -------------------------------------------------------
-                        // FASE 3: PRODUCTOS (Ahora sí, con sus categorías listas)
-                        // -------------------------------------------------------
-                        // Usamos Include para asegurarnos de que el producto sepa cuál es su categoría
-                        var listaProductos = db.Productos
-                                               .Include(p => p.Subcategoria)
-                                               .ThenInclude(s => s.Categoria)
-                                               .ToList();
-
-                        foreach (var prod in listaProductos)
+                        foreach (var c in dbCategorias)
                         {
-                            Dispatcher.Invoke(() => btn.Content = $"Subiendo Prod: {prod.Descripcion}...");
-                            // Filtro opcional: subir solo activos o excluir servicios
-                            await servicioNube.SincronizarProducto(prod);
-                            prods++;
+                            loteCategorias.Add(new OrySiPOS.Models.Supabase.CategoriaWeb
+                            {
+                                Id = c.Id,
+                                Nombre = c.Nombre,
+                                UltimaActualizacion = DateTime.Now
+                            });
                         }
+                        // ¡ENVÍO MASIVO 1!
+                        await servicioNube.SincronizarCategoriasMasivo(loteCategorias);
 
-                        // -------------------------------------------------------
-                        // FASE 4: CLIENTES (Lo que ya tenías)
-                        // -------------------------------------------------------
-                        var listaClientes = db.Clientes.ToList();
-                        foreach (var cliente in listaClientes)
+
+                        // =======================================================
+                        // 2. PREPARAR SUBCATEGORÍAS
+                        // =======================================================
+                        Dispatcher.Invoke(() => btn.Content = "📦 Empaquetando Subcategorías...");
+
+                        var dbSubcategorias = db.Subcategorias.ToList();
+                        var loteSub = new List<OrySiPOS.Models.Supabase.SubcategoriaWeb>();
+
+                        foreach (var s in dbSubcategorias)
                         {
-                            Dispatcher.Invoke(() => btn.Content = $"Subiendo Cliente: {cliente.RazonSocial}...");
-                            await servicioNube.SincronizarCliente(cliente);
-                            clientes++;
+                            loteSub.Add(new OrySiPOS.Models.Supabase.SubcategoriaWeb
+                            {
+                                Id = s.Id,
+                                Nombre = s.Nombre,
+                                CategoriaId = s.CategoriaId,
+                                UltimaActualizacion = DateTime.Now
+                            });
                         }
+                        // ¡ENVÍO MASIVO 2!
+                        await servicioNube.SincronizarSubcategoriasMasivo(loteSub);
+
+
+                        // =======================================================
+                        // 3. PREPARAR PRODUCTOS (Aquí estaba el mayor cuello de botella)
+                        // =======================================================
+                        Dispatcher.Invoke(() => btn.Content = "📦 Empaquetando Productos...");
+
+                        // A. Traemos los productos con sus relaciones
+                        var dbProductos = db.Productos
+                                            .Include(p => p.Subcategoria)
+                                            .ThenInclude(s => s.Categoria)
+                                            .ToList();
+
+                        // B. OPTIMIZACIÓN DE VENTAS: Traemos todos los conteos en UNA sola consulta
+                        // (Antes hacías 1 consulta por cada producto = lentísimo)
+                        var ventasDict = db.VentasDetalle
+                                           .GroupBy(v => v.ProductoId)
+                                           .Select(g => new { Id = g.Key, Total = g.Sum(x => x.Cantidad) })
+                                           .ToDictionary(x => x.Id, x => x.Total);
+
+                        var loteProductos = new List<OrySiPOS.Models.Supabase.ProductoWeb>();
+
+                        foreach (var p in dbProductos)
+                        {
+                            if (p.EsServicio) continue; // Filtramos servicios
+
+                            // Buscamos sus ventas en el diccionario (instantáneo)
+                            int vendidos = ventasDict.ContainsKey(p.ID) ? ventasDict[p.ID] : 0;
+
+                            string nombreCat = "General";
+                            if (p.Subcategoria?.Categoria != null) nombreCat = p.Subcategoria.Categoria.Nombre;
+
+                            loteProductos.Add(new OrySiPOS.Models.Supabase.ProductoWeb
+                            {
+                                Sku = p.ID,
+                                Descripcion = p.Descripcion,
+                                Precio = p.Precio,
+                                Stock = p.Stock,
+                                Activo = p.Activo,
+                                ImagenUrl = p.ImagenUrl,
+                                Costo = p.Costo,
+                                ClaveSat = p.ClaveSat ?? "01010101",
+                                ClaveUnidad = p.ClaveUnidad ?? "H87",
+                                EsServicio = p.EsServicio,
+                                PorcentajeIVA = p.PorcentajeIVA,
+                                Categoria = nombreCat,
+                                VentasTotales = vendidos, // Dato calculado rápido
+                                UltimaActualizacion = DateTime.Now
+                            });
+                        }
+                        // ¡ENVÍO MASIVO 3! (El camión grande)
+                        await servicioNube.SincronizarProductosMasivo(loteProductos);
+
+
+                        // =======================================================
+                        // 4. PREPARAR CLIENTES
+                        // =======================================================
+                        Dispatcher.Invoke(() => btn.Content = "📦 Empaquetando Clientes...");
+
+                        var dbClientes = db.Clientes.ToList();
+                        var loteClientes = new List<OrySiPOS.Models.Supabase.ClienteWeb>();
+
+                        foreach (var c in dbClientes)
+                        {
+                            loteClientes.Add(new OrySiPOS.Models.Supabase.ClienteWeb
+                            {
+                                Id = c.ID,
+                                Rfc = c.RFC,
+                                RazonSocial = c.RazonSocial,
+                                Telefono = c.Telefono,
+                                Correo = c.Correo,
+                                Activo = c.Activo,
+                                EsFactura = c.EsFactura,
+                                CodigoPostal = c.CodigoPostal,
+                                RegimenFiscal = c.RegimenFiscal,
+                                UsoCfdi = c.UsoCFDI,
+                                Creado = c.Creado,
+                                UltimaActualizacion = DateTime.Now
+                            });
+                        }
+                        // ¡ENVÍO MASIVO 4!
+                        await servicioNube.SincronizarClientesMasivo(loteClientes);
                     }
                 });
 
-                MessageBox.Show(
-                    $"✅ ¡SINCRONIZACIÓN TOTAL COMPLETADA!\n\n" +
-                    $"📂 Categorías: {cats}\n" +
-                    $"file_folder Subcategorías: {subcats}\n" +
-                    $"📦 Productos: {prods}\n" +
-                    $"👥 Clientes: {clientes}\n\n" +
-                    "Tu base de datos local y la nube ahora están comunicadas.",
-                    "Operación Exitosa", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("✅ ¡Sincronización completada!", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("❌ Ocurrió un error:\n" + ex.Message);
+                MessageBox.Show($"❌ Error: {ex.Message}");
             }
             finally
             {
                 btn.IsEnabled = true;
-                btn.Content = "⚠️ FORZAR SUBIDA DE TODO (MASTER SYNC)";
+                btn.Content = textoOriginal;
             }
         }
 

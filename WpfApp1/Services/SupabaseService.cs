@@ -43,156 +43,182 @@ namespace OrySiPOS.Services
         {
             await Inicializar();
 
-            // 1. Traer cabeceras PENDIENTES de la nube
-            var response = await _client.From<CotizacionWeb>()
-                                        .Where(x => x.Estado == "PENDIENTE")
-                                        .Get();
-
-            var cotizacionesNube = response.Models;
-            int importadas = 0;
-
-            if (cotizacionesNube.Count == 0) return 0;
-
-            using (var db = new InventarioDbContext())
+            // 1. Traer cabeceras PENDIENTES
+            // Usamos Try-Catch por si falla la red, no el proceso lógico
+            try
             {
-                // ---------------------------------------------------------
-                // PASO A: Asegurar Producto Comodín (Para ítems no encontrados)
-                // ---------------------------------------------------------
-                var productoComodin = db.Productos.FirstOrDefault(p => p.Descripcion == "ITEM WEB NO ENCONTRADO");
+                var response = await _client.From<CotizacionWeb>()
+                                            .Where(x => x.Estado == "PENDIENTE")
+                                            .Get();
 
-                if (productoComodin == null)
+                var cotizacionesNube = response.Models;
+                int importadas = 0;
+
+                if (cotizacionesNube == null || cotizacionesNube.Count == 0) return 0;
+
+                using (var db = new InventarioDbContext())
                 {
-                    var subcat = db.Subcategorias.FirstOrDefault();
-                    if (subcat != null)
+                    // PASO A: Asegurar Producto Comodín (Igual que antes)
+                    var productoComodin = db.Productos.FirstOrDefault(p => p.Descripcion == "ITEM WEB NO ENCONTRADO");
+                    if (productoComodin == null)
                     {
-                        productoComodin = new Producto
+                        var subcat = db.Subcategorias.FirstOrDefault();
+                        if (subcat != null)
                         {
-                            Descripcion = "ITEM WEB NO ENCONTRADO",
-                            Precio = 0,
-                            Costo = 0,
-                            Stock = 0,
-                            Activo = true,
-                            SubcategoriaId = subcat.Id,
-                            ClaveSat = "01010101",
-                            ClaveUnidad = "H87"
-                        };
-                        db.Productos.Add(productoComodin);
-                        db.SaveChanges();
-                    }
-                }
-
-                // ---------------------------------------------------------
-                // PASO B: Procesar cada cotización
-                // ---------------------------------------------------------
-                foreach (var cotWeb in cotizacionesNube)
-                {
-                    // --- NUEVA LÓGICA: SINCRONIZACIÓN DE CLIENTE ---
-                    int? clienteIdFinal = null;
-
-                    // Verificamos si la cotización trae correo para identificar al cliente
-                    // (Asegúrate de que 'ClienteEmail' exista en tu modelo CotizacionWeb)
-                    if (!string.IsNullOrEmpty(cotWeb.ClienteEmail))
-                    {
-                        // 1. Buscar si ya existe localmente por correo
-                        var clienteExistente = db.Clientes.FirstOrDefault(c => c.Correo == cotWeb.ClienteEmail);
-
-                        if (clienteExistente != null)
-                        {
-                            // ¡Existe! Usamos su ID
-                            clienteIdFinal = clienteExistente.ID;
-                        }
-                        else
-                        {
-                            // 2. No existe: Lo creamos al vuelo
-                            var nuevoCliente = new Cliente
+                            productoComodin = new Producto
                             {
-                                RazonSocial = cotWeb.ClienteNombre ?? "Cliente Web Nuevo",
-                                Correo = cotWeb.ClienteEmail,
-                                RFC = "XAXX010101000", // RFC genérico si no viene de la web
+                                Descripcion = "ITEM WEB NO ENCONTRADO",
+                                Precio = 0,
+                                Costo = 0,
+                                Stock = 0,
                                 Activo = true,
-                                Creado = DateTime.Now,
-                                EsFactura = false,
-                                // Puedes mapear más datos si vienen de la web (Teléfono, Dirección, etc.)
-                                Telefono = "0000000000"
+                                SubcategoriaId = subcat.Id,
+                                ClaveSat = "01010101",
+                                ClaveUnidad = "H87"
+                            };
+                            db.Productos.Add(productoComodin);
+                            db.SaveChanges();
+                        }
+                    }
+
+                    // PASO B: Procesar CADA cotización
+                    foreach (var cotWeb in cotizacionesNube)
+                    {
+                        // 🔥 IMPORTANTE: Try-Catch DENTRO del ciclo para que una mala no detenga a las buenas
+                        try
+                        {
+                            int? clienteIdFinal = null;
+
+                            // --- 1. LÓGICA DE CLIENTE ---
+                            if (!string.IsNullOrEmpty(cotWeb.ClienteEmail))
+                            {
+                                var clienteExistente = db.Clientes.FirstOrDefault(c => c.Correo == cotWeb.ClienteEmail);
+
+                                if (clienteExistente != null)
+                                {
+                                    clienteIdFinal = clienteExistente.ID;
+                                }
+                                else
+                                {
+                                    // Buscamos por nombre para no duplicar si el correo cambió
+                                    var clientePorNombre = db.Clientes.FirstOrDefault(c => c.RazonSocial.ToLower() == cotWeb.ClienteNombre.ToLower());
+
+                                    if (clientePorNombre != null)
+                                    {
+                                        clienteIdFinal = clientePorNombre.ID;
+                                        // Opcional: clientePorNombre.Correo = cotWeb.ClienteEmail;
+                                    }
+                                    else
+                                    {
+                                        // === AQUÍ ESTÁ LA SOLUCIÓN DEL RFC ===
+                                        string rfcAsignar = "XAXX010101000";
+
+                                        // Verificamos si el RFC genérico ya está usado por otro cliente (ej: Público General)
+                                        if (db.Clientes.Any(c => c.RFC == rfcAsignar))
+                                        {
+                                            // Si ya existe, generamos un RFC único para este cliente web
+                                            // Formato: WEB + AñoMesDia + Random (Total 12-13 chars)
+                                            var rnd = new Random();
+                                            rfcAsignar = "WEB" + DateTime.Now.ToString("yyMMdd") + rnd.Next(100, 999).ToString();
+                                        }
+
+                                        var nuevoCliente = new Cliente
+                                        {
+                                            RazonSocial = cotWeb.ClienteNombre ?? "Cliente Web",
+                                            Correo = cotWeb.ClienteEmail,
+                                            RFC = rfcAsignar, // <--- RFC SEGURO
+                                            Activo = true,
+                                            Creado = DateTime.Now,
+                                            EsFactura = false,
+                                            Telefono = "0000000000",
+                                            CodigoPostal = "00000",
+                                            RegimenFiscal = "616",
+                                            UsoCFDI = "S01"
+                                        };
+
+                                        db.Clientes.Add(nuevoCliente);
+                                        db.SaveChanges(); // Guardamos para obtener el ID
+                                        clienteIdFinal = nuevoCliente.ID;
+                                    }
+                                }
+                            }
+
+                            // --- 2. CREAR COTIZACIÓN LOCAL ---
+                            var nuevaCotLocal = new Cotizacion
+                            {
+                                FechaEmision = cotWeb.FechaCreacion,
+                                // Blindaje de fecha nula
+                                FechaVencimiento = cotWeb.FechaVencimiento ?? cotWeb.FechaCreacion.AddDays(15),
+                                Origen = "Web",
+                                ClienteId = clienteIdFinal,
+                                Subtotal = 0,
+                                IVA = 0,
+                                Total = 0
                             };
 
-                            db.Clientes.Add(nuevoCliente);
-                            db.SaveChanges(); // Guardamos INMEDIATAMENTE para obtener el nuevo ID
+                            // --- 3. PROCESAR DETALLES ---
+                            var detallesResponse = await _client.From<DetalleWeb>()
+                                                                .Where(x => x.CotizacionId == cotWeb.Id)
+                                                                .Get();
 
-                            clienteIdFinal = nuevoCliente.ID;
+                            decimal sumaSubtotal = 0;
+                            bool tieneDetalles = false;
+
+                            foreach (var detWeb in detallesResponse.Models)
+                            {
+                                var productoLocal = db.Productos.FirstOrDefault(p => p.Descripcion == detWeb.Descripcion);
+                                int idProductoFinal = (productoLocal != null) ? productoLocal.ID : (productoComodin?.ID ?? 0);
+
+                                if (idProductoFinal == 0) continue;
+
+                                var nuevoDetalle = new CotizacionDetalle
+                                {
+                                    ProductoId = idProductoFinal,
+                                    Descripcion = detWeb.Descripcion,
+                                    Cantidad = detWeb.Cantidad,
+                                    PrecioUnitario = detWeb.Precio,
+                                    Cotizacion = nuevaCotLocal
+                                };
+
+                                nuevaCotLocal.Detalles.Add(nuevoDetalle);
+                                sumaSubtotal += (detWeb.Cantidad * detWeb.Precio);
+                                tieneDetalles = true;
+                            }
+
+                            // --- 4. GUARDAR SI ES VÁLIDA ---
+                            if (tieneDetalles)
+                            {
+                                nuevaCotLocal.Total = sumaSubtotal;
+                                nuevaCotLocal.Subtotal = sumaSubtotal / 1.16m;
+                                nuevaCotLocal.IVA = sumaSubtotal - nuevaCotLocal.Subtotal;
+
+                                db.Cotizaciones.Add(nuevaCotLocal);
+                                db.SaveChanges(); // ¡Guardado individual!
+
+                                // Marcar como descargada
+                                await _client.From<CotizacionWeb>()
+                                             .Where(x => x.Id == cotWeb.Id)
+                                             .Set(x => x.Estado, "DESCARGADA")
+                                             .Update();
+
+                                importadas++;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Si falla UNA cotización (ej: datos corruptos), la saltamos y seguimos
+                            System.Diagnostics.Debug.WriteLine($"Error importando cotización {cotWeb.Id}: {ex.Message}");
+                            continue;
                         }
                     }
-                    // -------------------------------------------------------
-
-
-                    // Crear la cabecera de la cotización local
-                    var nuevaCotLocal = new Cotizacion
-                    {
-                        FechaEmision = cotWeb.FechaCreacion,
-
-                        // BLINDAJE: Si viene nula, calculamos 15 días a partir de hoy o de la creación
-                        FechaVencimiento = cotWeb.FechaVencimiento ?? cotWeb.FechaCreacion.AddDays(15),
-
-                        Origen = "Web",
-                        ClienteId = clienteIdFinal,
-                        Subtotal = 0,
-                        IVA = 0,
-                        Total = 0
-                    };
-
-                    // Traer detalles de esta cotización desde Supabase
-                    var detallesResponse = await _client.From<DetalleWeb>()
-                                                        .Where(x => x.CotizacionId == cotWeb.Id)
-                                                        .Get();
-
-                    decimal sumaSubtotal = 0;
-
-                    foreach (var detWeb in detallesResponse.Models)
-                    {
-                        // Buscamos producto local por nombre
-                        var productoLocal = db.Productos.FirstOrDefault(p => p.Descripcion == detWeb.Descripcion);
-
-                        // Si no existe, usamos el comodín
-                        int idProductoFinal = (productoLocal != null) ? productoLocal.ID : (productoComodin?.ID ?? 0);
-
-                        if (idProductoFinal == 0) continue;
-
-                        var nuevoDetalle = new CotizacionDetalle
-                        {
-                            ProductoId = idProductoFinal,
-                            Descripcion = detWeb.Descripcion, // Mantenemos la descripción original de la web
-                            Cantidad = detWeb.Cantidad,
-                            PrecioUnitario = detWeb.Precio,
-                            Cotizacion = nuevaCotLocal
-                        };
-
-                        nuevaCotLocal.Detalles.Add(nuevoDetalle);
-                        sumaSubtotal += (detWeb.Cantidad * detWeb.Precio);
-                    }
-
-                    // Guardar solo si tiene detalles
-                    if (nuevaCotLocal.Detalles.Count > 0)
-                    {
-                        nuevaCotLocal.Total = sumaSubtotal;
-                        nuevaCotLocal.Subtotal = sumaSubtotal / 1.16m;
-                        nuevaCotLocal.IVA = sumaSubtotal - nuevaCotLocal.Subtotal;
-
-                        db.Cotizaciones.Add(nuevaCotLocal);
-
-                        // ACTUALIZAR EN NUBE A 'DESCARGADA'
-                        await _client.From<CotizacionWeb>()
-                                     .Where(x => x.Id == cotWeb.Id)
-                                     .Set(x => x.Estado, "DESCARGADA")
-                                     .Update();
-
-                        importadas++;
-                    }
                 }
-                // Guardamos todos los cambios en la BD local (Cotizaciones y Detalles)
-                db.SaveChanges();
+                return importadas;
             }
-
-            return importadas;
+            catch (Exception ex)
+            {
+                // Error general de conexión
+                throw new Exception("Error al conectar con Supabase: " + ex.Message);
+            }
         }
 
         // --- MÉTODO DE DIAGNÓSTICO RÁPIDO ---
@@ -491,6 +517,40 @@ namespace OrySiPOS.Services
             // Traemos todo. Si son miles, aquí deberíamos paginar, pero para empezar está bien.
             var response = await _client.From<ProductoWeb>().Get();
             return response.Models;
+        }
+
+        // --- MÉTODOS DE SUBIDA MASIVA (RAPIDÍSIMOS ⚡) ---
+
+        public async Task SincronizarCategoriasMasivo(List<CategoriaWeb> lista)
+        {
+            if (lista.Count == 0) return;
+            await Inicializar();
+            // ¡Enviamos toda la lista de un jalón!
+            await _client.From<CategoriaWeb>().Upsert(lista);
+        }
+
+        public async Task SincronizarSubcategoriasMasivo(List<SubcategoriaWeb> lista)
+        {
+            if (lista.Count == 0) return;
+            await Inicializar();
+            await _client.From<SubcategoriaWeb>().Upsert(lista);
+        }
+
+        public async Task SincronizarClientesMasivo(List<ClienteWeb> lista)
+        {
+            if (lista.Count == 0) return;
+            await Inicializar();
+            await _client.From<ClienteWeb>().Upsert(lista);
+        }
+
+        public async Task SincronizarProductosMasivo(List<ProductoWeb> lista)
+        {
+            if (lista.Count == 0) return;
+            await Inicializar();
+
+            // Supabase a veces se queja si mandamos demasiados de golpe (ej: más de 5000).
+            // Si tuvieras miles, haríamos lotes de 1000, pero para empezar envíalos todos.
+            await _client.From<ProductoWeb>().Upsert(lista);
         }
     }
 }
