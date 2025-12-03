@@ -13,7 +13,7 @@ namespace OrySiPOS.Services
         // ⚠️ IMPORTANTE: Aquí van tus credenciales reales de Supabase
         // Las encuentras en tu Dashboard de Supabase -> Settings -> API
         private readonly string _url = "https://giqxulwkjkokyomylkne.supabase.co";
-        private readonly string _key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpcXh1bHdramtva3lvbXlsa25lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5MjM3NjIsImV4cCI6MjA3OTQ5OTc2Mn0.r5xZjgI83qmhKgCjeGUH6XZrGWJF438wbZ5nf-_uXu4";
+        private readonly string _key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpcXh1bHdramtva3lvbXlsa25lIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MzkyMzc2MiwiZXhwIjoyMDc5NDk5NzYyfQ.1f0UgMaGbGIxwMJ7vijnHelna9XekEJGCnAkLHoPvy0";
 
         private Supabase.Client _client;
 
@@ -39,13 +39,16 @@ namespace OrySiPOS.Services
         // 2. Baja lo pendiente
         // 3. Lo guarda en tu SQLite local
         // 4. Marca en la nube como "DESCARGADA"
+        // --- REEMPLAZA ESTE MÉTODO EN SupabaseService.cs ---
+
         public async Task<int> SincronizarCotizaciones()
         {
             await Inicializar();
 
-            // 1. Traer cabeceras PENDIENTES de la nube
             try
             {
+                // 1. Traer cabeceras PENDIENTES
+                // Nota: Asegúrate de que tu RLS en Supabase permita SELECT a 'anon' o usa la Service_Role Key
                 var response = await _client.From<CotizacionWeb>()
                                             .Where(x => x.Estado == "PENDIENTE")
                                             .Get();
@@ -57,7 +60,7 @@ namespace OrySiPOS.Services
 
                 using (var db = new InventarioDbContext())
                 {
-                    // PASO A: Asegurar Producto Comodín (Igual que antes)
+                    // PASO A: Asegurar Producto Comodín
                     var productoComodin = db.Productos.FirstOrDefault(p => p.Descripcion == "ITEM WEB NO ENCONTRADO");
                     if (productoComodin == null)
                     {
@@ -89,45 +92,48 @@ namespace OrySiPOS.Services
 
                             // --- 1. LÓGICA DE CLIENTE ---
 
-                            // A. Buscar por CORREO (Prioridad 1)
+                            // Intento 1: Buscar localmente por Email
                             if (!string.IsNullOrEmpty(cotWeb.ClienteEmail))
                             {
                                 var clienteExistente = db.Clientes.FirstOrDefault(c => c.Correo == cotWeb.ClienteEmail);
-                                if (clienteExistente != null)
-                                {
-                                    clienteIdFinal = clienteExistente.ID;
-                                }
+                                if (clienteExistente != null) clienteIdFinal = clienteExistente.ID;
                             }
 
-                            // B. Buscar por NOMBRE (Prioridad 2, solo si no se encontró por correo)
+                            // Intento 2: Buscar localmente por Nombre
                             if (clienteIdFinal == null)
                             {
                                 var clientePorNombre = db.Clientes.FirstOrDefault(c => c.RazonSocial.ToLower() == cotWeb.ClienteNombre.ToLower());
                                 if (clientePorNombre != null)
                                 {
                                     clienteIdFinal = clientePorNombre.ID;
-                                    // Opcional: Actualizar correo si está vacío
-                                    if (string.IsNullOrEmpty(clientePorNombre.Correo)) clientePorNombre.Correo = cotWeb.ClienteEmail;
+                                    // Actualizamos el correo si falta
+                                    if (string.IsNullOrEmpty(clientePorNombre.Correo))
+                                    {
+                                        clientePorNombre.Correo = cotWeb.ClienteEmail;
+                                        db.SaveChanges();
+                                    }
                                 }
                             }
 
-                            // C. CREAR NUEVO (Si no existe ni por correo ni por nombre)
+                            // Intento 3: CREAR NUEVO (Si no existe localmente)
                             if (clienteIdFinal == null)
                             {
-                                // --- RECUPERACIÓN DE DATOS REALES DEL CLIENTE DESDE LA NUBE ---
                                 string rfcFinal = "XAXX010101000";
-                                string telefonoFinal = "0000000000";
-                                string cpFinal = "00000";
+                                string telefonoFinal = "";
+                                string cpFinal = "64000"; // CP Genérico
                                 string regimenFinal = "616";
                                 string usoCfdiFinal = "S01";
                                 bool esFacturaFinal = false;
 
-                                try
+                                // --- RECUPERACIÓN SEGURA DE DATOS EXTRA ---
+                                // Usamos Get() + FirstOrDefault para que NO explote si no hay datos
+                                if (!string.IsNullOrEmpty(cotWeb.ClienteEmail))
                                 {
-                                    // Hacemos una consulta extra a 'clientes_web' para obtener el teléfono y RFC real
-                                    var datosClienteNube = await _client.From<ClienteWeb>()
-                                                                .Where(c => c.Correo == cotWeb.ClienteEmail)
-                                                                .Single();
+                                    var respCliente = await _client.From<ClienteWeb>()
+                                                                   .Where(c => c.Correo == cotWeb.ClienteEmail)
+                                                                   .Get();
+
+                                    var datosClienteNube = respCliente.Models.FirstOrDefault();
 
                                     if (datosClienteNube != null)
                                     {
@@ -135,43 +141,36 @@ namespace OrySiPOS.Services
                                         if (!string.IsNullOrEmpty(datosClienteNube.Telefono)) telefonoFinal = datosClienteNube.Telefono;
                                         if (!string.IsNullOrEmpty(datosClienteNube.CodigoPostal)) cpFinal = datosClienteNube.CodigoPostal;
                                         if (!string.IsNullOrEmpty(datosClienteNube.RegimenFiscal)) regimenFinal = datosClienteNube.RegimenFiscal;
-                                        if (!string.IsNullOrEmpty(datosClienteNube.UsoCfdi)) usoCfdiFinal = datosClienteNube.UsoCfdi;
                                         esFacturaFinal = datosClienteNube.EsFactura;
                                     }
                                 }
-                                catch
-                                {
-                                    // Si falla (ej: el cliente compró como invitado sin registrarse), usamos los defaults.
-                                }
 
-                                // --- LÓGICA DEL PORTERO (RFC DUPLICADO) ---
+                                // Validación de RFC Duplicado
                                 bool esRfcGenerico = (rfcFinal == "XAXX010101000");
                                 var clienteConMismoRfc = db.Clientes.FirstOrDefault(c => c.RFC == rfcFinal);
 
                                 if (clienteConMismoRfc != null && !esRfcGenerico)
                                 {
-                                    // CASO: Ya existe una empresa con este RFC real. NO DUPLICAMOS.
                                     clienteIdFinal = clienteConMismoRfc.ID;
                                 }
                                 else
                                 {
-                                    // CASO: Es nuevo O es Público en General (permitimos duplicar genéricos)
                                     var nuevoCliente = new Cliente
                                     {
                                         RazonSocial = cotWeb.ClienteNombre ?? "Cliente Web",
                                         Correo = cotWeb.ClienteEmail,
-                                        RFC = rfcFinal, // RFC Real o Genérico
+                                        RFC = rfcFinal,
                                         Activo = true,
                                         Creado = DateTime.Now,
                                         EsFactura = esFacturaFinal,
-                                        Telefono = telefonoFinal, // ¡Teléfono Real recuperado!
+                                        Telefono = telefonoFinal,
                                         CodigoPostal = cpFinal,
                                         RegimenFiscal = regimenFinal,
                                         UsoCFDI = usoCfdiFinal
                                     };
 
                                     db.Clientes.Add(nuevoCliente);
-                                    db.SaveChanges();
+                                    db.SaveChanges(); // Guardamos para obtener el ID
                                     clienteIdFinal = nuevoCliente.ID;
                                 }
                             }
@@ -193,12 +192,26 @@ namespace OrySiPOS.Services
                                                                 .Where(x => x.CotizacionId == cotWeb.Id)
                                                                 .Get();
 
-                            decimal sumaSubtotal = 0;
+                            decimal sumaTotal = 0;
                             bool tieneDetalles = false;
 
                             foreach (var detWeb in detallesResponse.Models)
                             {
-                                var productoLocal = db.Productos.FirstOrDefault(p => p.Descripcion == detWeb.Descripcion);
+                                Producto productoLocal = null;
+
+                                // A. Intentar buscar por SKU (ID) primero (Más preciso)
+                                if (long.TryParse(detWeb.ProductoSku, out long skuBuscado))
+                                {
+                                    productoLocal = db.Productos.FirstOrDefault(p => p.ID == skuBuscado);
+                                }
+
+                                // B. Si falla, intentar por Descripción
+                                if (productoLocal == null)
+                                {
+                                    productoLocal = db.Productos.FirstOrDefault(p => p.Descripcion == detWeb.Descripcion);
+                                }
+
+                                // C. Si falla, usar comodín
                                 int idProductoFinal = (productoLocal != null) ? productoLocal.ID : (productoComodin?.ID ?? 0);
 
                                 if (idProductoFinal == 0) continue;
@@ -209,25 +222,27 @@ namespace OrySiPOS.Services
                                     Descripcion = detWeb.Descripcion,
                                     Cantidad = detWeb.Cantidad,
                                     PrecioUnitario = detWeb.Precio,
-                                    Cotizacion = nuevaCotLocal
+                                    Cotizacion = nuevaCotLocal // Vinculación EF Core
                                 };
 
                                 nuevaCotLocal.Detalles.Add(nuevoDetalle);
-                                sumaSubtotal += (detWeb.Cantidad * detWeb.Precio);
+                                sumaTotal += (detWeb.Cantidad * detWeb.Precio);
                                 tieneDetalles = true;
                             }
 
-                            // --- 4. GUARDAR SI ES VÁLIDA ---
+                            // --- 4. GUARDAR Y ACTUALIZAR ESTADO ---
                             if (tieneDetalles)
                             {
-                                nuevaCotLocal.Total = sumaSubtotal;
-                                nuevaCotLocal.Subtotal = sumaSubtotal / 1.16m;
-                                nuevaCotLocal.IVA = sumaSubtotal - nuevaCotLocal.Subtotal;
+                                // Recalcular montos finales
+                                nuevaCotLocal.Total = sumaTotal;
+                                // Asumiendo que el precio web ya incluye IVA
+                                nuevaCotLocal.Subtotal = sumaTotal / 1.16m;
+                                nuevaCotLocal.IVA = sumaTotal - nuevaCotLocal.Subtotal;
 
                                 db.Cotizaciones.Add(nuevaCotLocal);
                                 db.SaveChanges();
 
-                                // Marcar como descargada
+                                // Marcar en la nube como DESCARGADA
                                 await _client.From<CotizacionWeb>()
                                              .Where(x => x.Id == cotWeb.Id)
                                              .Set(x => x.Estado, "DESCARGADA")
@@ -236,10 +251,11 @@ namespace OrySiPOS.Services
                                 importadas++;
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception exItem)
                         {
-                            System.Diagnostics.Debug.WriteLine($"Error importando cotización {cotWeb.Id}: {ex.Message}");
-                            continue;
+                            // Tip de depuración: Si algo falla, descomenta esto para ver el error en pantalla
+                            // System.Windows.MessageBox.Show($"Error en cotización {cotWeb.Id}: {exItem.Message}");
+                            System.Diagnostics.Debug.WriteLine($"Error importando item: {exItem.Message}");
                         }
                     }
                 }
@@ -247,7 +263,7 @@ namespace OrySiPOS.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Error al conectar con Supabase: " + ex.Message);
+                throw new Exception("Error general en Sync: " + ex.Message);
             }
         }
 
