@@ -406,8 +406,6 @@ namespace OrySiPOS.Services
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error delete Categoria: " + ex.Message); }
         }
 
-        // En OrySiPOS.Services.SupabaseService.cs
-
         public async Task SincronizarCliente(Cliente local)
         {
             try
@@ -416,16 +414,13 @@ namespace OrySiPOS.Services
 
                 var webModel = new ClienteWeb
                 {
-                    Id = local.ID,
+                    // 1. CORRECCIÓN DE FORMATO: Convertimos el ID numérico a formato UUID falso
+                    Id = $"00000000-0000-0000-0000-{local.ID:D12}",
+
+                    Correo = local.Correo,
                     Rfc = local.RFC,
                     RazonSocial = local.RazonSocial,
                     Telefono = local.Telefono,
-
-                    // --- ¡ESTA LÍNEA FALTABA! ---
-                    // Asegúrate de que tu modelo ClienteWeb tenga la propiedad 'Correo' o 'ClienteEmail'
-                    Correo = local.Correo,
-                    // ----------------------------
-
                     Activo = local.Activo,
                     EsFactura = local.EsFactura,
                     CodigoPostal = local.CodigoPostal,
@@ -435,7 +430,15 @@ namespace OrySiPOS.Services
                     UltimaActualizacion = DateTime.Now
                 };
 
-                await _client.From<ClienteWeb>().Upsert(webModel);
+                // 2. ESTRATEGIA DE CONFLICTO:
+                // Le decimos a Supabase: "Si ya existe este EMAIL, actualiza ese registro.
+                // Ignora si el ID que te mando no coincide con el que tú tienes".
+                var options = new Supabase.Postgrest.QueryOptions
+                {
+                    OnConflict = "email" // ✅ CORRECTO: Así se llama en .NET
+                };
+
+                await _client.From<ClienteWeb>().Upsert(webModel, options);
             }
             catch (Exception ex)
             {

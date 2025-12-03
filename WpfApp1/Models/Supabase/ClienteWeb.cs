@@ -8,7 +8,7 @@ namespace OrySiPOS.Models.Supabase
     public class ClienteWeb : BaseModel
     {
         [PrimaryKey("id", false)]
-        public long Id { get; set; }
+        public string Id { get; set; } // <--- Supabase maneja los UUID como Strings en C#
 
         [Column("rfc")]
         public string Rfc { get; set; }

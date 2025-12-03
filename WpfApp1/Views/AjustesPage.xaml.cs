@@ -232,7 +232,7 @@ namespace OrySiPOS.Views
                         {
                             loteClientes.Add(new OrySiPOS.Models.Supabase.ClienteWeb
                             {
-                                Id = c.ID,
+                                Id = $"00000000-0000-0000-0000-{c.ID:D12}",
                                 Rfc = c.RFC,
                                 RazonSocial = c.RazonSocial,
                                 Telefono = c.Telefono,
@@ -422,8 +422,18 @@ namespace OrySiPOS.Views
                         var clientesWeb = await servicioNube.ObtenerClientesDeNube();
                         foreach (var cliWeb in clientesWeb)
                         {
-                            if (!db.Clientes.Any(c => c.RFC == cliWeb.RFC))
+                            // Verificamos por CORREO, que es único para usuarios web
+                            bool yaExistePorCorreo = !string.IsNullOrEmpty(cliWeb.Correo) &&
+                                                     db.Clientes.Any(c => c.Correo == cliWeb.Correo);
+
+                            // Opcional: Si no tiene correo, validamos por RFC (para clientes viejos)
+                            bool yaExistePorRfc = db.Clientes.Any(c => c.RFC == cliWeb.RFC && c.RFC != "XAXX010101000");
+
+                            if (!yaExistePorCorreo && !yaExistePorRfc)
                             {
+                                // IMPORTANTE: Mapear correctamente el objeto ClienteWeb a Cliente Local
+                                // El método 'ObtenerClientesDeNube' ya te devuelve objetos 'Cliente',
+                                // pero asegúrate de que venga bien el correo.
                                 db.Clientes.Add(cliWeb);
                                 nuevosClientes++;
                             }
